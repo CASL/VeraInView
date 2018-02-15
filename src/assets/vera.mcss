@@ -1,0 +1,337 @@
+.header {
+  padding: 0 15px;
+}
+
+.sideBar {
+  height: calc(100vh - 64px);
+  border-right: solid #999 1px;
+  overflow: auto;
+  user-select: none;
+}
+
+.logo {
+  width: 174px;
+  height: 45px;
+  border-radius: 6px;
+  margin: 10px 28px 0 0;
+  float: left;
+  background: url('./CASL.svg');
+  background-size: 100%;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.welcome {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  flex: 1;
+}
+
+.welcomeTitle {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: white;
+  font-size: 50px;
+  font-family: monospace;
+  z-index: 1;
+}
+
+.welcomeImage {
+  width: 100%;
+  top: 0;
+  position: relative;
+}
+
+.uploadWelcomeContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.title {
+  display: inline-block;
+  font-size: 25px;
+  color: #999;
+  font-weight: bold;
+  text-align: center;
+}
+
+.fileButton {
+  width: 45px;
+  height: 45px;
+}
+
+.fileLoader {
+  composes: fileButton;
+  margin: 10px 0 0 0;
+  display: block;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+
+  float: right;
+  background: rgba(128, 128, 128, 0.5);
+}
+
+.fileLoaderTrigger {
+  composes: fileButton;
+  display: table-cell;
+  vertical-align: middle;
+  font-size: 28px;
+  color: #999;
+}
+
+.tree {
+  margin-left: 15px;
+}
+
+.tree ul, .tree li {
+  line-height: 20px;
+  color: #999;
+}
+
+.color {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.colorWithBorder {
+  composes: color;
+  border: 1px solid #999;
+}
+
+.colorLabel {
+  line-height: 25px;
+  height: 25px;
+}
+
+.itemWithImage {
+  display: flex;
+  align-items: center;
+}
+
+.itemWithImage img {
+  height: 40px;
+  position: relative;
+  left: -10px;
+}
+
+.itemWithIcon {
+  position: relative;
+  left: -10px;
+  display: flex;
+  align-items: center;
+}
+
+.itemWithIcon i {
+  font-size: 40px;
+  margin-right: 0;
+}
+
+.mainImage {
+  flex: 1;
+}
+.mainImage img {
+  background-color: #f9f9f9;
+  padding: 50px;
+  width: 100%;
+}
+
+.legendContainer {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+}
+
+.legend {
+  flex: 0;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 30px;
+}
+
+.vtkRootContainer {
+  position: relative;
+  height: calc(100vh - 64px - 38px - 48px - 1px);
+  width: 100%;
+}
+
+.vtkRenderer {
+  position: absolute;
+  top: 20px;
+  height: calc(100% - 20px);
+  width: 100%;
+  background: #ccc;
+}
+
+.vtkToolBar {
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  top: -25px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.vtkToolBarSection {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.vtkNested {
+  height: 100%;
+}
+
+.leftSpacer {
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.leftSpacer label {
+  font-weight: bold;
+  margin-right: 5px;
+  user-select: none;
+}
+
+.warningSwitch:global(.ant-switch) {
+  background-color: #8BC34A;
+}
+
+.warningSwitch:global(.ant-switch-checked) {
+  background-color: #e91010;
+}
+
+.materialSelector:global(.ant-menu-item-disabled):global(.ant-menu-item) {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.67) !important;
+  opacity: 1 !important;
+}
+
+.materialSwitch {
+  background-color: #607d8b;
+}
+
+.materialSwitch:global(.ant-switch-checked) {
+  background-color: #108ee9;
+}
+
+.toggleLabel {
+  font-weight: bold;
+  margin-right: 5px;
+  margin-left: 10px;
+}
+
+.stateValues {
+  display: grid;
+  grid-column-gap: 10px;
+  align-items: center;
+  min-height: 180px;
+}
+
+.stateValuesLabel {
+  composes: stateValues;
+  grid-template-columns: auto auto;
+}
+
+.stateValuesControls {
+  composes: stateValues;
+  grid-template-columns: 50px auto;
+}
+
+.stateLabel {
+  font-weight: bold;
+  margin-right: 5px;
+  margin-left: 10px;
+  text-align: right;
+}
+
+.stateButtons {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 5px;
+}
+
+.stateButtons button {
+  margin-left: 10px;
+}
+
+.stateControlLabel {
+  display: flex;
+  justify-content: flex-end;
+  height: 100%;
+  align-items: flex-start;
+  padding-top: 6px;
+}
+
+.statesPanel {
+  float: left;
+  position: absolute;
+  top: 25px;
+  left: 5px;
+  border-radius: 6px;
+  width: 355px;
+  max-height: calc(100% - 30px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: white;
+  opacity: 0.5;
+  padding: 10px;
+  transition: opacity 0.3s ease;
+}
+.statesPanel:hover {
+  opacity: 1.0;
+}
+
+.highlightSlider :global(.ant-slider-track) {
+  background-color: #F691FF;
+}
+.highlightSlider:hover :global(.ant-slider-track) {
+  background-color: #F266FF;
+}
+
+.controlButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.controlButton {
+  flex: none;
+}
+
+.zoomButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 5px;
+  width: 50px;
+}
+
+.form {
+  width: 100%;
+}
+
+.preview {
+  position: relative;
+  width: 100%;
+  height: 400px;
+}

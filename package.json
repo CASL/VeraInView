@@ -1,0 +1,36 @@
+{
+    "name": "Vera",
+    "version": "0.0.0-semantically-release",
+    "description": "",
+    "license": "",
+    "main": "./dist/vera.js",
+    "dependencies": {
+        "vtk.js": "6.2.7"
+    },
+    "devDependencies": {
+        "inline-source-cli": "1.2.0",
+        "antd": "2.13.11",
+        "react": "16.1.1",
+        "react-dom": "16.1.1",
+        "kw-doc": "1.1.1",
+        "kw-web-suite": "5.0.1",
+        "prettier": "1.9.2"
+    },
+    "scripts": {
+        "validate": "prettier --config ./prettier.config.js --list-different \"src/**/*.js\"",
+        "reformat": "prettier --config ./prettier.config.js --write \"src/**/*.js\"",
+        "reformat-only": "prettier --config ./prettier.config.js --write",
+        "build": "webpack --progress --colors",
+        "build:debug": "npm run build -- --display-modules",
+        "build:release": "npm run build -- --env.release",
+        "bundle": "inline-source --compress false --root ./dist ./dist/index.html ./dist/VeraInView.html",
+        "start": "webpack-dev-server",
+        "commit": "git cz",
+        "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    },
+    "config": {
+        "commitizen": {
+            "path": "node_modules/cz-conventional-changelog"
+        }
+    }
+}
