@@ -51,9 +51,6 @@ function updateGlyphSource(glyph, resolution, maskMap) {
     if (!glyph.getReferenceByName('noDynamicResolution')) {
       glyph.setResolution(2);
     }
-  } else {
-    glyph.setStartTheta(0);
-    glyph.setEndTheta(360);
   }
 }
 
@@ -163,7 +160,6 @@ function vtkCASLPipelineManager(publicAPI, model) {
     maskMap = {},
     controlRods = {}
   ) => {
-    const exportGlyphArray = { mapping: [], glyph: [], rgbPoints: [] };
     const result = {};
     const isSame = model.pipeline.id === state.id;
     const newTypeToRender = model.pipeline.type !== state.type;
@@ -327,33 +323,12 @@ function vtkCASLPipelineManager(publicAPI, model) {
           model.renderer.addActor(actor);
           model.pipeline.actors.push(actor);
           model.pipeline.items.push({
+            id: 'grid',
             source,
             cube,
             mapper,
             actor,
           });
-
-          // Export grid
-          if (exportGlyphs) {
-            exportGlyphArray.glyph.push(
-              Object.assign({ id: 'grid' }, cube.getState())
-            );
-            exportGlyphArray.mapping.push({
-              coordinates: Array.from(source.getPoints().getData()),
-              scale: Array.from(
-                source
-                  .getPointData()
-                  .getArrayByName('scaling')
-                  .getData()
-              ),
-              glyphId: 'grid',
-            });
-            lookupTable
-              .getReferenceByName('nodes')
-              .forEach(({ x, r, g, b }) => {
-                exportGlyphArray.rgbPoints.push(x, r, g, b);
-              });
-          }
         }
         console.timeEnd('grid');
 
@@ -416,28 +391,12 @@ function vtkCASLPipelineManager(publicAPI, model) {
 
           model.pipeline.actors.push(actor);
           model.pipeline.items.push({
+            id: layout.cellId,
             source,
             glyph,
             mapper,
             actor,
           });
-
-          // Export grid
-          if (exportGlyphs) {
-            exportGlyphArray.glyph.push(
-              Object.assign({ id: layout.cellId }, glyph.getState())
-            );
-            exportGlyphArray.mapping.push({
-              coordinates: Array.from(source.getPoints().getData()),
-              scale: Array.from(
-                source
-                  .getPointData()
-                  .getArrayByName('scaling')
-                  .getData()
-              ),
-              glyphId: layout.cellId,
-            });
-          }
         });
         console.timeEnd('layout');
       }
@@ -505,12 +464,54 @@ function vtkCASLPipelineManager(publicAPI, model) {
 
     model.fpsMonitor.update();
 
-    if (exportGlyphs) {
-      console.log('export');
-      console.log(JSON.stringify(exportGlyphArray, null, 2));
+    if (exportGlyphs && model.pipeline.items) {
+      const exportGlyphArray = { mapping: [], glyph: [], rgbPoints: [] };
+
+      // Color handling
+      model.pipeline.lookupTable
+        .getReferenceByName('nodes')
+        .forEach(({ x, r, g, b }) => {
+          exportGlyphArray.rgbPoints.push(x, r, g, b);
+        });
+
+      // Glyph handling
+      for (let i = 0; i < model.pipeline.items.length; i++) {
+        const item = model.pipeline.items[i];
+        const source = item.source;
+        const glyph = item.glyph || item.cube;
+        if (item.id && glyph && item.actor.getVisibility()) {
+          exportGlyphArray.glyph.push(
+            Object.assign({ id: item.id }, glyph.getState())
+          );
+          exportGlyphArray.mapping.push({
+            coordinates: Array.from(source.getPoints().getData()),
+            scale: Array.from(
+              source
+                .getPointData()
+                .getArrayByName('scaling')
+                .getData()
+            ),
+            glyphId: item.id,
+          });
+        }
+      }
+
+      model.blob = new Blob([JSON.stringify(exportGlyphArray, null, 2)], {
+        type: 'application/octet-stream',
+      });
     }
 
     return result;
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.downloadExport = () => {
+    const url = URL.createObjectURL(model.blob);
+    window.open(url, '_blank');
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
   };
 
   // --------------------------------------------------------------------------

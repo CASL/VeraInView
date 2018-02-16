@@ -2,12 +2,17 @@ import macro from 'vtk.js/Sources/macro';
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import vtkURLExtract from 'vtk.js/Sources/Common/Core/URLExtract';
+
 import { Slider, Button, Switch, Icon, Menu, Dropdown } from 'antd';
 
 import StatePanel from './StatePanel';
 
 import style from '../assets/vera.mcss';
 import vtkPipelineManager from '../utils/PipelineManager';
+
+const userParams = vtkURLExtract.extractURLParameters();
+const EXPORT = !!userParams.export;
 
 const SCALING_MARKS = {
   0.25: '1/4',
@@ -314,6 +319,14 @@ export default class VTKRenderer extends React.Component {
             <div className={style.leftSpacer}>
               <Button icon="scan" onClick={this.pipeline.resetCamera} />
             </div>
+            {EXPORT ? (
+              <div className={style.leftSpacer}>
+                <Button
+                  icon="file-add"
+                  onClick={this.pipeline.downloadExport}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
         {this.state.capture && (
