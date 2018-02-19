@@ -5,6 +5,7 @@ import { Button, Icon, Select, Slider, Switch, Tabs } from 'antd';
 
 import style from '../assets/vera.mcss';
 import ColorManager from '../utils/ColorManager';
+import units from '../utils/Units';
 
 function setControlRods(controlRods, tagList, rodPos) {
   const keyList = tagList || Object.keys(controlRods);
@@ -210,7 +211,7 @@ export default class StatePanel extends React.Component {
                 <label className={style.stateLabel} key={`key${key}`}>
                   {key}
                 </label>,
-                <div key={`val${key}`}>{`${a[key]}`}</div>,
+                <div key={`val${key}`}>{`${a[key]} ${units[key] || ''}`}</div>,
               ])}
             </div>
           </Tabs.TabPane>
