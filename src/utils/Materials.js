@@ -1,4 +1,4 @@
-import macro from 'vtk.js/Sources/macro';
+// import macro from 'vtk.js/Sources/macro';
 import ImageGenerator from './ImageGenerator';
 
 const { materialColorManager } = ImageGenerator;
@@ -433,7 +433,7 @@ function initMaterials() {
   materials.forEach((m, i) => {
     // m.title = macro.capitalize(m.name);
     if (!m.id) {
-      m.label = macro.capitalize(m.name);
+      m.label = m.name; // macro.capitalize(m.name);
       m.color = materialColorManager.getColor(m.name);
       m.id = `defaults-${i + 1}`;
     }

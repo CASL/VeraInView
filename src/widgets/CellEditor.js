@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Form, Input, Button, Select } from 'antd';
+import { Form, Input, Button, Select, Row, Col } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
 import VTKRenderer from './VTKRenderer';
@@ -16,9 +16,10 @@ let cellId = 1;
 
 // const TYPES = ['fuel', 'other'];
 const {
-  materialColorManager,
+  // materialColorManager,
   materialLookupTable,
   updateLookupTables,
+  updateCellImage,
 } = ImageGenerator;
 
 export default class CellEditor extends React.Component {
@@ -72,6 +73,7 @@ export default class CellEditor extends React.Component {
     while (mats.length > numRings) {
       mats.pop();
     }
+    this.props.content.radiiStr = e.target.value;
     this.props.content.radii = radii;
     this.props.content.num_rings = numRings;
     this.props.content.mats = mats;
@@ -86,18 +88,10 @@ export default class CellEditor extends React.Component {
 
   update3D() {
     updateLookupTables();
+    updateCellImage(this.props.content);
+    this.props.content.has3D.source.forceUpdate = true;
     this.setState({
-      rendering: {
-        id: this.props.content.id,
-        type: 'cell',
-        source: {
-          forceUpdate: true,
-          radius: this.props.content.radii,
-          cellFields: this.props.content.mats.map(materialColorManager.getId),
-          resolution: 360,
-        },
-        lookupTable: materialLookupTable,
-      },
+      rendering: this.props.content.has3D,
     });
   }
 
@@ -118,10 +112,10 @@ export default class CellEditor extends React.Component {
       <div className={style.form}>
         {this.props.content.id === 'new-000' ? (
           <Button
+            type="primary"
             shape="circle"
-            style={{ position: 'absolute', right: 15, top: 72 }}
+            style={{ position: 'absolute', right: 15, top: 68 }}
             icon="plus"
-            size="small"
             onClick={this.addNew}
           />
         ) : null}
@@ -143,7 +137,7 @@ export default class CellEditor extends React.Component {
             wrapperCol={{ span: 20 }}
           >
             <Input
-              value={this.props.content.radii}
+              defaultValue={this.props.content.radii}
               data-id="radii"
               onChange={this.onRadiiUpdate}
             />
@@ -153,19 +147,19 @@ export default class CellEditor extends React.Component {
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
           >
-            {this.props.content.mats.map((m, idx) => (
-              <Select
-                key={`mat-${idx.toString(16)}`}
-                value={m}
-                onChange={this.onMaterialUpdate}
-              >
-                {this.props.materials.map((mt) => (
-                  <Option key={mt.id} value={`${idx}::${mt.name}`}>
-                    {mt.label}
-                  </Option>
-                ))}
-              </Select>
-            ))}
+            <Row>
+              {this.props.content.mats.map((m, idx) => (
+                <Col span={3} key={`mat-${idx.toString(16)}`}>
+                  <Select value={m} showSearch onChange={this.onMaterialUpdate}>
+                    {this.props.materials.map((mt) => (
+                      <Option key={mt.id} value={`${idx}::${mt.name}`}>
+                        {mt.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Col>
+              ))}
+            </Row>
           </FormItem>
         </Form>
         <div className={style.preview}>

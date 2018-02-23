@@ -12,35 +12,25 @@ import style from '../assets/vera.mcss';
 const FormItem = Form.Item;
 // const Option = Select.Option;
 
-let cellId = 1;
+let layoutId = 10;
 
 // const TYPES = ['fuel', 'other'];
 const {
   // materialColorManager,
-  materialLookupTable,
+  // materialLookupTable,
   updateLookupTables,
+  updateLayoutImage,
 } = ImageGenerator;
 
-export default class AssemblyEditor extends React.Component {
+export default class AssemblyLayoutEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rendering: {
-        id: '000',
-        type: 'cell',
-        source: {
-          radius: [1],
-          cellFields: [1],
-          resolution: 360,
-        },
-        lookupTable: materialLookupTable,
-      },
+      rendering: null,
     };
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
     this.addNew = this.addNew.bind(this);
-    this.onElevationUpdate = this.onElevationUpdate.bind(this);
-    this.onMaterialUpdate = this.onMaterialUpdate.bind(this);
     this.update3D = this.update3D.bind(this);
   }
 
@@ -59,58 +49,43 @@ export default class AssemblyEditor extends React.Component {
     this.update3D();
   }
 
-  onElevationUpdate(e) {
-    const elevation = e.target.value
-      .split(',')
-      .map((s) => s.trim())
-      .map((s) => Number(s));
-    const numRings = elevation.length;
-    const mats = [].concat(this.props.content.mats);
-    while (mats.length < numRings) {
-      mats.push(this.props.materials[0].name);
-    }
-    while (mats.length > numRings) {
-      mats.pop();
-    }
-    this.props.content.elevation = elevation;
-    this.props.content.num_rings = numRings;
-    this.props.content.mats = mats;
-    this.update3D();
-  }
-
-  onMaterialUpdate(value) {
-    const [idx, name] = value.split('::');
-    this.props.content.mats[Number(idx)] = name;
-    this.update3D();
-  }
-
   // eslint-disable-next-line class-methods-use-this
   update3D() {
     updateLookupTables();
-    // this.setState({
-    //   rendering: {
-    //     id: this.props.content.id,
-    //     type: 'assembly',
-    //     source: {
-    //       forceUpdate: true,
-    //       radius: this.props.content.radii,
-    //       // cellFields: this.props.content.mats.map(materialColorManager.getId),
-    //       resolution: 360,
-    //     },
-    //     lookupTable: materialLookupTable,
-    //   },
-    // });
+    if (this.props.cells.length) {
+      const cellNameToIdMap = {};
+      this.props.cells.forEach((cell) => {
+        if (cell.id !== 'new-000') {
+          cellNameToIdMap[cell.label] = cell.id;
+        }
+      });
+      // TODO verify items in the cellMap
+      const cellMap = this.props.content.cellMap.split(/\s+/);
+      // if (
+      //   cellMap.length ===
+      //   +this.props.content.numPins * +this.props.content.numPins
+      // ) {
+      this.props.content.cell_map = cellMap;
+      updateLayoutImage(this.props.content, cellNameToIdMap);
+      this.setState({
+        rendering: this.props.content.has3D,
+      });
+      // }
+    } else {
+      this.setState({
+        rendering: null,
+      });
+    }
   }
 
   addNew() {
     if (this.props.addNew) {
-      const newCell = Object.assign({}, this.props.content, {
-        id: `new-${cellId++}`,
+      const newLayout = Object.assign({}, this.props.content, {
+        id: `new-${layoutId++}`,
       });
-      newCell.elevation = newCell.elevation.map((s) => Number(s));
-      newCell.mats = newCell.mats.slice();
-      newCell.labelToUse = newCell.label;
-      this.props.addNew(this.props.type, newCell);
+      newLayout.cell_map = newLayout.cell_map.slice();
+      newLayout.labelToUse = newLayout.label;
+      this.props.addNew(this.props.type, newLayout);
     }
   }
 
@@ -160,25 +135,42 @@ export default class AssemblyEditor extends React.Component {
               onChange={this.onFieldUpdate}
             />
           </FormItem>
+          <FormItem
+            label="Cell Map"
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 20 }}
+          >
+            <Input.TextArea
+              style={{ fontFamily: 'monospace' }}
+              value={this.props.content.cellMap}
+              rows={this.props.content.numPins}
+              data-id="cellMap"
+              onChange={this.onFieldUpdate}
+            />
+          </FormItem>
         </Form>
         <div className={style.preview}>
-          <VTKRenderer nested content={this.state.rendering} />
+          {this.state.rendering && (
+            <VTKRenderer nested content={this.state.rendering} />
+          )}
         </div>
       </div>
     );
   }
 }
 
-AssemblyEditor.propTypes = {
+AssemblyLayoutEditor.propTypes = {
   content: PropTypes.object.isRequired,
   update: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
-  materials: PropTypes.array,
+  // materials: PropTypes.array,
+  cells: PropTypes.array,
 };
 
-AssemblyEditor.defaultProps = {
+AssemblyLayoutEditor.defaultProps = {
   addNew: null,
   type: null,
-  materials: [],
+  // materials: [],
+  cells: [],
 };

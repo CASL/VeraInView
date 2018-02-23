@@ -3,16 +3,18 @@ import 'antd/dist/antd.css';
 import React from 'react';
 // import PropTypes from 'prop-types';
 
-import { Breadcrumb, Icon, Layout, Menu, message } from 'antd';
+import { Breadcrumb, Icon, Layout, Menu /* , message */ } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
 import Color from './widgets/Color';
 import MaterialEditor from './widgets/MaterialEditor';
 import CellEditor from './widgets/CellEditor';
+import AssemblyEditor from './widgets/AssemblyEditor';
+import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
 // import VTKRenderer from './widgets/VTKRenderer';
 import ImageGenerator from './utils/ImageGenerator';
-import { materials, initMaterials } from './utils/Materials';
+import Materials from './utils/Materials';
 
 import style from './assets/vera.mcss';
 import welcome from './assets/welcome.jpg';
@@ -20,13 +22,20 @@ import welcome from './assets/welcome.jpg';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { capitalize } = macro;
+const { materials, initMaterials } = Materials;
 
-ImageGenerator.setLogger(message.info);
+ImageGenerator.setLogger(console.log);
 
 const EDITORS = {
   Materials: MaterialEditor,
   Cells: CellEditor,
+  Assemblies: AssemblyEditor,
+  AssemblyLayouts: AssemblyLayoutEditor,
 };
+
+function uncapitalize(str) {
+  return str.charAt(0).toLowerCase() + str.slice(1);
+}
 
 export default class EditView extends React.Component {
   constructor(props) {
@@ -44,7 +53,25 @@ export default class EditView extends React.Component {
           labelToUse: 'New cell',
         },
       ],
-      assemblies: [],
+      assemblyLayouts: [
+        {
+          label: 'New',
+          id: 'new-000',
+          numPins: 3,
+          pinPitch: 1.26,
+          labelToUse: 'New map',
+          cellMap: '',
+        },
+      ],
+      assemblies: [
+        {
+          label: 'New',
+          id: 'new-000',
+          labelToUse: 'New assembly',
+          elevations: [],
+          'axial-labels': [],
+        },
+      ],
       content: null,
       path: ['Home'],
       has3D: false,
@@ -164,9 +191,10 @@ export default class EditView extends React.Component {
           key={`editor-${this.state.lastKey}`}
           content={this.state.content}
           update={this.forceUpdate}
-          type={this.state.path[0].toLowerCase()}
+          type={uncapitalize(this.state.path[0])}
           addNew={this.onNew}
           materials={this.state.materials}
+          cells={this.state.cells}
         />
       );
     }
@@ -214,28 +242,21 @@ export default class EditView extends React.Component {
                   </span>
                 }
               >
+                {this.state.assemblyLayouts.map((l) => (
+                  <Menu.Item key={`assemblyLayouts:${l.id}`}>
+                    <span className={style.itemWithIcon}>
+                      <Icon type="check-square-o" />
+                      {l.labelToUse || l.label}
+                    </span>
+                  </Menu.Item>
+                ))}
                 {this.state.assemblies.map((a) => (
-                  <SubMenu
-                    key={`assemblies:${a.label}`}
-                    title={a.label}
-                    selectable
-                  >
-                    <Menu.Item key={`assemblies:${a.label}:stack`}>
-                      <span className={style.itemWithIcon}>
-                        <Icon type="check-square-o" />3D Stack
-                      </span>
-                    </Menu.Item>
-                    {a.layout.map((l) => (
-                      <Menu.Item
-                        key={`assemblies:${a.label}:layout:${l.label}`}
-                      >
-                        <span className={style.itemWithImage}>
-                          <img alt="" src={l.imageSrc} />
-                          {l.label}
-                        </span>
-                      </Menu.Item>
-                    ))}
-                  </SubMenu>
+                  <Menu.Item key={`assemblies:${a.labelToUse || a.label}`}>
+                    <span className={style.itemWithIcon}>
+                      <Icon type="check-square-o" />
+                      {a.labelToUse || a.label}
+                    </span>
+                  </Menu.Item>
                 ))}
               </SubMenu>
               <SubMenu

@@ -50,10 +50,10 @@ export default class MaterialEditor extends React.Component {
     return (
       <div className={style.form}>
         <Button
+          type="primary"
           shape="circle"
-          style={{ position: 'absolute', right: 15, top: 72 }}
+          style={{ position: 'absolute', right: 15, top: 68 }}
           icon="plus"
-          size="small"
           onClick={this.addNew}
         />
         <Form layout="horizontal" className={style.form}>
