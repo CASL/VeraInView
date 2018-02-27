@@ -1,7 +1,7 @@
 import 'antd/dist/antd.css';
 
 import React from 'react';
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 
 import { Breadcrumb, Icon, Layout, Menu /* , message */ } from 'antd';
 
@@ -68,8 +68,9 @@ export default class EditView extends React.Component {
           label: 'New',
           id: 'new-000',
           labelToUse: 'New assembly',
-          elevations: [],
-          'axial-labels': [],
+          axial_elevations: [],
+          axial_labels: [],
+          layout: [],
         },
       ],
       content: null,
@@ -186,6 +187,8 @@ export default class EditView extends React.Component {
 
     if (this.state.content && this.state.editor) {
       const Editor = this.state.editor;
+      // this is a little weird, because this is the union of
+      // props needed by each editor.
       contents.push(
         <Editor
           key={`editor-${this.state.lastKey}`}
@@ -195,6 +198,8 @@ export default class EditView extends React.Component {
           addNew={this.onNew}
           materials={this.state.materials}
           cells={this.state.cells}
+          assemblyLayouts={this.state.assemblyLayouts}
+          imageSize={this.props.imageSize}
         />
       );
     }
@@ -250,14 +255,15 @@ export default class EditView extends React.Component {
                     </span>
                   </Menu.Item>
                 ))}
-                {this.state.assemblies.map((a) => (
-                  <Menu.Item key={`assemblies:${a.labelToUse || a.label}`}>
-                    <span className={style.itemWithIcon}>
-                      <Icon type="check-square-o" />
-                      {a.labelToUse || a.label}
-                    </span>
-                  </Menu.Item>
-                ))}
+                {this.state.assemblyLayouts.length > 1 &&
+                  this.state.assemblies.map((a) => (
+                    <Menu.Item key={`assemblies:${a.id}`}>
+                      <span className={style.itemWithIcon}>
+                        <Icon type="api" />
+                        {a.labelToUse || a.label}
+                      </span>
+                    </Menu.Item>
+                  ))}
               </SubMenu>
               <SubMenu
                 key="cells"
@@ -330,6 +336,10 @@ export default class EditView extends React.Component {
   }
 }
 
-EditView.propTypes = {};
+EditView.propTypes = {
+  imageSize: PropTypes.number,
+};
 
-EditView.defaultProps = {};
+EditView.defaultProps = {
+  imageSize: 2048,
+};

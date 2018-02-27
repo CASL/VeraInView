@@ -162,10 +162,12 @@ function updateLayoutImage(
   item,
   cellNameToIdMap,
   size = 512,
-  gridSpacing = 2.1
+  gridSpacing = 2.1,
+  numPins = 0
 ) {
-  const layout = item.cell_map;
-  const width = Math.sqrt(layout.length);
+  const cellMap = item.cell_map;
+  // default to match the input map, but interactive cell maps might be shorter
+  const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
 
@@ -177,19 +179,21 @@ function updateLayoutImage(
   let pidx = 0;
   for (let j = 0; j < width; j++) {
     for (let i = 0; i < width; i++) {
-      const cellId = cellNameToIdMap[layout[pidx++]];
-      const cell = CELL_MAP[cellId];
-      if (cell && cell.image) {
-        const img = cell.image;
-        ctx.drawImage(img, i * recSide, j * recSide, recSide, recSide);
+      if (pidx < cellMap.length) {
+        const cellId = cellNameToIdMap[cellMap[pidx++]];
+        const cell = CELL_MAP[cellId];
+        if (cell && cell.image) {
+          const img = cell.image;
+          ctx.drawImage(img, i * recSide, j * recSide, recSide, recSide);
 
-        // For 3d reconstruction
-        if (!pointSets[cellId]) {
-          pointSets[cellId] = { coordinates: [], cellId, cell };
+          // For 3d reconstruction
+          if (!pointSets[cellId]) {
+            pointSets[cellId] = { coordinates: [], cellId, cell };
+          }
+          pointSets[cellId].coordinates.push(i * gridSpacing);
+          pointSets[cellId].coordinates.push(j * gridSpacing);
+          pointSets[cellId].coordinates.push(0);
         }
-        pointSets[cellId].coordinates.push(i * gridSpacing);
-        pointSets[cellId].coordinates.push(j * gridSpacing);
-        pointSets[cellId].coordinates.push(0);
       }
     }
   }

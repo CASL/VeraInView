@@ -18,7 +18,7 @@ const mountNode = document.querySelector('.casl-vera-container');
 if (userParams.edit) {
   ReactDOM.render(
     <LocaleProvider locale={enUS}>
-      <EditView />
+      <EditView imageSize={1024} />
     </LocaleProvider>,
     mountNode
   );

@@ -14,7 +14,6 @@ const FormItem = Form.Item;
 
 let layoutId = 10;
 
-// const TYPES = ['fuel', 'other'];
 const {
   // materialColorManager,
   // materialLookupTable,
@@ -49,7 +48,6 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.update3D();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   update3D() {
     updateLookupTables();
     if (this.props.cells.length) {
@@ -66,7 +64,13 @@ export default class AssemblyLayoutEditor extends React.Component {
       //   +this.props.content.numPins * +this.props.content.numPins
       // ) {
       this.props.content.cell_map = cellMap;
-      updateLayoutImage(this.props.content, cellNameToIdMap);
+      updateLayoutImage(
+        this.props.content,
+        cellNameToIdMap,
+        this.props.imageSize,
+        this.props.content.pinPitch,
+        this.props.content.numPins
+      );
       this.setState({
         rendering: this.props.content.has3D,
       });
@@ -94,10 +98,10 @@ export default class AssemblyLayoutEditor extends React.Component {
       <div className={style.form}>
         {this.props.content.id === 'new-000' ? (
           <Button
+            type="primary"
             shape="circle"
-            style={{ position: 'absolute', right: 15, top: 72 }}
+            style={{ position: 'absolute', right: 15, top: 68 }}
             icon="plus"
-            size="small"
             onClick={this.addNew}
           />
         ) : null}
@@ -164,8 +168,8 @@ AssemblyLayoutEditor.propTypes = {
   update: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
-  // materials: PropTypes.array,
   cells: PropTypes.array,
+  imageSize: PropTypes.number,
 };
 
 AssemblyLayoutEditor.defaultProps = {
@@ -173,4 +177,5 @@ AssemblyLayoutEditor.defaultProps = {
   type: null,
   // materials: [],
   cells: [],
+  imageSize: 512,
 };
