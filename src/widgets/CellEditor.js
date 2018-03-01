@@ -16,7 +16,7 @@ let cellId = 1;
 
 // const TYPES = ['fuel', 'other'];
 const {
-  // materialColorManager,
+  materialColorManager,
   materialLookupTable,
   updateLookupTables,
   updateCellImage,
@@ -62,13 +62,16 @@ export default class CellEditor extends React.Component {
 
   onRadiiUpdate(e) {
     const radii = e.target.value
-      .split(',')
+      .split(/[,\s]+/)
       .map((s) => s.trim())
       .map((s) => Number(s));
     const numRings = radii.length;
     const mats = [].concat(this.props.content.mats);
+    if (numRings > 0 && mats.length === 0) {
+      mats.push(this.props.defaultMaterial.label);
+    }
     while (mats.length < numRings) {
-      mats.push(this.props.materials[0].name);
+      mats.push(mats[mats.length - 1]);
     }
     while (mats.length > numRings) {
       mats.pop();
@@ -83,6 +86,8 @@ export default class CellEditor extends React.Component {
   onMaterialUpdate(value) {
     const [idx, name] = value.split('::');
     this.props.content.mats[Number(idx)] = name;
+    // assign a color, if it doesn't already have one.
+    materialColorManager.getColor(name);
     this.update3D();
   }
 
@@ -152,7 +157,7 @@ export default class CellEditor extends React.Component {
                 <Col span={3} key={`mat-${idx.toString(16)}`}>
                   <Select value={m} showSearch onChange={this.onMaterialUpdate}>
                     {this.props.materials.map((mt) => (
-                      <Option key={mt.id} value={`${idx}::${mt.name}`}>
+                      <Option key={mt.id} value={`${idx}::${mt.label}`}>
                         {mt.label}
                       </Option>
                     ))}
@@ -176,10 +181,12 @@ CellEditor.propTypes = {
   addNew: PropTypes.func,
   type: PropTypes.string,
   materials: PropTypes.array,
+  defaultMaterial: PropTypes.object,
 };
 
 CellEditor.defaultProps = {
   addNew: null,
   type: null,
   materials: [],
+  defaultMaterial: { label: 'ss' },
 };

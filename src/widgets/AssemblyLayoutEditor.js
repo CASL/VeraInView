@@ -58,7 +58,7 @@ export default class AssemblyLayoutEditor extends React.Component {
         }
       });
       // TODO verify items in the cellMap
-      const cellMap = this.props.content.cellMap.split(/\s+/);
+      const cellMap = this.props.content.cellMap.split(/[,\s]+/);
       // if (
       //   cellMap.length ===
       //   +this.props.content.numPins * +this.props.content.numPins

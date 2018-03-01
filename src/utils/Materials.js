@@ -1,11 +1,11 @@
 // import macro from 'vtk.js/Sources/macro';
-import ImageGenerator from './ImageGenerator';
+// import ImageGenerator from './ImageGenerator';
 
-const { materialColorManager } = ImageGenerator;
+// const { materialColorManager } = ImageGenerator;
 
 const materials = [
   {
-    name: 'aic',
+    label: 'aic',
     density: 10.2,
     names: ['ag-107', 'ag-109', 'in-113', 'in-115', 'cd-00'],
     thexp: 6.9,
@@ -14,55 +14,55 @@ const materials = [
 
   {
     density: 1.189e-3,
-    name: 'air',
+    label: 'air',
     fracs: [0.7649, 0.2351],
     names: ['n-14', 'o-16'],
   },
   {
     density: 3.96,
-    name: 'al2o3',
+    label: 'al2o3',
     fracs: [5.29321e-1, 4.70679e-1],
     names: ['al-27', 'o-16'],
     thexp: 7.0,
   },
   {
     density: 2.55,
-    name: 'b2o3',
+    label: 'b2o3',
     fracs: [5.72412e-2, 2.5333e-1, 6.89429e-1],
     names: ['b-10', 'b-11', 'o-16'],
     thexp: 7.0,
   },
   {
     density: 1.7597,
-    name: 'b4c',
+    label: 'b4c',
     fracs: [1.44272e-1, 6.38495e-1, 2.17234e-1],
     names: ['b-10', 'b-11', 'c-00'],
     thexp: 5.73,
   },
   {
     density: 2.37,
-    name: 'boron',
+    label: 'boron',
     fracs: [1.84309e-1, 8.15691e-1],
     names: ['b-10', 'b-11'],
     thexp: 7.0,
   },
   {
     density: 6.56,
-    name: 'clad',
+    label: 'clad',
     fracs: [1],
     names: ['zirc4'],
     thexp: 7.092,
   },
   {
     density: 7.85,
-    name: 'cs',
+    label: 'cs',
     fracs: [9.99216e-3, 5.58916e-2, 9.09832e-1, 2.13879e-2, 2.89625e-3],
     names: ['c-00', 'fe-54', 'fe-56', 'fe-57', 'fe-58'],
     thexp: 16.79,
   },
   {
     density: 7.407,
-    name: 'gad',
+    label: 'gad',
     fracs: [
       1.67644e-3,
       1.85136e-2,
@@ -87,19 +87,19 @@ const materials = [
   },
   {
     density: 0.1786e-3,
-    name: 'gap',
+    label: 'gap',
     fracs: [1.0],
     names: ['he-4'],
   },
   {
     density: 0.1786e-3,
-    name: 'he',
+    label: 'he',
     fracs: [1.0],
     names: ['he-4'],
   },
   {
     density: 8.19,
-    name: 'inc',
+    label: 'inc',
     fracs: [
       2.50001e-2,
       2.50075e-2,
@@ -137,29 +137,35 @@ const materials = [
     thexp: 16.79,
   },
   {
+    density: 0.743,
+    label: 'mod',
+    fracs: [1],
+    names: ['water'],
+  },
+  {
     density: 2.34249,
-    name: 'pyrex',
+    label: 'pyrex',
     fracs: [6.81945e-3, 3.01805e-2, 5.35e-1, 4.1e-2, 1.0e-2, 3.77e-1],
     names: ['b-10', 'b-11', 'o-16', 'na-23', 'al-27', 'si-00'],
     thexp: 3.25,
   },
   {
     density: 2.24419,
-    name: 'pyrex-vera',
+    label: 'pyrex-vera',
     fracs: [7.11823e-3, 3.17015e-2, 5.52167e-1, 4.09014e-1],
     names: ['b-10', 'b-11', 'o-16', 'si-00'],
     thexp: 3.25,
   },
   {
     density: 2.18,
-    name: 'sio2',
+    label: 'sio2',
     fracs: [5.32565e-1, 4.67435e-1],
     names: ['o-16', 'si-00'],
     thexp: 7.0,
   },
   {
     density: 8.0,
-    name: 'ss',
+    label: 'ss',
     fracs: [
       7.99365e-4,
       1.00002e-2,
@@ -202,27 +208,27 @@ const materials = [
   },
   {
     density: 19.3,
-    name: 'tungsten',
+    label: 'tungsten',
     fracs: [0.0012, 0.265, 0.1431, 0.3064, 0.2843],
     names: ['o-16', 'w-182', 'w-183', 'w-184', 'w-186'],
     thexp: 16.79,
   },
   {
     density: 3.65,
-    name: 'waba',
+    label: 'waba',
     fracs: [1.3621e-2, 6.02818e-2, 2.05259e-2, 4.26297e-1, 4.79274e-1],
     names: ['b-10', 'b-11', 'c-00', 'o-16', 'al-27'],
     thexp: 7.0,
   },
   {
     density: 0.743,
-    name: 'water',
+    label: 'water',
     fracs: [1.11915e-1, 8.88085e-1],
     names: ['h-1', 'o-16'],
   },
   {
     density: 6.56,
-    name: 'zirc2',
+    label: 'zirc2',
     fracs: [
       4.17369e-5,
       8.36994e-4,
@@ -299,7 +305,7 @@ const materials = [
   },
   {
     density: 6.56,
-    name: 'zirc4',
+    label: 'zirc4',
     fracs: [
       4.17369e-5,
       8.36988e-4,
@@ -366,7 +372,7 @@ const materials = [
   },
   {
     density: 6.55934,
-    name: 'zirc4-xhf',
+    label: 'zirc4-xhf',
     fracs: [
       4.17411e-5,
       8.37072e-4,
@@ -421,26 +427,29 @@ const materials = [
   },
   {
     density: 6.506,
-    name: 'zr',
+    label: 'zr',
     fracs: [5.07061e-1, 1.11809e-1, 1.72781e-1, 1.78911e-1, 2.94379e-2],
     names: ['zr-90', 'zr-91', 'zr-92', 'zr-94', 'zr-96'],
     thexp: 7.092,
   },
 ];
 
+const defaultMaterial = {};
 function initMaterials() {
   // Add colors and titles
   materials.forEach((m, i) => {
     // m.title = macro.capitalize(m.name);
     if (!m.id) {
-      m.label = m.name; // macro.capitalize(m.name);
-      m.color = materialColorManager.getColor(m.name);
+      // m.label = m.name; // macro.capitalize(m.name);
+      m.color = null; // materialColorManager.getColor(m.name);
       m.id = `defaults-${i + 1}`;
+      if (m.label === 'ss') Object.assign(defaultMaterial, m);
     }
     // delete m.name;
   });
 }
 export default {
   materials,
+  defaultMaterial,
   initMaterials,
 };

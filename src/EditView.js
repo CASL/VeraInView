@@ -8,12 +8,12 @@ import { Breadcrumb, Icon, Layout, Menu /* , message */ } from 'antd';
 import macro from 'vtk.js/Sources/macro';
 
 import Color from './widgets/Color';
+import ImageGenerator from './utils/ImageGenerator';
 import MaterialEditor from './widgets/MaterialEditor';
 import CellEditor from './widgets/CellEditor';
 import AssemblyEditor from './widgets/AssemblyEditor';
 import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
 // import VTKRenderer from './widgets/VTKRenderer';
-import ImageGenerator from './utils/ImageGenerator';
 import Materials from './utils/Materials';
 
 import style from './assets/vera.mcss';
@@ -22,7 +22,8 @@ import welcome from './assets/welcome.jpg';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { capitalize } = macro;
-const { materials, initMaterials } = Materials;
+const { materials, defaultMaterial, initMaterials } = Materials;
+const { materialColorManager } = ImageGenerator;
 
 ImageGenerator.setLogger(console.log);
 
@@ -48,8 +49,8 @@ export default class EditView extends React.Component {
         {
           label: 'New',
           id: 'new-000',
-          mats: [materials[0].name],
-          radii: [1],
+          mats: [defaultMaterial.label],
+          radii: [0.6],
           labelToUse: 'New cell',
         },
       ],
@@ -92,15 +93,21 @@ export default class EditView extends React.Component {
     this.onToggleMenu = this.onToggleMenu.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.forceUpdate = this.forceUpdate.bind(this);
+    this.update = this.update.bind(this);
     this.onNew = this.onNew.bind(this);
   }
 
   onNew(type, baseTemplate) {
     const content = this.state[type];
     if (content) {
-      content.unshift(baseTemplate);
+      let id = baseTemplate.id;
+      if (Array.isArray(content)) content.unshift(baseTemplate);
+      else {
+        content[baseTemplate.label] = baseTemplate;
+        id = baseTemplate.label;
+      }
       this.setState({ [type]: content }, () => {
-        this.onSelect({ key: `${type}:${baseTemplate.id}` });
+        this.onSelect({ key: `${type}:${id}` });
       });
     }
   }
@@ -162,9 +169,13 @@ export default class EditView extends React.Component {
           path.push(name);
         }
       } else {
+        // object container, keyed on name
         container = container[name];
-        if (container && container.labelToUse) {
-          path.push(container.labelToUse);
+        if (
+          container &&
+          (container.labelToUse || container.label || container.name)
+        ) {
+          path.push(container.labelToUse || container.label || container.name);
         }
       }
     }
@@ -181,6 +192,25 @@ export default class EditView extends React.Component {
     this.setState({ imageIndex });
   }
 
+  update() {
+    // const { item, path } = this.getSelectionByKey(this.state.lastKey);
+    // const pathKey = this.state.lastKey.split(':')[1];
+    // // if a material changes labels, its key needs to change, too.
+    // if (path[0] === 'Materials' && item.label !== pathKey) {
+    //   console.log(item.label, pathKey);
+    //   const newMats = Object.assign({}, this.state.materials, {
+    //     [item.label]: item,
+    //   });
+    //   delete newMats[pathKey];
+    //   // select again after state change.
+    //   this.setState({ materials: newMats }, () => {
+    //     this.onSelect({ key: `materials:${item.label}` });
+    //   });
+    // } else {
+    this.forceUpdate();
+    // }
+  }
+
   render() {
     const contents = [];
     const menuSize = 240;
@@ -193,10 +223,11 @@ export default class EditView extends React.Component {
         <Editor
           key={`editor-${this.state.lastKey}`}
           content={this.state.content}
-          update={this.forceUpdate}
+          update={this.update}
           type={uncapitalize(this.state.path[0])}
           addNew={this.onNew}
           materials={this.state.materials}
+          defaultMaterial={defaultMaterial}
           cells={this.state.cells}
           assemblyLayouts={this.state.assemblyLayouts}
           imageSize={this.props.imageSize}
@@ -212,7 +243,6 @@ export default class EditView extends React.Component {
         </div>
       );
     }
-
     return (
       <Layout>
         <Header className={style.header}>
@@ -294,12 +324,16 @@ export default class EditView extends React.Component {
                   (m) =>
                     m.hide ? null : (
                       <Menu.Item
-                        key={`materials:${m.id}`}
+                        key={`materials:${m.label}`}
                         className={style.materialSelector}
                       >
                         <Color
                           title={m.label}
-                          color={m.color}
+                          color={
+                            materialColorManager.hasName(m.label)
+                              ? materialColorManager.getColorRGBA(m.label)
+                              : m.color
+                          }
                           key={`mat-${m.id}`}
                         />
                       </Menu.Item>

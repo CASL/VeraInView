@@ -32,6 +32,7 @@ materialColorManager.setColor('cs', [121 / 255, 121 / 255, 121 / 255, 1]);
 materialColorManager.setColor('ss', [153 / 255, 153 / 255, 153 / 255, 1]);
 // pulled from Brewer colors in ColorManager, he -> yellow, mod -> blue
 materialColorManager.setColor('mod', [128 / 255, 177 / 255, 211 / 255, 1]);
+materialColorManager.setColor('water', [128 / 255, 177 / 255, 211 / 255, 1]);
 // from the palette
 materialColorManager.setColor('zirc2', [217 / 255, 217 / 255, 217 / 255, 1]);
 // zirc4 identical?

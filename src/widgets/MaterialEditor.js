@@ -4,10 +4,13 @@ import PropTypes from 'prop-types';
 import { Form, Input, Button } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
+import ImageGenerator from '../utils/ImageGenerator';
 
 import style from '../assets/vera.mcss';
 
 import Color from './Color';
+
+const { materialColorManager } = ImageGenerator;
 
 const FormItem = Form.Item;
 const { capitalize } = macro;
@@ -15,11 +18,18 @@ const { capitalize } = macro;
 let matId = 1;
 const TEMPLATE_NEW = {
   label: 'New material',
+  color: null,
   density: 1,
   fracs: [1],
   names: [],
   thexp: 1,
 };
+
+function compareFunc(a, b) {
+  if (a === 'label') return -1;
+  if (b === 'label') return 1;
+  return a.localeCompare(b);
+}
 
 export default class MaterialEditor extends React.Component {
   constructor(props) {
@@ -47,6 +57,7 @@ export default class MaterialEditor extends React.Component {
   }
 
   render() {
+    const { label } = this.props.content;
     return (
       <div className={style.form}>
         <Button
@@ -57,32 +68,38 @@ export default class MaterialEditor extends React.Component {
           onClick={this.addNew}
         />
         <Form layout="horizontal" className={style.form}>
-          {Object.keys(this.props.content).map(
-            (key) =>
-              key === 'id' ? null : (
-                <FormItem
-                  key={key}
-                  label={capitalize(key)}
-                  labelCol={{ span: 4 }}
-                  wrapperCol={{ span: 20 }}
-                >
-                  {key === 'color' ? (
-                    <Color
-                      title=" "
-                      border
-                      color={this.props.content.color}
-                      key={`mat-${this.props.content.label}`}
-                    />
-                  ) : (
-                    <Input
-                      value={this.props.content[key]}
-                      data-id={key}
-                      onChange={this.onFieldUpdate}
-                    />
-                  )}
-                </FormItem>
-              )
-          )}
+          {Object.keys(this.props.content)
+            .sort(compareFunc)
+            .map(
+              (key) =>
+                key === 'id' || key === 'name' ? null : (
+                  <FormItem
+                    key={key}
+                    label={capitalize(key)}
+                    labelCol={{ span: 4 }}
+                    wrapperCol={{ span: 20 }}
+                  >
+                    {key === 'color' ? (
+                      <Color
+                        title=" "
+                        border
+                        color={
+                          materialColorManager.hasName(label)
+                            ? materialColorManager.getColorRGBA(label)
+                            : this.props.content.color
+                        }
+                        key={`mat-${label}`}
+                      />
+                    ) : (
+                      <Input
+                        value={this.props.content[key]}
+                        data-id={key}
+                        onChange={this.onFieldUpdate}
+                      />
+                    )}
+                  </FormItem>
+                )
+            )}
         </Form>
       </div>
     );
