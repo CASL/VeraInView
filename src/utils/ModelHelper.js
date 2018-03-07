@@ -437,7 +437,7 @@ function parseFile(file, imageSize, updateFn) {
         mask[ImageGenerator.materialColorManager.getId(name)] = false;
         return {
           title: capitalize(name),
-          color: ImageGenerator.materialColorManager.getColor(name),
+          color: ImageGenerator.materialColorManager.getColorRGBA(name),
           id: ImageGenerator.materialColorManager.getId(name),
           density: core.materials[name] ? core.materials[name].density : 1,
         };

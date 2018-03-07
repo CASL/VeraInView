@@ -2,12 +2,14 @@ import 'antd/dist/antd.css';
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import ReactCursorPosition from 'react-cursor-position';
 
 import { Breadcrumb, Icon, Layout, Menu, message, Switch, Upload } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
 import Color from './widgets/Color';
+import ImageRenderer from './widgets/ImageRenderer';
 import VTKRenderer from './widgets/VTKRenderer';
 import ModelHelper from './utils/ModelHelper';
 import ImageGenerator from './utils/ImageGenerator';
@@ -50,6 +52,7 @@ export default class MainView extends React.Component {
     this.parseFile = this.parseFile.bind(this);
     this.onSelect = this.onSelect.bind(this);
     this.getSelectionByKey = this.getSelectionByKey.bind(this);
+    this.getImageInfo = this.getImageInfo.bind(this);
     this.updateImageIndex = this.updateImageIndex.bind(this);
     this.onToggle3D = this.onToggle3D.bind(this);
     this.onToggleMenu = this.onToggleMenu.bind(this);
@@ -161,6 +164,27 @@ export default class MainView extends React.Component {
     return { item: container, path };
   }
 
+  // get info about what mouse is over in 2D view.
+  getImageInfo(posx, posy) {
+    if (!this.state.lastKey) {
+      return null;
+    }
+    const { item } = this.getSelectionByKey(this.state.lastKey);
+    if (this.state.has3D && this.state.has3D.type === 'layout') {
+      const cell = ImageGenerator.getLayoutCell(item, posx, posy);
+      return cell;
+    }
+    if (this.state.has3D && this.state.has3D.type === 'cell') {
+      const mat = ImageGenerator.getCellMaterial(item, posx, posy);
+      return mat ? (
+        <span>
+          {mat.radius} cm <br /> {mat.mat}
+        </span>
+      ) : null;
+    }
+    return null;
+  }
+
   handleKeyPress(event) {
     if (event.key === 'm') {
       this.onToggleMenu();
@@ -215,7 +239,12 @@ export default class MainView extends React.Component {
     if (this.state.content && !(this.state.use3D && this.state.has3D)) {
       contents.push(
         <div key="2d-content" className={style.mainImage}>
-          <img alt="Element rendering" src={this.state.content} />
+          <ReactCursorPosition>
+            <ImageRenderer
+              content={this.state.content}
+              getImageInfo={this.getImageInfo}
+            />
+          </ReactCursorPosition>
         </div>
       );
     }

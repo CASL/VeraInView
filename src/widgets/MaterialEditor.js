@@ -49,10 +49,13 @@ export default class MaterialEditor extends React.Component {
 
   addNew() {
     if (this.props.addNew) {
-      this.props.addNew(
-        this.props.type,
-        Object.assign({ id: `new-${matId++}` }, TEMPLATE_NEW)
-      );
+      const newMat = Object.assign({}, this.props.content, {
+        id: `new-${matId++}`,
+        label: TEMPLATE_NEW.label,
+      });
+      newMat.fracs = newMat.fracs.slice();
+      newMat.names = newMat.names.slice();
+      this.props.addNew(this.props.type, newMat);
     }
   }
 

@@ -132,6 +132,7 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
     ctx.fill();
   }
 
+  cell.gridSpacing = gridSpacing;
   cell.imageSrc = WORKING_CANVAS.toDataURL();
 
   // Used for 2D drawing
@@ -155,6 +156,18 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
 
   // Update cell map
   CELL_MAP[cell.id] = cell;
+}
+
+function getCellMaterial(item, posx, posy) {
+  const radius =
+    item.gridSpacing *
+    Math.sqrt((posx - 0.5) * (posx - 0.5) + (posy - 0.5) * (posy - 0.5));
+  for (let i = 0; i < item.radii.length; i++) {
+    if (radius < item.radii[i]) {
+      return { radius: item.radii[i], mat: item.mats[i] };
+    }
+  }
+  return null;
 }
 
 // ----------------------------------------------------------------------------
@@ -198,6 +211,7 @@ function updateLayoutImage(
       }
     }
   }
+  item.cellNameToIdMap = cellNameToIdMap;
 
   item.imageSrc = WORKING_CANVAS.toDataURL();
 
@@ -236,6 +250,18 @@ function updateLayoutImage(
   };
 }
 
+function getLayoutCell(item, posx, posy) {
+  const cellMap = item.cell_map;
+  // default to match the input map, but interactive cell maps might be shorter
+  const width = Math.sqrt(cellMap.length);
+  const recSide = width;
+  const i = Math.floor(posx * recSide);
+  const j = Math.floor(posy * recSide);
+  const pidx = j * width + i;
+  console.log(width, recSide, i, j, pidx);
+  return cellMap[pidx];
+}
+
 // ----------------------------------------------------------------------------
 /* eslint-disable no-underscore-dangle */
 
@@ -269,6 +295,7 @@ function updateItemWithLayoutImages(
     const cell = item.Cells[cellKeys[count]];
     cellNameToIdMap[cell.label] = cell.id;
   }
+  item.cellNameToIdMap = cellNameToIdMap;
 
   // Create layout images
   count = item.layout.length;
@@ -738,7 +765,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Assembly(${stripCategory(assemKey)})`
-          ] = localColorManager.getColor(assemKey);
+          ] = localColorManager.getColorRGBA(assemKey);
         }
 
         if (ctrColor) {
@@ -760,7 +787,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Control(${stripCategory(ctrKey)})`
-          ] = localColorManager.getColor(ctrKey);
+          ] = localColorManager.getColorRGBA(ctrKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -792,7 +819,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Detector(${stripCategory(detKey)})`
-          ] = localColorManager.getColor(detKey);
+          ] = localColorManager.getColorRGBA(detKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -823,7 +850,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Insert(${stripCategory(insKey)})`
-          ] = localColorManager.getColor(insKey);
+          ] = localColorManager.getColorRGBA(insKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -1205,6 +1232,8 @@ export default {
   setLogger,
   materialColorManager,
   getColorLegendAt,
+  getCellMaterial,
+  getLayoutCell,
   updateLookupTables,
   compute3DCore,
   compute3DSlice,

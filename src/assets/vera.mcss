@@ -138,9 +138,11 @@
 .mainImage {
   flex: 1;
 }
-.mainImage img {
+.mainImageFrame {
   background-color: #f9f9f9;
   padding: 50px;
+}
+.mainImageFrame img {
   width: 100%;
 }
 

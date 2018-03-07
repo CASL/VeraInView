@@ -93,21 +93,15 @@ export default class EditView extends React.Component {
     this.onToggleMenu = this.onToggleMenu.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.forceUpdate = this.forceUpdate.bind(this);
-    this.update = this.update.bind(this);
     this.onNew = this.onNew.bind(this);
   }
 
   onNew(type, baseTemplate) {
     const content = this.state[type];
     if (content) {
-      let id = baseTemplate.id;
-      if (Array.isArray(content)) content.unshift(baseTemplate);
-      else {
-        content[baseTemplate.label] = baseTemplate;
-        id = baseTemplate.label;
-      }
+      content.unshift(baseTemplate);
       this.setState({ [type]: content }, () => {
-        this.onSelect({ key: `${type}:${id}` });
+        this.onSelect({ key: `${type}:${baseTemplate.id}` });
       });
     }
   }
@@ -160,22 +154,16 @@ export default class EditView extends React.Component {
         container =
           container.find((item) => item.id === name) ||
           container.find((item) => item.label === name);
-        if (
-          container &&
-          (container.labelToUse || container.label || container.name)
-        ) {
-          path.push(container.labelToUse || container.label || container.name);
+        if (container && (container.labelToUse || container.label)) {
+          path.push(container.labelToUse || container.label);
         } else {
           path.push(name);
         }
       } else {
         // object container, keyed on name
         container = container[name];
-        if (
-          container &&
-          (container.labelToUse || container.label || container.name)
-        ) {
-          path.push(container.labelToUse || container.label || container.name);
+        if (container && (container.labelToUse || container.label)) {
+          path.push(container.labelToUse || container.label);
         }
       }
     }
@@ -192,25 +180,6 @@ export default class EditView extends React.Component {
     this.setState({ imageIndex });
   }
 
-  update() {
-    // const { item, path } = this.getSelectionByKey(this.state.lastKey);
-    // const pathKey = this.state.lastKey.split(':')[1];
-    // // if a material changes labels, its key needs to change, too.
-    // if (path[0] === 'Materials' && item.label !== pathKey) {
-    //   console.log(item.label, pathKey);
-    //   const newMats = Object.assign({}, this.state.materials, {
-    //     [item.label]: item,
-    //   });
-    //   delete newMats[pathKey];
-    //   // select again after state change.
-    //   this.setState({ materials: newMats }, () => {
-    //     this.onSelect({ key: `materials:${item.label}` });
-    //   });
-    // } else {
-    this.forceUpdate();
-    // }
-  }
-
   render() {
     const contents = [];
     const menuSize = 240;
@@ -223,7 +192,7 @@ export default class EditView extends React.Component {
         <Editor
           key={`editor-${this.state.lastKey}`}
           content={this.state.content}
-          update={this.update}
+          update={this.forceUpdate}
           type={uncapitalize(this.state.path[0])}
           addNew={this.onNew}
           materials={this.state.materials}
@@ -324,7 +293,7 @@ export default class EditView extends React.Component {
                   (m) =>
                     m.hide ? null : (
                       <Menu.Item
-                        key={`materials:${m.label}`}
+                        key={`materials:${m.id}`}
                         className={style.materialSelector}
                       >
                         <Color
