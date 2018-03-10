@@ -1,16 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, Select, Row } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
-import VTKRenderer from './VTKRenderer';
+import DualRenderer from './DualRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
 
 import style from '../assets/vera.mcss';
 
 const FormItem = Form.Item;
-// const Option = Select.Option;
+const Option = Select.Option;
 
 let layoutId = 10;
 
@@ -26,11 +26,13 @@ export default class AssemblyLayoutEditor extends React.Component {
     super(props);
     this.state = {
       rendering: null,
+      paintCell: '-',
     };
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
     this.addNew = this.addNew.bind(this);
     this.update3D = this.update3D.bind(this);
+    this.on2DClick = this.on2DClick.bind(this);
   }
 
   componentDidMount() {
@@ -48,6 +50,24 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.update3D();
   }
 
+  on2DClick(posx, posy, e) {
+    const { cell, index } = ImageGenerator.getLayoutCell(
+      this.props.content,
+      posx,
+      posy
+    );
+    if (!cell) return;
+    this.props.content.cell_map[index] = this.state.paintCell;
+    const map = [];
+    const { numPins, cell_map: cellMap } = this.props.content;
+    for (let i = 0; i < numPins; ++i) {
+      map.push(cellMap.slice(i * numPins, (i + 1) * numPins).join(' '));
+    }
+    this.props.content.cellMap = map.join('\n');
+    this.props.update();
+    this.update3D();
+  }
+
   update3D() {
     updateLookupTables();
     if (this.props.cells.length) {
@@ -57,12 +77,21 @@ export default class AssemblyLayoutEditor extends React.Component {
           cellNameToIdMap[cell.label] = cell.id;
         }
       });
-      // TODO verify items in the cellMap
-      const cellMap = this.props.content.cellMap.split(/[,\s]+/);
-      // if (
-      //   cellMap.length ===
-      //   +this.props.content.numPins * +this.props.content.numPins
-      // ) {
+      // Verify items in the cellMap. Unrecognized cells are empty.
+      const cellMap = this.props.content.cellMap.trim().split(/[,\s]+/);
+      const fullMapSize =
+        +this.props.content.numPins * +this.props.content.numPins;
+
+      while (cellMap.length < fullMapSize) {
+        cellMap.push('-');
+      }
+      while (cellMap.length > fullMapSize) {
+        cellMap.pop();
+      }
+      cellMap.forEach((c, i) => {
+        if (c === '') cellMap[i] = '-';
+      });
+
       this.props.content.cell_map = cellMap;
       updateLayoutImage(
         this.props.content,
@@ -74,7 +103,6 @@ export default class AssemblyLayoutEditor extends React.Component {
       this.setState({
         rendering: this.props.content.has3D,
       });
-      // }
     } else {
       this.setState({
         rendering: null,
@@ -87,8 +115,12 @@ export default class AssemblyLayoutEditor extends React.Component {
       const newLayout = Object.assign({}, this.props.content, {
         id: `new-${layoutId++}`,
       });
-      newLayout.cell_map = newLayout.cell_map.slice();
+      newLayout.cell_map = newLayout.cell_map.slice(); // clone
       newLayout.labelToUse = newLayout.label;
+      delete newLayout.has3D;
+      delete newLayout.image;
+      delete newLayout.imageSrc;
+
       this.props.addNew(this.props.type, newLayout);
     }
   }
@@ -105,7 +137,11 @@ export default class AssemblyLayoutEditor extends React.Component {
             onClick={this.addNew}
           />
         ) : null}
-        <Form layout="horizontal" className={style.form}>
+        <Form
+          layout="horizontal"
+          className={style.form}
+          style={{ paddingBottom: 25 }}
+        >
           <FormItem
             label="Label"
             labelCol={{ span: 4 }}
@@ -152,12 +188,49 @@ export default class AssemblyLayoutEditor extends React.Component {
               onChange={this.onFieldUpdate}
             />
           </FormItem>
+          <Row>
+            <FormItem
+              label="Paint"
+              labelCol={{ span: 4 }}
+              wrapperCol={{ span: 4 }}
+            >
+              <Select
+                value={this.state.paintCell}
+                onChange={(val) => this.setState({ paintCell: val })}
+              >
+                {this.props.cells.map(
+                  (cell) =>
+                    cell.id === 'new-000' ? null : (
+                      <Option key={cell.id} value={`${cell.label}`}>
+                        {cell.label}
+                      </Option>
+                    )
+                )}
+                <Option key="empty" value="-">
+                  -
+                </Option>
+              </Select>
+            </FormItem>
+          </Row>
         </Form>
-        <div className={style.preview}>
+        {/* <div className={style.preview}>
           {this.state.rendering && (
             <VTKRenderer nested content={this.state.rendering} />
           )}
-        </div>
+        </div> */}
+        <DualRenderer
+          content={this.props.content}
+          rendering={this.state.rendering}
+          getImageInfo={(posx, posy) => {
+            const { cell } = ImageGenerator.getLayoutCell(
+              this.props.content,
+              posx,
+              posy
+            );
+            return cell;
+          }}
+          onClick={this.on2DClick}
+        />
       </div>
     );
   }

@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+// import ReactCursorPosition from 'react-cursor-position';
 
 import { Form, Input, Button, Select, Row, Col } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
-import VTKRenderer from './VTKRenderer';
+import DualRenderer from './DualRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
 
 import style from '../assets/vera.mcss';
@@ -26,6 +27,7 @@ export default class CellEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      use3D: false,
       rendering: {
         id: '000',
         type: 'cell',
@@ -88,12 +90,13 @@ export default class CellEditor extends React.Component {
     this.props.content.mats[Number(idx)] = name;
     // assign a color, if it doesn't already have one.
     materialColorManager.getColor(name);
+    this.props.update();
     this.update3D();
   }
 
   update3D() {
     updateLookupTables();
-    updateCellImage(this.props.content);
+    updateCellImage(this.props.content, this.props.imageSize);
     this.props.content.has3D.source.forceUpdate = true;
     this.setState({
       rendering: this.props.content.has3D,
@@ -106,8 +109,11 @@ export default class CellEditor extends React.Component {
         id: `new-${cellId++}`,
       });
       newCell.radii = newCell.radii.map((s) => Number(s));
-      newCell.mats = newCell.mats.slice();
+      newCell.mats = newCell.mats.slice(); // clone
       newCell.labelToUse = newCell.label;
+      delete newCell.has3D;
+      delete newCell.image;
+      // delete newCell.imageSrc;
       this.props.addNew(this.props.type, newCell);
     }
   }
@@ -124,7 +130,11 @@ export default class CellEditor extends React.Component {
             onClick={this.addNew}
           />
         ) : null}
-        <Form layout="horizontal" className={style.form}>
+        <Form
+          layout="horizontal"
+          className={style.form}
+          style={{ paddingBottom: 25 }}
+        >
           <FormItem
             label="Label"
             labelCol={{ span: 4 }}
@@ -167,9 +177,22 @@ export default class CellEditor extends React.Component {
             </Row>
           </FormItem>
         </Form>
-        <div className={style.preview}>
-          <VTKRenderer nested content={this.state.rendering} />
-        </div>
+        <DualRenderer
+          content={this.props.content}
+          rendering={this.state.rendering}
+          getImageInfo={(posx, posy) => {
+            const mat = ImageGenerator.getCellMaterial(
+              this.props.content,
+              posx,
+              posy
+            );
+            return mat ? (
+              <span>
+                {mat.radius} cm <br /> {mat.mat}
+              </span>
+            ) : null;
+          }}
+        />
       </div>
     );
   }
@@ -182,6 +205,7 @@ CellEditor.propTypes = {
   type: PropTypes.string,
   materials: PropTypes.array,
   defaultMaterial: PropTypes.object,
+  imageSize: PropTypes.number,
 };
 
 CellEditor.defaultProps = {
@@ -189,4 +213,5 @@ CellEditor.defaultProps = {
   type: null,
   materials: [],
   defaultMaterial: { label: 'ss' },
+  imageSize: 512,
 };

@@ -253,13 +253,13 @@ function updateLayoutImage(
 function getLayoutCell(item, posx, posy) {
   const cellMap = item.cell_map;
   // default to match the input map, but interactive cell maps might be shorter
-  const width = Math.sqrt(cellMap.length);
+  const width = item.numPins || Math.sqrt(cellMap.length);
   const recSide = width;
   const i = Math.floor(posx * recSide);
   const j = Math.floor(posy * recSide);
   const pidx = j * width + i;
-  console.log(width, recSide, i, j, pidx);
-  return cellMap[pidx];
+  // console.log(width, recSide, i, j, pidx);
+  return { cell: cellMap[pidx], index: pidx };
 }
 
 // ----------------------------------------------------------------------------

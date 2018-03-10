@@ -108,9 +108,12 @@ export default class AssemblyEditor extends React.Component {
         id: `new-${cellId++}`,
       });
       newCell.axial_elevations = newCell.axial_elevations.map((s) => Number(s));
-      newCell.layout = newCell.layout.slice();
-      newCell.axial_labels = newCell.axial_labels.slice();
+      newCell.layout = newCell.layout.slice(); // clone
+      newCell.axial_labels = newCell.axial_labels.slice(); // clone
       newCell.labelToUse = newCell.label;
+      delete newCell.has3D;
+      delete newCell.image;
+      delete newCell.imageSrc;
       this.props.addNew(this.props.type, newCell);
     }
   }

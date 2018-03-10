@@ -51,6 +51,7 @@ export default class EditView extends React.Component {
           id: 'new-000',
           mats: [defaultMaterial.label],
           radii: [0.6],
+          num_rings: 1,
           labelToUse: 'New cell',
         },
       ],
@@ -61,7 +62,7 @@ export default class EditView extends React.Component {
           numPins: 3,
           pinPitch: 1.26,
           labelToUse: 'New map',
-          cellMap: '',
+          cellMap: '- - -\n- - -\n- - -',
         },
       ],
       assemblies: [
