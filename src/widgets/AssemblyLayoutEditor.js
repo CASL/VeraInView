@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Form, Input, Button, Select, Row } from 'antd';
+import { Form, Input, Button, Select, Row, Col, Switch } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
 import DualRenderer from './DualRenderer';
@@ -27,6 +27,7 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.state = {
       rendering: null,
       paintCell: '-',
+      replaceAll: false,
     };
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
@@ -57,7 +58,15 @@ export default class AssemblyLayoutEditor extends React.Component {
       posy
     );
     if (!cell) return;
-    this.props.content.cell_map[index] = this.state.paintCell;
+    if (this.state.replaceAll) {
+      this.props.content.cell_map.forEach((mapCell, i) => {
+        if (cell === mapCell) {
+          this.props.content.cell_map[i] = this.state.paintCell;
+        }
+      });
+    } else {
+      this.props.content.cell_map[index] = this.state.paintCell;
+    }
     const map = [];
     const { numPins, cell_map: cellMap } = this.props.content;
     for (let i = 0; i < numPins; ++i) {
@@ -183,41 +192,47 @@ export default class AssemblyLayoutEditor extends React.Component {
             <Input.TextArea
               style={{ fontFamily: 'monospace' }}
               value={this.props.content.cellMap}
-              rows={this.props.content.numPins}
+              rows={Math.min(this.props.content.numPins, 3)}
               data-id="cellMap"
               onChange={this.onFieldUpdate}
             />
           </FormItem>
-          <Row>
-            <FormItem
-              label="Paint"
-              labelCol={{ span: 4 }}
-              wrapperCol={{ span: 4 }}
-            >
-              <Select
-                value={this.state.paintCell}
-                onChange={(val) => this.setState({ paintCell: val })}
-              >
-                {this.props.cells.map(
-                  (cell) =>
-                    cell.id === 'new-000' ? null : (
-                      <Option key={cell.id} value={`${cell.label}`}>
-                        {cell.label}
-                      </Option>
-                    )
-                )}
-                <Option key="empty" value="-">
-                  -
-                </Option>
-              </Select>
-            </FormItem>
-          </Row>
+          <FormItem
+            label="Place"
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 20 }}
+          >
+            <Row gutter={16}>
+              <Col span={4}>
+                <Select
+                  value={this.state.paintCell}
+                  onChange={(val) => this.setState({ paintCell: val })}
+                >
+                  {this.props.cells.map(
+                    (cell) =>
+                      cell.id === 'new-000' ? null : (
+                        <Option key={cell.id} value={`${cell.label}`}>
+                          {cell.label}
+                        </Option>
+                      )
+                  )}
+                  <Option key="empty" value="-">
+                    -
+                  </Option>
+                </Select>
+              </Col>
+              <Col span={4}>
+                <Switch
+                  key="toggle-replace"
+                  checkedChildren="all"
+                  unCheckedChildren="one"
+                  onChange={(val) => this.setState({ replaceAll: val })}
+                  checked={this.state.replaceAll}
+                />
+              </Col>
+            </Row>
+          </FormItem>
         </Form>
-        {/* <div className={style.preview}>
-          {this.state.rendering && (
-            <VTKRenderer nested content={this.state.rendering} />
-          )}
-        </div> */}
         <DualRenderer
           content={this.props.content}
           rendering={this.state.rendering}

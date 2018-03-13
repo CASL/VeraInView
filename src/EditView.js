@@ -3,7 +3,7 @@ import 'antd/dist/antd.css';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Breadcrumb, Icon, Layout, Menu /* , message */ } from 'antd';
+import { Breadcrumb, Icon, Layout, Menu, Upload } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
@@ -14,6 +14,7 @@ import CellEditor from './widgets/CellEditor';
 import AssemblyEditor from './widgets/AssemblyEditor';
 import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
 // import VTKRenderer from './widgets/VTKRenderer';
+import ModelHelper from './utils/ModelHelper';
 import Materials from './utils/Materials';
 
 import style from './assets/vera.mcss';
@@ -87,14 +88,15 @@ export default class EditView extends React.Component {
     this.toggleMaskFn = {};
 
     // Functions for callback
-    this.onSelect = this.onSelect.bind(this);
+    this.forceUpdate = this.forceUpdate.bind(this);
     this.getSelectionByKey = this.getSelectionByKey.bind(this);
-    this.updateImageIndex = this.updateImageIndex.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.onNew = this.onNew.bind(this);
+    this.onSelect = this.onSelect.bind(this);
     this.onToggle3D = this.onToggle3D.bind(this);
     this.onToggleMenu = this.onToggleMenu.bind(this);
-    this.handleKeyPress = this.handleKeyPress.bind(this);
-    this.forceUpdate = this.forceUpdate.bind(this);
-    this.onNew = this.onNew.bind(this);
+    this.parseFile = this.parseFile.bind(this);
+    this.updateImageIndex = this.updateImageIndex.bind(this);
   }
 
   onNew(type, baseTemplate) {
@@ -181,6 +183,93 @@ export default class EditView extends React.Component {
     this.setState({ imageIndex });
   }
 
+  parseFile(file) {
+    this.setState({ title: file.name, file });
+    ModelHelper.parseFile(file, this.props.imageSize, (newState) => {
+      // Ensure material callbacks exists
+      // if (newState.materials) {
+      //   let count = newState.materials.length;
+      //   while (count--) {
+      //     const mat = newState.materials[count];
+      //     this.toggleMaskFn[mat.id] = (check) => {
+      //       const { mask } = this.state;
+      //       mask[mat.id] = !check;
+      //       this.setState({ mask });
+      //     };
+      //   }
+      // }
+      if (newState.cells) {
+        // make sure each is unique - ids derived from radii+mat
+        const idMap = {};
+        const labelMap = {};
+        const newCells = this.state.cells.slice();
+        this.state.cells.forEach((cell) => {
+          idMap[cell.id] = cell;
+          labelMap[cell.label] = cell;
+        });
+        let count = newState.cells.length;
+        while (count--) {
+          const cell = newState.cells[count];
+          // TODO: all cells
+          // only extract assembly cells, to avoid label conflicts.
+          if (
+            !idMap[cell.id] &&
+            (!cell.labelToUse || cell.labelToUse[0] === 'A')
+          ) {
+            idMap[cell.id] = cell;
+            let extra = 2;
+            const base = cell.label;
+            while (labelMap[cell.label]) {
+              cell.label = `${base}_${extra}`;
+              extra += 1;
+            }
+            labelMap[cell.label] = cell;
+            newCells.unshift(cell);
+          }
+        }
+        this.setState({ cells: newCells });
+      }
+      if (newState.assemblies) {
+        const labelMap = {};
+        const newLayout = this.state.assemblyLayouts.slice();
+        const newAssemblies = this.state.assemblies.slice();
+        newLayout.forEach((layout) => {
+          labelMap[layout.label] = layout;
+        });
+        newState.assemblies.forEach((assembly) => {
+          let count = assembly.layout.length;
+          while (count--) {
+            const layout = assembly.layout[count];
+            if (!labelMap[layout.label]) {
+              layout.id = `layout-${layout.label}`;
+              const numPins = Math.round(Math.sqrt(layout.cell_map.length));
+              layout.numPins = numPins;
+              const map = [];
+              for (let i = 0; i < numPins; ++i) {
+                map.push(
+                  layout.cell_map
+                    .slice(i * numPins, (i + 1) * numPins)
+                    .join(' ')
+                );
+              }
+              layout.cellMap = map.join('\n');
+              newLayout.unshift(layout);
+              labelMap[layout.label] = layout;
+            }
+          }
+          assembly.id = `assembly-${assembly.label}`;
+          newAssemblies.unshift(assembly);
+        });
+        this.setState({
+          assemblyLayouts: newLayout,
+          assemblies: newAssemblies,
+        });
+      }
+      console.log('editor', newState);
+    });
+    return false;
+  }
+
   render() {
     const contents = [];
     const menuSize = 240;
@@ -224,6 +313,16 @@ export default class EditView extends React.Component {
             onKeyPress={this.handleKeyPress}
           />
           <div className={style.title}>{this.state.title}</div>
+          {this.state.file ? null : (
+            <Upload
+              accept="xml"
+              className={style.fileLoader}
+              showUploadList={false}
+              beforeUpload={this.parseFile}
+            >
+              <Icon type="plus" className={style.fileLoaderTrigger} />
+            </Upload>
+          )}
         </Header>
         <Layout>
           <Sider
@@ -249,6 +348,10 @@ export default class EditView extends React.Component {
               >
                 {this.state.assemblyLayouts.map((l) => (
                   <Menu.Item key={`assemblyLayouts:${l.id}`}>
+                    <span className={style.itemWithImage}>
+                      <img alt="" src={l.imageSrc} />
+                      {l.labelToUse || l.label}
+                    </span>
                     <span className={style.itemWithIcon}>
                       <Icon type="check-square-o" />
                       {l.labelToUse || l.label}

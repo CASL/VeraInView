@@ -47,7 +47,6 @@ export default class ImageRenderer extends React.Component {
           id="overTime"
           delayShow={50}
           scrollHide
-          disable={!this.state.show}
           getContent={[this.getTooltip, 50]}
           ref={(c) => {
             this.tooltipRef = c;

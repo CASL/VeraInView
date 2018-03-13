@@ -49,6 +49,8 @@ export default class CellEditor extends React.Component {
 
   componentDidMount() {
     this.update3D();
+    // update image
+    this.props.update();
   }
 
   onFieldUpdate(e) {
