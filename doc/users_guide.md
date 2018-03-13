@@ -74,7 +74,7 @@ The `scale` slider. Reduces the vertical scale of the model. Since assemblies or
 
 ![](lock_toggle.jpg) 
 
-`View lock` toggle. When this toggle is activated, it takes the current view and makes it into a static image, which can be right-clicked to get the 'Save image as...' option to export the image. It can also be dragged directly to the desktop to save the image as `download.png`. The image cannot be changed until this toggle is turned off.
+`View lock` toggle. When this toggle is activated, it takes the current view and makes it into a static image, which can be right-clicked to get the 'Save image as...' option to export the image. It can also be dragged directly to the desktop to save the image as `download.png`. The view cannot be changed until this toggle is turned off. Note that the image has a transparent background, making it easy to embed in presentations as desired.
 
 ![](persp_toggle.jpg) 
  

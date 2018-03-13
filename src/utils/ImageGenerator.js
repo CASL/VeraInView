@@ -32,6 +32,7 @@ materialColorManager.setColor('cs', [121 / 255, 121 / 255, 121 / 255, 1]);
 materialColorManager.setColor('ss', [153 / 255, 153 / 255, 153 / 255, 1]);
 // pulled from Brewer colors in ColorManager, he -> yellow, mod -> blue
 materialColorManager.setColor('mod', [128 / 255, 177 / 255, 211 / 255, 1]);
+materialColorManager.setColor('water', [128 / 255, 177 / 255, 211 / 255, 1]);
 // from the palette
 materialColorManager.setColor('zirc2', [217 / 255, 217 / 255, 217 / 255, 1]);
 // zirc4 identical?
@@ -131,6 +132,7 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
     ctx.fill();
   }
 
+  cell.gridSpacing = gridSpacing;
   cell.imageSrc = WORKING_CANVAS.toDataURL();
 
   // Used for 2D drawing
@@ -156,16 +158,30 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
   CELL_MAP[cell.id] = cell;
 }
 
+function getCellMaterial(item, posx, posy) {
+  const radius =
+    item.gridSpacing *
+    Math.sqrt((posx - 0.5) * (posx - 0.5) + (posy - 0.5) * (posy - 0.5));
+  for (let i = 0; i < item.radii.length; i++) {
+    if (radius < item.radii[i]) {
+      return { radius: item.radii[i], mat: item.mats[i] };
+    }
+  }
+  return null;
+}
+
 // ----------------------------------------------------------------------------
 
 function updateLayoutImage(
   item,
   cellNameToIdMap,
   size = 512,
-  gridSpacing = 2.1
+  gridSpacing = 2.1,
+  numPins = 0
 ) {
-  const layout = item.cell_map;
-  const width = Math.sqrt(layout.length);
+  const cellMap = item.cell_map;
+  // default to match the input map, but interactive cell maps might be shorter
+  const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
 
@@ -177,22 +193,25 @@ function updateLayoutImage(
   let pidx = 0;
   for (let j = 0; j < width; j++) {
     for (let i = 0; i < width; i++) {
-      const cellId = cellNameToIdMap[layout[pidx++]];
-      const cell = CELL_MAP[cellId];
-      if (cell && cell.image) {
-        const img = cell.image;
-        ctx.drawImage(img, i * recSide, j * recSide, recSide, recSide);
+      if (pidx < cellMap.length) {
+        const cellId = cellNameToIdMap[cellMap[pidx++]];
+        const cell = CELL_MAP[cellId];
+        if (cell && cell.image) {
+          const img = cell.image;
+          ctx.drawImage(img, i * recSide, j * recSide, recSide, recSide);
 
-        // For 3d reconstruction
-        if (!pointSets[cellId]) {
-          pointSets[cellId] = { coordinates: [], cellId, cell };
+          // For 3d reconstruction
+          if (!pointSets[cellId]) {
+            pointSets[cellId] = { coordinates: [], cellId, cell };
+          }
+          pointSets[cellId].coordinates.push(i * gridSpacing);
+          pointSets[cellId].coordinates.push(j * gridSpacing);
+          pointSets[cellId].coordinates.push(0);
         }
-        pointSets[cellId].coordinates.push(i * gridSpacing);
-        pointSets[cellId].coordinates.push(j * gridSpacing);
-        pointSets[cellId].coordinates.push(0);
       }
     }
   }
+  item.cellNameToIdMap = cellNameToIdMap;
 
   item.imageSrc = WORKING_CANVAS.toDataURL();
 
@@ -231,6 +250,18 @@ function updateLayoutImage(
   };
 }
 
+function getLayoutCell(item, posx, posy) {
+  const cellMap = item.cell_map;
+  // default to match the input map, but interactive cell maps might be shorter
+  const width = item.numPins || Math.sqrt(cellMap.length);
+  const recSide = width;
+  const i = Math.floor(posx * recSide);
+  const j = Math.floor(posy * recSide);
+  const pidx = j * width + i;
+  // console.log(width, recSide, i, j, pidx);
+  return { cell: cellMap[pidx], index: pidx };
+}
+
 // ----------------------------------------------------------------------------
 /* eslint-disable no-underscore-dangle */
 
@@ -264,6 +295,7 @@ function updateItemWithLayoutImages(
     const cell = item.Cells[cellKeys[count]];
     cellNameToIdMap[cell.label] = cell.id;
   }
+  item.cellNameToIdMap = cellNameToIdMap;
 
   // Create layout images
   count = item.layout.length;
@@ -733,7 +765,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Assembly(${stripCategory(assemKey)})`
-          ] = localColorManager.getColor(assemKey);
+          ] = localColorManager.getColorRGBA(assemKey);
         }
 
         if (ctrColor) {
@@ -755,7 +787,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Control(${stripCategory(ctrKey)})`
-          ] = localColorManager.getColor(ctrKey);
+          ] = localColorManager.getColorRGBA(ctrKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -787,7 +819,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Detector(${stripCategory(detKey)})`
-          ] = localColorManager.getColor(detKey);
+          ] = localColorManager.getColorRGBA(detKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -818,7 +850,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
           ctx.fill();
           colorLegend[
             `Insert(${stripCategory(insKey)})`
-          ] = localColorManager.getColor(insKey);
+          ] = localColorManager.getColorRGBA(insKey);
 
           ctx.fillStyle = 'black';
           ctx.textAlign = 'center';
@@ -1200,6 +1232,8 @@ export default {
   setLogger,
   materialColorManager,
   getColorLegendAt,
+  getCellMaterial,
+  getLayoutCell,
   updateLookupTables,
   compute3DCore,
   compute3DSlice,

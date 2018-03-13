@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Form, Input, Button, Select } from 'antd';
+import { Form, Input, Button, Select, Row, Col } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
 import VTKRenderer from './VTKRenderer';
@@ -14,10 +14,10 @@ const Option = Select.Option;
 
 let cellId = 1;
 
-// const TYPES = ['fuel', 'other'];
 const {
-  materialColorManager,
-  materialLookupTable,
+  // materialColorManager,
+  // materialLookupTable,
+  updateItemWithLayoutImages,
   updateLookupTables,
 } = ImageGenerator;
 
@@ -25,22 +25,13 @@ export default class AssemblyEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rendering: {
-        id: '000',
-        type: 'cell',
-        source: {
-          radius: [1],
-          cellFields: [1],
-          resolution: 360,
-        },
-        lookupTable: materialLookupTable,
-      },
+      rendering: null,
     };
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
     this.addNew = this.addNew.bind(this);
-    this.onRadiiUpdate = this.onRadiiUpdate.bind(this);
-    this.onMaterialUpdate = this.onMaterialUpdate.bind(this);
+    this.onElevationUpdate = this.onElevationUpdate.bind(this);
+    this.onLayoutUpdate = this.onLayoutUpdate.bind(this);
     this.update3D = this.update3D.bind(this);
   }
 
@@ -59,46 +50,56 @@ export default class AssemblyEditor extends React.Component {
     this.update3D();
   }
 
-  onRadiiUpdate(e) {
-    const radii = e.target.value
+  onElevationUpdate(e) {
+    const elevations = e.target.value
       .split(',')
+      .filter((s) => s.length)
       .map((s) => s.trim())
       .map((s) => Number(s));
-    const numRings = radii.length;
-    const mats = [].concat(this.props.content.mats);
-    while (mats.length < numRings) {
-      mats.push(this.props.materials[0].name);
+    const numMaps = Math.max(0, elevations.length - 1);
+    const axialLabels = [].concat(this.props.content.axial_labels);
+    while (axialLabels.length < numMaps) {
+      axialLabels.push(this.props.assemblyLayouts[0].label);
     }
-    while (mats.length > numRings) {
-      mats.pop();
+    while (axialLabels.length > numMaps) {
+      axialLabels.pop();
     }
-    this.props.content.radii = radii;
-    this.props.content.num_rings = numRings;
-    this.props.content.mats = mats;
+    this.props.content.axial_elevations = elevations;
+    this.props.content.axial_labels = axialLabels;
+    this.props.content.layout = this.props.assemblyLayouts;
+    // .filter((m) => m.id !== 'new-000');
+    this.props.content.Cells = this.props.cells;
+    this.props.update();
     this.update3D();
   }
 
-  onMaterialUpdate(value) {
-    const [idx, name] = value.split('::');
-    this.props.content.mats[Number(idx)] = name;
+  onLayoutUpdate(value) {
+    const [idx, label] = value.split('::');
+    this.props.content.axial_labels[Number(idx)] = label;
+    this.props.update();
     this.update3D();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   update3D() {
     updateLookupTables();
-    this.setState({
-      rendering: {
-        id: this.props.content.id,
-        type: 'cell',
-        source: {
-          forceUpdate: true,
-          radius: this.props.content.radii,
-          cellFields: this.props.content.mats.map(materialColorManager.getId),
-          resolution: 360,
-        },
-        lookupTable: materialLookupTable,
-      },
-    });
+    if (!this.props.content.Cells) this.props.content.Cells = this.props.cells;
+
+    if (this.props.content.axial_labels.length) {
+      updateItemWithLayoutImages(
+        'ASSEMBLIES',
+        this.props.content,
+        {},
+        this.props.imageSize
+      );
+      this.setState({
+        rendering: this.props.content.stack.has3D,
+      });
+    } else {
+      this.setState({
+        rendering: null,
+      });
+    }
   }
 
   addNew() {
@@ -106,9 +107,13 @@ export default class AssemblyEditor extends React.Component {
       const newCell = Object.assign({}, this.props.content, {
         id: `new-${cellId++}`,
       });
-      newCell.radii = newCell.radii.map((s) => Number(s));
-      newCell.mats = newCell.mats.slice();
+      newCell.axial_elevations = newCell.axial_elevations.map((s) => Number(s));
+      newCell.layout = newCell.layout.slice(); // clone
+      newCell.axial_labels = newCell.axial_labels.slice(); // clone
       newCell.labelToUse = newCell.label;
+      delete newCell.has3D;
+      delete newCell.image;
+      delete newCell.imageSrc;
       this.props.addNew(this.props.type, newCell);
     }
   }
@@ -118,10 +123,10 @@ export default class AssemblyEditor extends React.Component {
       <div className={style.form}>
         {this.props.content.id === 'new-000' ? (
           <Button
+            type="primary"
             shape="circle"
-            style={{ position: 'absolute', right: 15, top: 72 }}
+            style={{ position: 'absolute', right: 15, top: 68 }}
             icon="plus"
-            size="small"
             onClick={this.addNew}
           />
         ) : null}
@@ -138,38 +143,43 @@ export default class AssemblyEditor extends React.Component {
             />
           </FormItem>
           <FormItem
-            label="Radii"
+            label="Elevations"
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
           >
             <Input
-              value={this.props.content.radii}
-              data-id="radii"
-              onChange={this.onRadiiUpdate}
+              defaultValue={this.props.content.axial_elevations}
+              data-id="elevations"
+              onChange={this.onElevationUpdate}
             />
           </FormItem>
           <FormItem
-            label="Materials"
+            label="Maps"
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
           >
-            {this.props.content.mats.map((m, idx) => (
-              <Select
-                key={`mat-${idx.toString(16)}`}
-                value={m}
-                onChange={this.onMaterialUpdate}
-              >
-                {this.props.materials.map((mt) => (
-                  <Option key={mt.id} value={`${idx}::${mt.name}`}>
-                    {mt.label}
-                  </Option>
-                ))}
-              </Select>
-            ))}
+            <Row>
+              {this.props.content.axial_labels.map((m, idx) => (
+                <Col span={3} key={`layout-${idx.toString(16)}`}>
+                  <Select value={m} showSearch onChange={this.onLayoutUpdate}>
+                    {this.props.assemblyLayouts.map(
+                      (mt) =>
+                        mt.id === 'new-000' ? null : (
+                          <Option key={mt.id} value={`${idx}::${mt.label}`}>
+                            {mt.label}
+                          </Option>
+                        )
+                    )}
+                  </Select>
+                </Col>
+              ))}
+            </Row>
           </FormItem>
         </Form>
         <div className={style.preview}>
-          <VTKRenderer nested content={this.state.rendering} />
+          {this.state.rendering && (
+            <VTKRenderer nested content={this.state.rendering} />
+          )}
         </div>
       </div>
     );
@@ -181,11 +191,15 @@ AssemblyEditor.propTypes = {
   update: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
-  materials: PropTypes.array,
+  assemblyLayouts: PropTypes.array,
+  cells: PropTypes.array,
+  imageSize: PropTypes.number,
 };
 
 AssemblyEditor.defaultProps = {
   addNew: null,
   type: null,
-  materials: [],
+  assemblyLayouts: [],
+  cells: [],
+  imageSize: 512,
 };
