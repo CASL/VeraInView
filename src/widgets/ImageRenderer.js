@@ -76,6 +76,6 @@ ImageRenderer.propTypes = {
 ImageRenderer.defaultProps = {
   position: {},
   elementDimensions: {},
-  pad: 50,
+  pad: 0,
   onClick: null,
 };

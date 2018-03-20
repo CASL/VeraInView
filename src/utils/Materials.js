@@ -434,6 +434,30 @@ const materials = [
   },
 ];
 
+const fuels = [
+  {
+    density: 10.257,
+    label: 'U21',
+    enrichments: [2.11, 0.017364],
+    names: ['u-235', 'u-234'],
+    thden: 94.5,
+  },
+  {
+    density: 10.257,
+    label: 'U26',
+    enrichments: [2.619, 0.021947],
+    names: ['u-235', 'u-234'],
+    thden: 94.5,
+  },
+  {
+    density: 10.257,
+    label: 'U31',
+    enrichments: [3.1, 0.026347],
+    names: ['u-235', 'u-234'],
+    thden: 94.5,
+  },
+];
+
 const defaultMaterial = {};
 function initMaterials() {
   // Add colors and titles
@@ -443,12 +467,23 @@ function initMaterials() {
       // m.label = m.name; // macro.capitalize(m.name);
       m.color = null; // materialColorManager.getColor(m.name);
       m.id = `defaults-${i + 1}`;
+      m.names = m.names.join(', ');
+      m.fracs = m.fracs.join(', ');
       if (m.label === 'ss') Object.assign(defaultMaterial, m);
     }
     // delete m.name;
   });
+  fuels.forEach((m, i) => {
+    if (!m.id) {
+      m.color = null;
+      m.id = `fuels-${i + 1}`;
+      m.names = m.names.join(', ');
+      m.enrichments = m.enrichments.join(', ');
+    }
+  });
 }
 export default {
+  fuels,
   materials,
   defaultMaterial,
   initMaterials,

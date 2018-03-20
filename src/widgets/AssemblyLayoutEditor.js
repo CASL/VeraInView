@@ -22,6 +22,19 @@ const {
 } = ImageGenerator;
 
 export default class AssemblyLayoutEditor extends React.Component {
+  static createNew(item) {
+    const newLayout = Object.assign({}, item, {
+      id: `new-${layoutId++}`,
+    });
+    // Blank layout with correct size created by update3D()
+    delete newLayout.cell_map;
+    newLayout.labelToUse = newLayout.label;
+    delete newLayout.has3D;
+    delete newLayout.image;
+    delete newLayout.imageSrc;
+    return newLayout;
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -67,14 +80,19 @@ export default class AssemblyLayoutEditor extends React.Component {
     } else {
       this.props.content.cell_map[index] = this.state.paintCell;
     }
+    this.props.content.cellMap = this.getTextMap();
+    this.props.update();
+    this.update3D();
+  }
+
+  getTextMap() {
     const map = [];
-    const { numPins, cell_map: cellMap } = this.props.content;
+    const { cell_map: cellMap } = this.props.content;
+    const { numPins } = this.props.params;
     for (let i = 0; i < numPins; ++i) {
       map.push(cellMap.slice(i * numPins, (i + 1) * numPins).join(' '));
     }
-    this.props.content.cellMap = map.join('\n');
-    this.props.update();
-    this.update3D();
+    return map.join('\n');
   }
 
   update3D() {
@@ -89,7 +107,7 @@ export default class AssemblyLayoutEditor extends React.Component {
       // Verify items in the cellMap. Unrecognized cells are empty.
       const cellMap = this.props.content.cellMap.trim().split(/[,\s]+/);
       const fullMapSize =
-        +this.props.content.numPins * +this.props.content.numPins;
+        +this.props.params.numPins * +this.props.params.numPins;
 
       while (cellMap.length < fullMapSize) {
         cellMap.push('-');
@@ -102,12 +120,15 @@ export default class AssemblyLayoutEditor extends React.Component {
       });
 
       this.props.content.cell_map = cellMap;
+      if (!this.props.content.cellMap) {
+        this.props.content.cellMap = this.getTextMap();
+      }
       updateLayoutImage(
         this.props.content,
         cellNameToIdMap,
         this.props.imageSize,
-        this.props.content.pinPitch,
-        this.props.content.numPins
+        this.props.params.pinPitch,
+        this.props.params.numPins
       );
       this.setState({
         rendering: this.props.content.has3D,
@@ -121,15 +142,7 @@ export default class AssemblyLayoutEditor extends React.Component {
 
   addNew() {
     if (this.props.addNew) {
-      const newLayout = Object.assign({}, this.props.content, {
-        id: `new-${layoutId++}`,
-      });
-      newLayout.cell_map = newLayout.cell_map.slice(); // clone
-      newLayout.labelToUse = newLayout.label;
-      delete newLayout.has3D;
-      delete newLayout.image;
-      delete newLayout.imageSrc;
-
+      const newLayout = AssemblyLayoutEditor.createNew(this.props.content);
       this.props.addNew(this.props.type, newLayout);
     }
   }
@@ -163,28 +176,6 @@ export default class AssemblyLayoutEditor extends React.Component {
             />
           </FormItem>
           <FormItem
-            label="Num Pins"
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
-          >
-            <Input
-              value={this.props.content.numPins}
-              data-id="numPins"
-              onChange={this.onFieldUpdate}
-            />
-          </FormItem>
-          <FormItem
-            label="Pitch"
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
-          >
-            <Input
-              value={this.props.content.pinPitch}
-              data-id="pinPitch"
-              onChange={this.onFieldUpdate}
-            />
-          </FormItem>
-          <FormItem
             label="Cell Map"
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
@@ -192,7 +183,7 @@ export default class AssemblyLayoutEditor extends React.Component {
             <Input.TextArea
               style={{ fontFamily: 'monospace' }}
               value={this.props.content.cellMap}
-              rows={Math.min(this.props.content.numPins, 3)}
+              rows={Math.min(this.props.params.numPins, 3)}
               data-id="cellMap"
               onChange={this.onFieldUpdate}
             />
@@ -253,6 +244,7 @@ export default class AssemblyLayoutEditor extends React.Component {
 
 AssemblyLayoutEditor.propTypes = {
   content: PropTypes.object.isRequired,
+  params: PropTypes.object.isRequired,
   update: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,

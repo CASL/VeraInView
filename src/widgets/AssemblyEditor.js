@@ -22,6 +22,22 @@ const {
 } = ImageGenerator;
 
 export default class AssemblyEditor extends React.Component {
+  static createNew(item) {
+    const newAssembly = Object.assign({}, item, {
+      id: `new-${cellId++}`,
+    });
+    newAssembly.axial_elevations = newAssembly.axial_elevations.map((s) =>
+      Number(s)
+    );
+    newAssembly.layout = newAssembly.layout.slice(); // clone
+    newAssembly.axial_labels = newAssembly.axial_labels.slice(); // clone
+    newAssembly.labelToUse = newAssembly.label;
+    delete newAssembly.has3D;
+    delete newAssembly.image;
+    delete newAssembly.imageSrc;
+    return newAssembly;
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -104,17 +120,8 @@ export default class AssemblyEditor extends React.Component {
 
   addNew() {
     if (this.props.addNew) {
-      const newCell = Object.assign({}, this.props.content, {
-        id: `new-${cellId++}`,
-      });
-      newCell.axial_elevations = newCell.axial_elevations.map((s) => Number(s));
-      newCell.layout = newCell.layout.slice(); // clone
-      newCell.axial_labels = newCell.axial_labels.slice(); // clone
-      newCell.labelToUse = newCell.label;
-      delete newCell.has3D;
-      delete newCell.image;
-      delete newCell.imageSrc;
-      this.props.addNew(this.props.type, newCell);
+      const newAssembly = AssemblyEditor.createNew(this.props.content);
+      this.props.addNew(this.props.type, newAssembly);
     }
   }
 

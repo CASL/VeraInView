@@ -3,13 +3,14 @@ import 'antd/dist/antd.css';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Breadcrumb, Icon, Layout, Menu, Upload } from 'antd';
+import { Breadcrumb, Button, Icon, Layout, Menu, Upload } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
 import Color from './widgets/Color';
 import ImageGenerator from './utils/ImageGenerator';
 import MaterialEditor from './widgets/MaterialEditor';
+import ParamEditor from './widgets/ParamEditor';
 import CellEditor from './widgets/CellEditor';
 import AssemblyEditor from './widgets/AssemblyEditor';
 import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
@@ -23,59 +24,117 @@ import welcome from './assets/welcome.jpg';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { capitalize } = macro;
-const { materials, defaultMaterial, initMaterials } = Materials;
+const { fuels, materials, defaultMaterial, initMaterials } = Materials;
 const { materialColorManager } = ImageGenerator;
 
 ImageGenerator.setLogger(console.log);
 
 const EDITORS = {
+  Fuels: MaterialEditor,
   Materials: MaterialEditor,
   Cells: CellEditor,
   Assemblies: AssemblyEditor,
   AssemblyLayouts: AssemblyLayoutEditor,
+  Params: ParamEditor,
 };
 
+const TEMPLATES = {
+  materials: {
+    label: 'New',
+    color: null,
+    density: 1,
+    fracs: [1],
+    names: [],
+    thexp: 1,
+  },
+  fuels: {
+    label: 'New',
+    color: null,
+    density: 10.257,
+    enrichments: [2, 0.2],
+    names: ['u-235', 'u-234'],
+    thden: 1,
+  },
+  cells: {
+    label: 'New',
+    id: 'new-000',
+    mats: [defaultMaterial.label],
+    radii: [0.6],
+    num_rings: 1,
+  },
+  assemblyLayouts: {
+    label: 'New',
+    id: 'new-000',
+    cellMap: '',
+  },
+  assemblies: {
+    label: 'New',
+    id: 'new-000',
+    axial_elevations: [],
+    axial_labels: [],
+    layout: [],
+  },
+};
+
+// todo get from vtk-js
 function uncapitalize(str) {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
+
+function uniqueLabel(label, avoidList) {
+  let newLabel = label;
+  const loopFn = (item) => item.label === newLabel;
+  while (avoidList.find(loopFn)) {
+    const parts = newLabel.split('_');
+    const val = parts.length > 1 ? parseInt(parts[parts.length - 1], 10) : NaN;
+    if (!Number.isNaN(val)) {
+      parts[parts.length - 1] = val + 1;
+      newLabel = parts.join('_');
+    } else {
+      newLabel = `${newLabel}_1`;
+    }
+  }
+  return newLabel;
+}
+
+function GroupTitle(props) {
+  return (
+    <span className={style.itemWithSmallIcon}>
+      <Icon type={props.icon} />
+      {props.title}
+      <span style={{ flex: 1 }} />
+      <Button
+        shape="circle"
+        icon="plus"
+        className={style.menuAddNew}
+        onClick={props.onClick}
+      />
+    </span>
+  );
+}
+
+GroupTitle.propTypes = {
+  title: PropTypes.string.isRequired,
+  icon: PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
 
 export default class EditView extends React.Component {
   constructor(props) {
     super(props);
     initMaterials();
+    TEMPLATES.cells.mats[0] = defaultMaterial.label;
     this.state = {
       title: '',
       materials,
-      cells: [
-        {
-          label: 'New',
-          id: 'new-000',
-          mats: [defaultMaterial.label],
-          radii: [0.6],
-          num_rings: 1,
-          labelToUse: 'New cell',
-        },
-      ],
-      assemblyLayouts: [
-        {
-          label: 'New',
-          id: 'new-000',
-          numPins: 3,
-          pinPitch: 1.26,
-          labelToUse: 'New map',
-          cellMap: '- - -\n- - -\n- - -',
-        },
-      ],
-      assemblies: [
-        {
-          label: 'New',
-          id: 'new-000',
-          labelToUse: 'New assembly',
-          axial_elevations: [],
-          axial_labels: [],
-          layout: [],
-        },
-      ],
+      fuels,
+      cells: [],
+      assemblyLayouts: [],
+      assemblies: [],
+      params: {
+        numPins: 1,
+        pinPitch: 1.26,
+      },
       content: null,
       path: ['Home'],
       has3D: false,
@@ -103,10 +162,28 @@ export default class EditView extends React.Component {
     const content = this.state[type];
     if (content) {
       content.unshift(baseTemplate);
+      // make sure it's selected after creation.
       this.setState({ [type]: content }, () => {
         this.onSelect({ key: `${type}:${baseTemplate.id}` });
       });
     }
+  }
+
+  onMenuNew(type, category) {
+    // create a new item based on the currently selected one.
+    // state.content holds the current item.
+    const base =
+      capitalize(type) !== this.state.path[0]
+        ? TEMPLATES[type]
+        : this.state.content;
+    const newItem = EDITORS[capitalize(type)].createNew(base);
+    if (newItem.label !== undefined) {
+      newItem.label = uniqueLabel(newItem.label, this.state[type]);
+      if (newItem.labelToUse !== undefined) {
+        newItem.labelToUse = newItem.label;
+      }
+    }
+    this.onNew(type, newItem);
   }
 
   onSelect(options) {
@@ -186,18 +263,6 @@ export default class EditView extends React.Component {
   parseFile(file) {
     this.setState({ title: file.name, file });
     ModelHelper.parseFile(file, this.props.imageSize, (newState) => {
-      // Ensure material callbacks exists
-      // if (newState.materials) {
-      //   let count = newState.materials.length;
-      //   while (count--) {
-      //     const mat = newState.materials[count];
-      //     this.toggleMaskFn[mat.id] = (check) => {
-      //       const { mask } = this.state;
-      //       mask[mat.id] = !check;
-      //       this.setState({ mask });
-      //     };
-      //   }
-      // }
       if (newState.cells) {
         // make sure each is unique - ids derived from radii+mat
         const idMap = {};
@@ -233,8 +298,12 @@ export default class EditView extends React.Component {
         const labelMap = {};
         const newLayout = this.state.assemblyLayouts.slice();
         const newAssemblies = this.state.assemblies.slice();
+        const params = Object.assign({}, this.state.params);
         newLayout.forEach((layout) => {
           labelMap[layout.label] = layout;
+        });
+        newAssemblies.forEach((a) => {
+          labelMap[a.id] = a;
         });
         newState.assemblies.forEach((assembly) => {
           let count = assembly.layout.length;
@@ -242,7 +311,7 @@ export default class EditView extends React.Component {
             const layout = assembly.layout[count];
             if (!labelMap[layout.label]) {
               layout.id = `layout-${layout.label}`;
-              const numPins = Math.round(Math.sqrt(layout.cell_map.length));
+              const numPins = assembly.num_pins;
               layout.numPins = numPins;
               const map = [];
               for (let i = 0; i < numPins; ++i) {
@@ -257,12 +326,19 @@ export default class EditView extends React.Component {
               labelMap[layout.label] = layout;
             }
           }
-          assembly.id = `assembly-${assembly.label}`;
-          newAssemblies.unshift(assembly);
+          // use ID to avoid conflict with layouts.
+          if (!labelMap[`assembly-${assembly.label}`]) {
+            assembly.id = `assembly-${assembly.label}`;
+            newAssemblies.unshift(assembly);
+            labelMap[assembly.id] = assembly;
+          }
+          params.numPins = Math.max(params.numPins, assembly.num_pins);
+          params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
         });
         this.setState({
           assemblyLayouts: newLayout,
           assemblies: newAssemblies,
+          params,
         });
       }
       console.log('editor', newState);
@@ -285,6 +361,8 @@ export default class EditView extends React.Component {
           update={this.forceUpdate}
           type={uncapitalize(this.state.path[0])}
           addNew={this.onNew}
+          params={this.state.params}
+          fuels={this.state.fuels}
           materials={this.state.materials}
           defaultMaterial={defaultMaterial}
           cells={this.state.cells}
@@ -338,80 +416,161 @@ export default class EditView extends React.Component {
               onOpenChange={this.onOpenChange}
               selectedKeys={this.state.selected}
             >
+              <Menu.Item key="params">
+                <span className={style.itemWithIcon}>
+                  <Icon type="bars" />
+                  Global Parameters
+                </span>
+              </Menu.Item>
               <SubMenu
                 key="assemblies"
                 title={
-                  <span>
+                  <span className={style.itemWithIcon}>
                     <Icon type="appstore-o" />Assemblies
                   </span>
                 }
               >
-                {this.state.assemblyLayouts.map((l) => (
-                  <Menu.Item key={`assemblyLayouts:${l.id}`}>
-                    <span className={style.itemWithImage}>
-                      <img alt="" src={l.imageSrc} />
-                      {l.labelToUse || l.label}
-                    </span>
-                    <span className={style.itemWithIcon}>
-                      <Icon type="check-square-o" />
-                      {l.labelToUse || l.label}
-                    </span>
-                  </Menu.Item>
-                ))}
-                {this.state.assemblyLayouts.length > 1 &&
-                  this.state.assemblies.map((a) => (
-                    <Menu.Item key={`assemblies:${a.id}`}>
-                      <span className={style.itemWithIcon}>
-                        <Icon type="api" />
-                        {a.labelToUse || a.label}
+                <Menu.ItemGroup
+                  key="rodmaps"
+                  title={
+                    <GroupTitle
+                      title="Rodmaps"
+                      icon="appstore-o"
+                      onClick={() =>
+                        this.onMenuNew('assemblyLayouts', 'assemblies')
+                      }
+                    />
+                  }
+                >
+                  {this.state.assemblyLayouts.map((l) => (
+                    <Menu.Item key={`assemblyLayouts:${l.id}`}>
+                      <span className={style.itemWithImage}>
+                        <img alt="" src={l.imageSrc} />
+                        {l.labelToUse || l.label}
                       </span>
                     </Menu.Item>
                   ))}
+                </Menu.ItemGroup>
+                {this.state.assemblyLayouts.length > 0 && (
+                  <Menu.ItemGroup
+                    key="stacks"
+                    title={
+                      <GroupTitle
+                        title="Axial Stacks"
+                        icon="appstore-o"
+                        onClick={() =>
+                          this.onMenuNew('assemblies', 'assemblies')
+                        }
+                      />
+                    }
+                  >
+                    {this.state.assemblies.map((a) => (
+                      <Menu.Item key={`assemblies:${a.id}`}>
+                        <span className={style.itemWithSmallIcon}>
+                          <Icon type="api" />
+                          {a.labelToUse || a.label}
+                        </span>
+                      </Menu.Item>
+                    ))}
+                  </Menu.ItemGroup>
+                )}
               </SubMenu>
               <SubMenu
                 key="cells"
                 title={
-                  <span>
+                  <span className={style.itemWithIcon}>
                     <Icon type="copyright" />Cell types
                   </span>
                 }
               >
-                {this.state.cells.map((m) => (
-                  <Menu.Item key={`cells:${m.id}`}>
-                    <span className={style.itemWithImage}>
-                      <img alt="" src={m.imageSrc} />
-                      {m.labelToUse}
-                    </span>
-                  </Menu.Item>
-                ))}
+                <Menu.ItemGroup
+                  key="assemblyCells"
+                  title={
+                    <GroupTitle
+                      title="Assembly"
+                      icon="copyright"
+                      onClick={() => this.onMenuNew('cells', 'assemblies')}
+                    />
+                  }
+                >
+                  {this.state.cells.map((m) => (
+                    <Menu.Item key={`cells:${m.id}`}>
+                      <span className={style.itemWithImage}>
+                        <img alt="" src={m.imageSrc} />
+                        {m.labelToUse}
+                      </span>
+                    </Menu.Item>
+                  ))}
+                </Menu.ItemGroup>
               </SubMenu>
               <SubMenu
                 key="materials"
                 title={
-                  <span>
+                  <span className={style.itemWithIcon}>
                     <Icon type="tags-o" />Materials
                   </span>
                 }
               >
-                {this.state.materials.map(
-                  (m) =>
-                    m.hide ? null : (
-                      <Menu.Item
-                        key={`materials:${m.id}`}
-                        className={style.materialSelector}
-                      >
-                        <Color
-                          title={m.label}
-                          color={
-                            materialColorManager.hasName(m.label)
-                              ? materialColorManager.getColorRGBA(m.label)
-                              : m.color
-                          }
-                          key={`mat-${m.id}`}
-                        />
-                      </Menu.Item>
-                    )
-                )}
+                <Menu.ItemGroup
+                  key="fuelMaterials"
+                  title={
+                    <GroupTitle
+                      title="Fuels"
+                      icon="tags-o"
+                      onClick={() => this.onMenuNew('fuels', 'fuels')}
+                    />
+                  }
+                >
+                  {this.state.fuels.map(
+                    (m) =>
+                      m.hide ? null : (
+                        <Menu.Item
+                          key={`fuels:${m.id}`}
+                          className={style.materialSelector}
+                        >
+                          <Color
+                            title={m.label}
+                            color={
+                              materialColorManager.hasName(m.label)
+                                ? materialColorManager.getColorRGBA(m.label)
+                                : m.color
+                            }
+                            key={`mat-${m.id}`}
+                          />
+                        </Menu.Item>
+                      )
+                  )}
+                </Menu.ItemGroup>
+                <Menu.ItemGroup
+                  key="normalMaterials"
+                  title={
+                    <GroupTitle
+                      title="Normal"
+                      icon="tags-o"
+                      onClick={() => this.onMenuNew('materials', 'normal')}
+                    />
+                  }
+                >
+                  {this.state.materials.map(
+                    (m) =>
+                      m.hide ? null : (
+                        <Menu.Item
+                          key={`materials:${m.id}`}
+                          className={style.materialSelector}
+                        >
+                          <Color
+                            title={m.label}
+                            color={
+                              materialColorManager.hasName(m.label)
+                                ? materialColorManager.getColorRGBA(m.label)
+                                : m.color
+                            }
+                            key={`mat-${m.id}`}
+                          />
+                        </Menu.Item>
+                      )
+                  )}
+                </Menu.ItemGroup>
               </SubMenu>
             </Menu>
           </Sider>

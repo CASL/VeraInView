@@ -11,7 +11,7 @@ import ImageGenerator from '../utils/ImageGenerator';
 import style from '../assets/vera.mcss';
 
 const FormItem = Form.Item;
-const Option = Select.Option;
+const { Option, OptGroup } = Select;
 
 let cellId = 1;
 
@@ -24,6 +24,19 @@ const {
 } = ImageGenerator;
 
 export default class CellEditor extends React.Component {
+  static createNew(item) {
+    const newCell = Object.assign({}, item, {
+      id: `new-${cellId++}`,
+    });
+    newCell.radii = newCell.radii.map((s) => Number(s));
+    newCell.mats = newCell.mats.slice(); // clone
+    newCell.labelToUse = newCell.label;
+    delete newCell.has3D;
+    delete newCell.image;
+    // delete newCell.imageSrc;
+    return newCell;
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -98,7 +111,11 @@ export default class CellEditor extends React.Component {
 
   update3D() {
     updateLookupTables();
-    updateCellImage(this.props.content, this.props.imageSize);
+    updateCellImage(
+      this.props.content,
+      this.props.imageSize,
+      this.props.params.pinPitch
+    );
     this.props.content.has3D.source.forceUpdate = true;
     this.setState({
       rendering: this.props.content.has3D,
@@ -107,20 +124,13 @@ export default class CellEditor extends React.Component {
 
   addNew() {
     if (this.props.addNew) {
-      const newCell = Object.assign({}, this.props.content, {
-        id: `new-${cellId++}`,
-      });
-      newCell.radii = newCell.radii.map((s) => Number(s));
-      newCell.mats = newCell.mats.slice(); // clone
-      newCell.labelToUse = newCell.label;
-      delete newCell.has3D;
-      delete newCell.image;
-      // delete newCell.imageSrc;
+      const newCell = CellEditor.createNew(this.props.content);
       this.props.addNew(this.props.type, newCell);
     }
   }
 
   render() {
+    /* eslint-disable react/no-array-index-key */
     return (
       <div className={style.form}>
         {this.props.content.id === 'new-000' ? (
@@ -167,12 +177,21 @@ export default class CellEditor extends React.Component {
             <Row>
               {this.props.content.mats.map((m, idx) => (
                 <Col span={3} key={`mat-${idx.toString(16)}`}>
-                  <Select value={m} showSearch onChange={this.onMaterialUpdate}>
-                    {this.props.materials.map((mt) => (
-                      <Option key={mt.id} value={`${idx}::${mt.label}`}>
-                        {mt.label}
-                      </Option>
-                    ))}
+                  <Select
+                    value={`${idx}::${m}`}
+                    showSearch
+                    onChange={this.onMaterialUpdate}
+                  >
+                    <OptGroup label="Fuels">
+                      {this.props.fuels.map((mt) => (
+                        <Option key={`${idx}::${mt.label}`}>{mt.label}</Option>
+                      ))}
+                    </OptGroup>
+                    <OptGroup label="Normal">
+                      {this.props.materials.map((mt) => (
+                        <Option key={`${idx}::${mt.label}`}>{mt.label}</Option>
+                      ))}
+                    </OptGroup>
                   </Select>
                 </Col>
               ))}
@@ -205,6 +224,8 @@ CellEditor.propTypes = {
   update: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
+  params: PropTypes.object.isRequired,
+  fuels: PropTypes.array,
   materials: PropTypes.array,
   defaultMaterial: PropTypes.object,
   imageSize: PropTypes.number,
@@ -213,6 +234,7 @@ CellEditor.propTypes = {
 CellEditor.defaultProps = {
   addNew: null,
   type: null,
+  fuels: [],
   materials: [],
   defaultMaterial: { label: 'ss' },
   imageSize: 512,

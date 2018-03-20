@@ -16,14 +16,14 @@ const FormItem = Form.Item;
 const { capitalize } = macro;
 
 let matId = 1;
-const TEMPLATE_NEW = {
-  label: 'New material',
-  color: null,
-  density: 1,
-  fracs: [1],
-  names: [],
-  thexp: 1,
-};
+// const TEMPLATE_NEW = {
+//   label: 'New',
+//   color: null,
+//   density: 1,
+//   fracs: [1],
+//   names: [],
+//   thexp: 1,
+// };
 
 function compareFunc(a, b) {
   if (a === 'label') return -1;
@@ -32,6 +32,16 @@ function compareFunc(a, b) {
 }
 
 export default class MaterialEditor extends React.Component {
+  static createNew(item) {
+    const newMat = Object.assign({}, item, {
+      id: `new-${matId++}`,
+      // label: TEMPLATE_NEW.label,
+    });
+    if (newMat.fracs) newMat.fracs = newMat.fracs.slice();
+    if (newMat.enrichments) newMat.enrichments = newMat.enrichments.slice();
+    newMat.names = newMat.names.slice();
+    return newMat;
+  }
   constructor(props) {
     super(props);
     this.state = {};
@@ -49,12 +59,7 @@ export default class MaterialEditor extends React.Component {
 
   addNew() {
     if (this.props.addNew) {
-      const newMat = Object.assign({}, this.props.content, {
-        id: `new-${matId++}`,
-        label: TEMPLATE_NEW.label,
-      });
-      newMat.fracs = newMat.fracs.slice();
-      newMat.names = newMat.names.slice();
+      const newMat = MaterialEditor.createNew(this.props.content);
       this.props.addNew(this.props.type, newMat);
     }
   }

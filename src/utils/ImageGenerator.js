@@ -121,6 +121,37 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
   ctx.clearRect(0, 0, size, size);
   const center = size / 2;
 
+  // draw an indication of the available size
+  // TODO shouldn't be visible in layouts
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
+  const step = 2 * Math.PI / 16;
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.arc(
+      center,
+      center,
+      0.5 * size,
+      2 * i * step,
+      (2 * i + 1) * step,
+      false
+    );
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.arc(
+      center,
+      center,
+      0.5 * size,
+      (2 * i + 1) * step,
+      (2 * i + 2) * step,
+      false
+    );
+    ctx.stroke();
+  }
+
   let count = Number(cell.num_rings);
   while (count--) {
     const color = materialColorManager.getColorRGBA(cell.mats[count]);
@@ -180,6 +211,7 @@ function updateLayoutImage(
   numPins = 0
 ) {
   const cellMap = item.cell_map;
+  if (!cellMap || cellMap.length === 0) return;
   // default to match the input map, but interactive cell maps might be shorter
   const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
@@ -189,6 +221,20 @@ function updateLayoutImage(
   WORKING_CANVAS.setAttribute('height', size);
   const ctx = WORKING_CANVAS.getContext('2d');
   ctx.clearRect(0, 0, size, size);
+
+  // show a grid with available spots for cells.
+  ctx.beginPath();
+  for (let j = 1; j < width; j++) {
+    ctx.moveTo(0, j * recSide);
+    ctx.lineTo(size, j * recSide);
+  }
+  for (let i = 1; i < width; i++) {
+    ctx.moveTo(i * recSide, 0);
+    ctx.lineTo(i * recSide, size);
+  }
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
+  ctx.stroke();
 
   let pidx = 0;
   for (let j = 0; j < width; j++) {
