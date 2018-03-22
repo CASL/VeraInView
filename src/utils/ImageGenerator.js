@@ -235,6 +235,23 @@ function updateLayoutImage(
   ctx.lineWidth = 1;
   ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
   ctx.stroke();
+  // show an indication of symmetry
+  if (item.symmetry) {
+    const center = size * 0.5;
+    if (item.symmetry === 'oct') {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(center, center);
+      ctx.lineTo(center, 0);
+      ctx.stroke();
+    } else if (item.symmetry === 'quad') {
+      ctx.beginPath();
+      ctx.moveTo(center, 0);
+      ctx.lineTo(center, center);
+      ctx.lineTo(0, center);
+      ctx.stroke();
+    }
+  }
 
   let pidx = 0;
   for (let j = 0; j < width; j++) {
@@ -305,7 +322,7 @@ function getLayoutCell(item, posx, posy) {
   const j = Math.floor(posy * recSide);
   const pidx = j * width + i;
   // console.log(width, recSide, i, j, pidx);
-  return { cell: cellMap[pidx], index: pidx };
+  return { cell: cellMap[pidx], index: pidx, i, j };
 }
 
 // ----------------------------------------------------------------------------

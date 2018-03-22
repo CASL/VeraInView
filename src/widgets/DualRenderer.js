@@ -37,6 +37,7 @@ export default class DualRenderer extends React.Component {
             <ImageRenderer
               content={this.props.content.imageSrc}
               getImageInfo={this.props.getImageInfo}
+              overlayText={this.props.overlayText}
               onClick={this.props.onClick}
             />
           </ReactCursorPosition>
@@ -69,10 +70,12 @@ DualRenderer.propTypes = {
   rendering: PropTypes.object,
   content: PropTypes.object.isRequired,
   getImageInfo: PropTypes.func.isRequired,
+  overlayText: PropTypes.string,
   onClick: PropTypes.func,
 };
 
 DualRenderer.defaultProps = {
   rendering: null,
   onClick: null,
+  overlayText: '',
 };

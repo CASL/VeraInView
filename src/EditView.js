@@ -66,6 +66,7 @@ const TEMPLATES = {
     label: 'New',
     id: 'new-000',
     cellMap: '',
+    symmetry: 'oct',
   },
   assemblies: {
     label: 'New',
@@ -430,27 +431,6 @@ export default class EditView extends React.Component {
                   </span>
                 }
               >
-                <Menu.ItemGroup
-                  key="rodmaps"
-                  title={
-                    <GroupTitle
-                      title="Rodmaps"
-                      icon="appstore-o"
-                      onClick={() =>
-                        this.onMenuNew('assemblyLayouts', 'assemblies')
-                      }
-                    />
-                  }
-                >
-                  {this.state.assemblyLayouts.map((l) => (
-                    <Menu.Item key={`assemblyLayouts:${l.id}`}>
-                      <span className={style.itemWithImage}>
-                        <img alt="" src={l.imageSrc} />
-                        {l.labelToUse || l.label}
-                      </span>
-                    </Menu.Item>
-                  ))}
-                </Menu.ItemGroup>
                 {this.state.assemblyLayouts.length > 0 && (
                   <Menu.ItemGroup
                     key="stacks"
@@ -474,6 +454,27 @@ export default class EditView extends React.Component {
                     ))}
                   </Menu.ItemGroup>
                 )}
+                <Menu.ItemGroup
+                  key="rodmaps"
+                  title={
+                    <GroupTitle
+                      title="Rodmaps"
+                      icon="appstore-o"
+                      onClick={() =>
+                        this.onMenuNew('assemblyLayouts', 'assemblies')
+                      }
+                    />
+                  }
+                >
+                  {this.state.assemblyLayouts.map((l) => (
+                    <Menu.Item key={`assemblyLayouts:${l.id}`}>
+                      <span className={style.itemWithImage}>
+                        <img alt="" src={l.imageSrc} />
+                        {l.labelToUse || l.label}
+                      </span>
+                    </Menu.Item>
+                  ))}
+                </Menu.ItemGroup>
               </SubMenu>
               <SubMenu
                 key="cells"
