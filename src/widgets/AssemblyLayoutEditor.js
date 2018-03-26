@@ -44,6 +44,7 @@ export default class AssemblyLayoutEditor extends React.Component {
     };
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
+    this.onSymmetryUpdate = this.onSymmetryUpdate.bind(this);
     this.addNew = this.addNew.bind(this);
     this.update3D = this.update3D.bind(this);
     this.on2DClick = this.on2DClick.bind(this);
@@ -51,7 +52,12 @@ export default class AssemblyLayoutEditor extends React.Component {
 
   componentDidMount() {
     this.update3D();
+    // make sure the text map is filled in.
+    this.props.content.cellMap = this.getTextMap();
   }
+
+  // so far, unnecessary, since no other components edit while this is visible.
+  // componentWillReceiveProps(nextProps)
 
   onFieldUpdate(e) {
     const value = e.target.value;
@@ -60,6 +66,17 @@ export default class AssemblyLayoutEditor extends React.Component {
     if (id === 'label' && this.props.content.id !== 'new-000') {
       this.props.content.labelToUse = value;
     }
+    this.props.update();
+    this.update3D();
+  }
+
+  onSymmetryUpdate(e) {
+    const value = e.target.value;
+    const id = e.target.dataset ? e.target.dataset.id : e.target['data-id'];
+    this.props.content[id] = value;
+    // make sure the text map is trimmed/expanded as needed, based on fullMap
+    this.props.content.cellMap = this.getTextMap();
+    // now update, fullMap and pictures.
     this.props.update();
     this.update3D();
   }
@@ -137,14 +154,14 @@ export default class AssemblyLayoutEditor extends React.Component {
     const { numPins } = this.props.params;
     const halfPins = Math.floor(numPins * 0.5);
     // copy from the lower-right quad, and left octant.
-    if (halfPins > 1 && symmetry === 'oct') {
+    if (halfPins > 0 && symmetry === 'oct') {
       for (let j = halfPins; j < numPins; ++j) {
         // i range is halfPins -> j
         map.push(
           cellMap.slice(j * numPins + halfPins, j * numPins + j + 1).join(' ')
         );
       }
-    } else if (halfPins > 1 && symmetry === 'quad') {
+    } else if (halfPins > 0 && symmetry === 'quad') {
       for (let j = halfPins; j < numPins; ++j) {
         // i range is halfPins -> end of row
         map.push(
@@ -303,7 +320,7 @@ export default class AssemblyLayoutEditor extends React.Component {
             wrapperCol={{ span: 20 }}
           >
             <Radio.Group
-              onChange={this.onFieldUpdate}
+              onChange={this.onSymmetryUpdate}
               value={this.props.content.symmetry}
               data-id="symmetry"
             >
