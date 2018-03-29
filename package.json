@@ -2,8 +2,17 @@
     "name": "Vera",
     "version": "0.0.0-semantically-release",
     "description": "",
-    "license": "",
-    "main": "./dist/vera.js",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/CASL/VeraInView.git"
+    },
+    "license": "BSD-3-Clause",
+    "bugs": {
+        "url": "https://github.com/CASL/VeraInView/issues"
+    },
+    "homepage": "https://github.com/CASL/VeraInView#readme",
+    "main": "./dist/VeraInView.html",
+
     "dependencies": {
         "vtk.js": "6.2.7"
     },
@@ -22,13 +31,16 @@
         "validate": "prettier --config ./prettier.config.js --list-different \"src/**/*.js\"",
         "reformat": "prettier --config ./prettier.config.js --write \"src/**/*.js\"",
         "reformat-only": "prettier --config ./prettier.config.js --write",
+        "doc": "kw-doc -c ./Documentation/config.js",
+        "doc:www": "kw-doc -c ./Documentation/config.js -s",
+        "doc:publish": "kw-doc -c ./Documentation/config.js -mp",
         "build": "webpack --progress --colors",
         "build:debug": "npm run build -- --display-modules",
         "build:release": "npm run build -- --env.release",
         "bundle": "inline-source --compress false --root ./dist ./dist/index.html ./dist/VeraInView.html",
         "start": "webpack-dev-server",
         "commit": "git cz",
-        "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+        "semantic-release": "semantic-release"
     },
     "config": {
         "commitizen": {
