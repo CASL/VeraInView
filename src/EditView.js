@@ -34,7 +34,7 @@ const EDITORS = {
   Materials: MaterialEditor,
   Cells: CellEditor,
   Assemblies: AssemblyEditor,
-  AssemblyLayouts: AssemblyLayoutEditor,
+  Rodmaps: AssemblyLayoutEditor,
   Params: ParamEditor,
 };
 
@@ -62,7 +62,7 @@ const TEMPLATES = {
     radii: [0.6],
     num_rings: 1,
   },
-  assemblyLayouts: {
+  rodmaps: {
     label: 'New',
     id: 'new-000',
     cellMap: '',
@@ -76,6 +76,13 @@ const TEMPLATES = {
     layout: [],
   },
 };
+
+const GROUP_TYPES = [
+  { label: 'Assembly', group: 'assemblies' },
+  { label: 'Insert', group: 'inserts' },
+  { label: 'Control', group: 'controls' },
+  { label: 'Detector', group: 'detectors' },
+];
 
 // todo get from vtk-js
 function uncapitalize(str) {
@@ -130,7 +137,7 @@ export default class EditView extends React.Component {
       materials,
       fuels,
       cells: [],
-      assemblyLayouts: [],
+      rodmaps: [],
       assemblies: [],
       params: {
         numPins: 1,
@@ -152,6 +159,7 @@ export default class EditView extends React.Component {
     this.getSelectionByKey = this.getSelectionByKey.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.onNew = this.onNew.bind(this);
+    this.onRemove = this.onRemove.bind(this);
     this.onSelect = this.onSelect.bind(this);
     this.onToggle3D = this.onToggle3D.bind(this);
     this.onToggleMenu = this.onToggleMenu.bind(this);
@@ -170,7 +178,7 @@ export default class EditView extends React.Component {
     }
   }
 
-  onMenuNew(type, category) {
+  onMenuNew(type, group) {
     // create a new item based on the currently selected one.
     // state.content holds the current item.
     const base =
@@ -178,6 +186,7 @@ export default class EditView extends React.Component {
         ? TEMPLATES[type]
         : this.state.content;
     const newItem = EDITORS[capitalize(type)].createNew(base);
+    newItem.group = group;
     if (newItem.label !== undefined) {
       newItem.label = uniqueLabel(newItem.label, this.state[type]);
       if (newItem.labelToUse !== undefined) {
@@ -185,6 +194,24 @@ export default class EditView extends React.Component {
       }
     }
     this.onNew(type, newItem);
+  }
+
+  onRemove() {
+    const { item: removeItem, path } = this.getSelectionByKey(
+      this.state.lastKey
+    );
+    if (!removeItem) return;
+    const type = uncapitalize(path[0]);
+    const content = this.state[type].slice();
+    const index = content.findIndex((item) => item.id === removeItem.id);
+    if (index !== -1) {
+      content.splice(index, 1);
+      this.setState({ [type]: content }, () => {
+        // try to select the first remaining item of the same type, or nothing.
+        const id = content.length ? content[0].id : '';
+        this.onSelect({ key: `${type}:${id}` });
+      });
+    }
   }
 
   onSelect(options) {
@@ -200,7 +227,7 @@ export default class EditView extends React.Component {
         lastKey: options.key,
       });
     } else {
-      this.setState({ selected });
+      this.setState({ selected, content: null, path });
     }
   }
 
@@ -297,7 +324,7 @@ export default class EditView extends React.Component {
       }
       if (newState.assemblies) {
         const labelMap = {};
-        const newLayout = this.state.assemblyLayouts.slice();
+        const newLayout = this.state.rodmaps.slice();
         const newAssemblies = this.state.assemblies.slice();
         const params = Object.assign({}, this.state.params);
         newLayout.forEach((layout) => {
@@ -337,7 +364,7 @@ export default class EditView extends React.Component {
           params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
         });
         this.setState({
-          assemblyLayouts: newLayout,
+          rodmaps: newLayout,
           assemblies: newAssemblies,
           params,
         });
@@ -362,12 +389,13 @@ export default class EditView extends React.Component {
           update={this.forceUpdate}
           type={uncapitalize(this.state.path[0])}
           addNew={this.onNew}
+          remove={this.onRemove}
           params={this.state.params}
           fuels={this.state.fuels}
           materials={this.state.materials}
           defaultMaterial={defaultMaterial}
           cells={this.state.cells}
-          assemblyLayouts={this.state.assemblyLayouts}
+          assemblyLayouts={this.state.rodmaps}
           imageSize={this.props.imageSize}
         />
       );
@@ -427,17 +455,17 @@ export default class EditView extends React.Component {
                 key="assemblies"
                 title={
                   <span className={style.itemWithIcon}>
-                    <Icon type="appstore-o" />Assemblies
+                    <Icon type="api" />Assemblies
                   </span>
                 }
               >
-                {this.state.assemblyLayouts.length > 0 && (
+                {this.state.rodmaps.length > 0 && (
                   <Menu.ItemGroup
                     key="stacks"
                     title={
                       <GroupTitle
                         title="Axial Stacks"
-                        icon="appstore-o"
+                        icon="api"
                         onClick={() =>
                           this.onMenuNew('assemblies', 'assemblies')
                         }
@@ -454,27 +482,47 @@ export default class EditView extends React.Component {
                     ))}
                   </Menu.ItemGroup>
                 )}
-                <Menu.ItemGroup
-                  key="rodmaps"
-                  title={
-                    <GroupTitle
-                      title="Rodmaps"
-                      icon="appstore-o"
-                      onClick={() =>
-                        this.onMenuNew('assemblyLayouts', 'assemblies')
-                      }
-                    />
-                  }
-                >
-                  {this.state.assemblyLayouts.map((l) => (
-                    <Menu.Item key={`assemblyLayouts:${l.id}`}>
-                      <span className={style.itemWithImage}>
-                        <img alt="" src={l.imageSrc} />
-                        {l.labelToUse || l.label}
-                      </span>
-                    </Menu.Item>
-                  ))}
-                </Menu.ItemGroup>
+              </SubMenu>
+              <SubMenu
+                key="rodmaps"
+                title={
+                  <span className={style.itemWithIcon}>
+                    <Icon type="appstore-o" />Rodmaps
+                  </span>
+                }
+              >
+                {GROUP_TYPES.map((info) => {
+                  const anyCells = this.state.cells.filter(
+                    (cell) => cell.group === info.group
+                  ).length;
+                  if (anyCells)
+                    return (
+                      <Menu.ItemGroup
+                        key={`${info.label}Rodmaps`}
+                        title={
+                          <GroupTitle
+                            title={info.label}
+                            icon="appstore-o"
+                            onClick={() =>
+                              this.onMenuNew('rodmaps', info.group)
+                            }
+                          />
+                        }
+                      >
+                        {this.state.rodmaps
+                          .filter((rm) => rm.group === info.group)
+                          .map((rm) => (
+                            <Menu.Item key={`rodmaps:${rm.id}`}>
+                              <span className={style.itemWithImage}>
+                                <img alt="" src={rm.imageSrc} />
+                                {rm.labelToUse || rm.label}
+                              </span>
+                            </Menu.Item>
+                          ))}
+                      </Menu.ItemGroup>
+                    );
+                  return null;
+                })}
               </SubMenu>
               <SubMenu
                 key="cells"
@@ -484,25 +532,29 @@ export default class EditView extends React.Component {
                   </span>
                 }
               >
-                <Menu.ItemGroup
-                  key="assemblyCells"
-                  title={
-                    <GroupTitle
-                      title="Assembly"
-                      icon="copyright"
-                      onClick={() => this.onMenuNew('cells', 'assemblies')}
-                    />
-                  }
-                >
-                  {this.state.cells.map((m) => (
-                    <Menu.Item key={`cells:${m.id}`}>
-                      <span className={style.itemWithImage}>
-                        <img alt="" src={m.imageSrc} />
-                        {m.labelToUse}
-                      </span>
-                    </Menu.Item>
-                  ))}
-                </Menu.ItemGroup>
+                {GROUP_TYPES.map((info) => (
+                  <Menu.ItemGroup
+                    key={`${info.label}Cells`}
+                    title={
+                      <GroupTitle
+                        title={info.label}
+                        icon="copyright"
+                        onClick={() => this.onMenuNew('cells', info.group)}
+                      />
+                    }
+                  >
+                    {this.state.cells
+                      .filter((cell) => cell.group === info.group)
+                      .map((cell) => (
+                        <Menu.Item key={`cells:${cell.id}`}>
+                          <span className={style.itemWithImage}>
+                            <img alt="" src={cell.imageSrc} />
+                            {cell.labelToUse}
+                          </span>
+                        </Menu.Item>
+                      ))}
+                  </Menu.ItemGroup>
+                ))}
               </SubMenu>
               <SubMenu
                 key="materials"

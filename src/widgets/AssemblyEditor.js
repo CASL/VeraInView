@@ -128,15 +128,12 @@ export default class AssemblyEditor extends React.Component {
   render() {
     return (
       <div className={style.form}>
-        {this.props.content.id === 'new-000' ? (
-          <Button
-            type="primary"
-            shape="circle"
-            style={{ position: 'absolute', right: 15, top: 68 }}
-            icon="plus"
-            onClick={this.addNew}
-          />
-        ) : null}
+        <Button
+          shape="circle"
+          style={{ position: 'absolute', right: 15, top: 68 }}
+          icon="delete"
+          onClick={this.props.remove}
+        />
         <Form layout="horizontal" className={style.form}>
           <FormItem
             label="Label"
@@ -196,6 +193,7 @@ export default class AssemblyEditor extends React.Component {
 AssemblyEditor.propTypes = {
   content: PropTypes.object.isRequired,
   update: PropTypes.func.isRequired,
+  remove: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
   assemblyLayouts: PropTypes.array,

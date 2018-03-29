@@ -48,12 +48,15 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.addNew = this.addNew.bind(this);
     this.update3D = this.update3D.bind(this);
     this.on2DClick = this.on2DClick.bind(this);
+    this.onRemove = this.onRemove.bind(this);
   }
 
   componentDidMount() {
     this.update3D();
     // make sure the text map is filled in.
-    this.props.content.cellMap = this.getTextMap();
+    if (this.props.cells.length) {
+      this.props.content.cellMap = this.getTextMap();
+    }
   }
 
   // so far, unnecessary, since no other components edit while this is visible.
@@ -109,6 +112,10 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.update3D();
   }
 
+  onRemove(e) {
+    this.props.remove(e);
+  }
+
   getSymCells(inI, inJ) {
     let i = inI;
     let j = inJ;
@@ -146,7 +153,9 @@ export default class AssemblyLayoutEditor extends React.Component {
     return result;
   }
 
-  // given the full array, generate a text map reduced by symmetry
+  // given the full array, generate a text map reduced by symmetry.
+  // This stomps on user input, so we only want to use when initializing,
+  // or when updated via click-to-place on the image.
   getTextMap() {
     const map = [];
     const { cell_map: cellMap } = this.props.content;
@@ -237,11 +246,13 @@ export default class AssemblyLayoutEditor extends React.Component {
     updateLookupTables();
     if (this.props.cells.length) {
       const cellNameToIdMap = {};
-      this.props.cells.forEach((cell) => {
-        if (cell.id !== 'new-000') {
-          cellNameToIdMap[cell.label] = cell.id;
-        }
-      });
+      this.props.cells
+        .filter((cell) => cell.group === this.props.content.group)
+        .forEach((cell) => {
+          if (cell.id !== 'new-000') {
+            cellNameToIdMap[cell.label] = cell.id;
+          }
+        });
       // Verify items in the cellMap. Unrecognized cells are empty.
       const { numPins, pinPitch } = this.props.params;
 
@@ -276,15 +287,12 @@ export default class AssemblyLayoutEditor extends React.Component {
   render() {
     return (
       <div className={style.form}>
-        {this.props.content.id === 'new-000' ? (
-          <Button
-            type="primary"
-            shape="circle"
-            style={{ position: 'absolute', right: 15, top: 68 }}
-            icon="plus"
-            onClick={this.addNew}
-          />
-        ) : null}
+        <Button
+          shape="circle"
+          style={{ position: 'absolute', right: 15, top: 68 }}
+          icon="delete"
+          onClick={this.onRemove}
+        />
         <Form
           layout="horizontal"
           className={style.form}
@@ -346,14 +354,16 @@ export default class AssemblyLayoutEditor extends React.Component {
                   value={this.state.paintCell}
                   onChange={(val) => this.setState({ paintCell: val })}
                 >
-                  {this.props.cells.map(
-                    (cell) =>
-                      cell.id === 'new-000' ? null : (
-                        <Option key={cell.id} value={`${cell.label}`}>
-                          {cell.label}
-                        </Option>
-                      )
-                  )}
+                  {this.props.cells
+                    .filter((cell) => cell.group === this.props.content.group)
+                    .map(
+                      (cell) =>
+                        cell.id === 'new-000' ? null : (
+                          <Option key={cell.id} value={`${cell.label}`}>
+                            {cell.label}
+                          </Option>
+                        )
+                    )}
                   <Option key="empty" value="-">
                     -
                   </Option>
@@ -393,6 +403,7 @@ AssemblyLayoutEditor.propTypes = {
   content: PropTypes.object.isRequired,
   params: PropTypes.object.isRequired,
   update: PropTypes.func.isRequired,
+  remove: PropTypes.func.isRequired,
   addNew: PropTypes.func,
   type: PropTypes.string,
   cells: PropTypes.array,

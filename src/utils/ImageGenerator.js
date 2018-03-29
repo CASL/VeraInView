@@ -121,6 +121,17 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
   ctx.clearRect(0, 0, size, size);
   const center = size / 2;
 
+  let count = Number(cell.num_rings);
+  while (count--) {
+    const color = materialColorManager.getColorRGBA(cell.mats[count]);
+    // material radii are interpreted in terms of the assembly ppitch.
+    const radius = cell.radii[count] * size / gridSpacing;
+    ctx.beginPath();
+    ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
   // draw an indication of the available size
   // TODO shouldn't be visible in layouts
   ctx.lineWidth = 1;
@@ -150,17 +161,6 @@ function updateCellImage(cell, size = 32, gridSpacing = 1.26) {
       false
     );
     ctx.stroke();
-  }
-
-  let count = Number(cell.num_rings);
-  while (count--) {
-    const color = materialColorManager.getColorRGBA(cell.mats[count]);
-    // material radii are interpreted in terms of the assembly ppitch.
-    const radius = cell.radii[count] * size / gridSpacing;
-    ctx.beginPath();
-    ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = color;
-    ctx.fill();
   }
 
   cell.gridSpacing = gridSpacing;
@@ -223,33 +223,35 @@ function updateLayoutImage(
   ctx.clearRect(0, 0, size, size);
 
   // show a grid with available spots for cells.
-  ctx.beginPath();
-  for (let j = 1; j < width; j++) {
-    ctx.moveTo(0, j * recSide);
-    ctx.lineTo(size, j * recSide);
-  }
-  for (let i = 1; i < width; i++) {
-    ctx.moveTo(i * recSide, 0);
-    ctx.lineTo(i * recSide, size);
-  }
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
-  ctx.stroke();
-  // show an indication of symmetry
-  if (item.symmetry) {
-    const center = size * 0.5;
-    if (item.symmetry === 'oct') {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(center, center);
-      ctx.lineTo(center, 0);
-      ctx.stroke();
-    } else if (item.symmetry === 'quad') {
-      ctx.beginPath();
-      ctx.moveTo(center, 0);
-      ctx.lineTo(center, center);
-      ctx.lineTo(0, center);
-      ctx.stroke();
+  if (numPins > 1) {
+    ctx.beginPath();
+    for (let j = 1; j < width; j++) {
+      ctx.moveTo(0, j * recSide);
+      ctx.lineTo(size, j * recSide);
+    }
+    for (let i = 1; i < width; i++) {
+      ctx.moveTo(i * recSide, 0);
+      ctx.lineTo(i * recSide, size);
+    }
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
+    ctx.stroke();
+    // show an indication of symmetry
+    if (item.symmetry) {
+      const center = size * 0.5;
+      if (item.symmetry === 'oct') {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(center, center);
+        ctx.lineTo(center, 0);
+        ctx.stroke();
+      } else if (item.symmetry === 'quad') {
+        ctx.beginPath();
+        ctx.moveTo(center, 0);
+        ctx.lineTo(center, center);
+        ctx.lineTo(0, center);
+        ctx.stroke();
+      }
     }
   }
 
