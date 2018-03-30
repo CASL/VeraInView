@@ -4,7 +4,8 @@ subtitle: Visualize With VeraInView
 comments: false
 ---
 
-div#intro-get-started-wrap
+// div#intro-get-started-wrap
+//
   a(href="/VeraInView/app", id="intro-get-started-link") Try out VeraInView (Stable)
     br
     br
@@ -14,6 +15,8 @@ div#intro-get-started-wrap
   &nbsp;
   &nbsp;
   &nbsp;
+
+div#intro-get-started-wrap
   a(href="/VeraInView/nightly", id="intro-get-started-link") Try out VeraInView (Latest)
     br
     br
@@ -26,7 +29,12 @@ ul#intro-feature-list(style="position:relative;top:-50px;")
         i.fa.fa-cloud-download
       h3.intro-feature-title
         a(href="https://github.com/CASL/VeraInView/releases").link Releases
-      p.intro-feature-desc VeraInView is a standalone Web application visualizes the geometry from VERAin simulation input files.
+      p.intro-feature-desc
+        span.
+          VeraInView is a standalone Web application that visualizes the geometry from VERAin simulation input files. The&nbsp;
+        a(href="users_guide/") user's guide
+        span.
+          &nbsp;can get you started.
 
   li.intro-feature-wrap
     .intro-feature
