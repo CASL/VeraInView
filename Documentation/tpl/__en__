@@ -1,0 +1,21 @@
+menu:
+  users_guide: "User's Guide"
+  app: Stable
+  nightly: Nightly
+
+index:
+  users_guide: Get started
+
+page:
+  contents: Contents
+  back_to_top: Back to Top
+  improve: Improve this doc
+  prev: Prev
+  next: Next
+  last_updated: "Last updated: %s"
+
+sidebar:
+  docs:
+    users_guide: Getting Started
+    overview: Overview
+

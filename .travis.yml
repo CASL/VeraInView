@@ -36,7 +36,7 @@ script:
   # - if [ "$TRAVIS_BRANCH" == "master" ]; then npm run doc:publish; fi
 
 after_success:
-  # - npm run semantic-release
+  - npm run semantic-release
 
 branches:
   except:

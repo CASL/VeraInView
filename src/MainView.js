@@ -171,7 +171,7 @@ export default class MainView extends React.Component {
     }
     const { item } = this.getSelectionByKey(this.state.lastKey);
     if (this.state.has3D && this.state.has3D.type === 'layout') {
-      const cell = ImageGenerator.getLayoutCell(item, posx, posy);
+      const { cell } = ImageGenerator.getLayoutCell(item, posx, posy);
       return cell;
     }
     if (this.state.has3D && this.state.has3D.type === 'cell') {
