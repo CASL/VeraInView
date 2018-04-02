@@ -33,7 +33,7 @@ script:
   - git config --global user.name "Travis CI"
   - git config --global user.email "aron.helser@kitware.com"
   - export GIT_PUBLISH_URL=https://${GH_TOKEN}@github.com/CASL/VeraInView.git
-  # - if [ "$TRAVIS_BRANCH" == "master" ]; then npm run doc:publish; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then npm run doc:publish; fi
 
 after_success:
   - npm run semantic-release

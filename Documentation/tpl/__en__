@@ -1,7 +1,7 @@
 menu:
   users_guide: "User's Guide"
   app: Stable
-  nightly: Nightly
+  latest: Latest
 
 index:
   users_guide: Get started

@@ -14,7 +14,7 @@ module.exports = {
   copy: [
     {
       src: '../dist/*',
-      dest: './build-tmp/public/nightly',
+      dest: './build-tmp/public/latest',
     },
     {
       src: '../node_modules/VeraInView/dist/*',
