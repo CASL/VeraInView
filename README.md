@@ -1,4 +1,5 @@
-# VeraInView
+# VeraInView ![Version](https://badge.fury.io/js/%40doe-casl%2Fverain-view.svg)
+
 
 VeraInView is a standalone HTML file that can act as an application to visualize your VERAin XML files.
 
@@ -12,6 +13,7 @@ To build and bundle the application, you will need to run these commands:
 npm i                    # Install build tools and dependencies
 npm run build:release    # Transpile the application into ./dist/vera.js
 npm run bundle           # Generate standalone ./dist/VeraInView.html file
+npm run guide            # Generate a PDF version of the user guide 
 ```
 
 ## To run and share

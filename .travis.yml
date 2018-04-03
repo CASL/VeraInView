@@ -30,7 +30,7 @@ script:
   - npm run build:release
   - npm run validate
   - npm run bundle
-  - markdown-pdf -c ./Documentation/content/users_guide/ -f Legal -o ./Documentation/content/users_guide/VeraInViewer-UserGuide.pdf ./Documentation/content/users_guide/index.md
+  - npm run guide
   - git config --global user.name "Travis CI"
   - git config --global user.email "aron.helser@kitware.com"
   - export GIT_PUBLISH_URL=https://${GH_TOKEN}@github.com/CASL/VeraInView.git

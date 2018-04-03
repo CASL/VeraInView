@@ -17,7 +17,7 @@ module.exports = {
       dest: './build-tmp/public/latest',
     },
     {
-      src: '../node_modules/VeraInView/dist/*',
+      src: '../node_modules/@doe-casl/verain-view/dist/*',
       dest: './build-tmp/public/app',
     },
   ],
