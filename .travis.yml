@@ -26,7 +26,6 @@ before_install:
   - sudo apt-get install -y libgif-dev
 
 script:
-  - npm install -g markdown-pdf
   - npm run build:release
   - npm run validate
   - npm run bundle
