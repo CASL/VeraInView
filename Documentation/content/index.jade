@@ -1,30 +1,45 @@
 layout: index
 description: VeraInView viewer for VERAin simulation files
-subtitle: Visualize With VeraInView
+title: VeraInViewer
 comments: false
 ---
 
-// div#intro-get-started-wrap
-//
-  a(href="/VeraInView/app", id="intro-get-started-link") Try out VeraInView (Stable)
-    br
-    br
-    img(style="padding-left: 25px",src="https://img.shields.io/badge/npm package-1.0.0-green.svg")
-  &nbsp;
-  &nbsp;
-  &nbsp;
-  &nbsp;
-  &nbsp;
+style
+  | #logo {
+  |   width: 100px;
+  |   background-size: 100px 50px;
+  | }
+  | .banner {
+  |   /*
+  |   background: url(banner.jpg) no-repeat center center;
+  |   background-size: 100%;
+  |   */
+  |   color: #444;
+  |   text-align: center;
+  |   font-size: 50px;
+  |   font-weight: bolder;
+  |   padding: 20px 0 0 0;
+  | }
+
+div.banner VeraInViewer
 
 div#intro-get-started-wrap
-  a(href="/VeraInView/latest", id="intro-get-started-link", style="margin-bottom:10px;") Try out VeraInView (Latest)
+  a(href="/VeraInView/app", id="intro-get-started-link") Run Stable version
+    br
+    br
+    img(style="padding-left: 25px",src="https://img.shields.io/badge/npm package-0.1.0-green.svg")
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  &nbsp;
+  a(href="/VeraInView/latest", id="intro-get-started-link") Run Latest version
     br
     br
     img(style="padding-left: 25px",src="https://badge.fury.io/js/%40doe-casl%2Fverain-view.svg")
-  br
-  a(href="/VeraInView/latest/VeraInView.html", download="") Download
 
-ul#intro-feature-list(style="position:relative;margin-top:0;")
+
+ul#intro-feature-list(style="position:relative;margin-top:0;padding-top:0;")
   li.intro-feature-wrap
     .intro-feature
       .intro-feature-icon
@@ -34,14 +49,35 @@ ul#intro-feature-list(style="position:relative;margin-top:0;")
       p.intro-feature-desc
         span.
           VeraInView is a standalone Web application that visualizes the geometry from VERAin simulation input files. The&nbsp;
-        a(href="users_guide/") user's guide
+        a(href="users_guide/").link user's guide
         span.
           &nbsp;can get you started.
 
   li.intro-feature-wrap
     .intro-feature
       .intro-feature-icon
-          i.fa.fa-info
+          i.fa.fa-download
+      h3.intro-feature-title
+        a(href="/VeraInView/latest/VeraInView.html", download="").link Download
+      p.intro-feature-desc VeraInView can be downloaded (
+        a(href="/VeraInView/app/VeraInView.html", download="").link Stable
+        | /
+        a(href="/VeraInView/latest/VeraInView.html", download="").link Nightly
+        | /
+        a(href="/VeraInView/users_guide/VeraInViewer-UserGuide.pdf", download="").link Guide
+        ) as a standalone HTML page that can be used directly from your Desktop without any internet access.
+
+  li.intro-feature-wrap
+    .intro-feature
+      .intro-feature-icon
+        img(src="icon/favicon-196x196.png",style="height: 24px;")
       h3.intro-feature-title
         a(href="https://www.casl.gov/").link CASL
       p.intro-feature-desc Provided by the Consortium for Advanced Simulation of Light Water Reactors. A DOE Energy Innovation Hub.
+
+  li.intro-feature-wrap
+    .intro-feature
+      .intro-feature-icon
+          i.fa.fa-steam
+      h3.intro-feature-title WebVR
+      p.intro-feature-desc VeraInView allow immersive navigation of a 3D scene using WebVR technology. For that you will have to use compatible browser such as FireFox.

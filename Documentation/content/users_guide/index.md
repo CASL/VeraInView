@@ -1,3 +1,10 @@
+<style>
+#logo {
+  width: 100px;
+  background-size: 100px 50px;
+}
+</style>
+
 # VERAViewer
 
 VERAViewer is a standalone HTML file that can act as an application to visualize your VERAin XML files.

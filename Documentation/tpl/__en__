@@ -1,7 +1,7 @@
 menu:
   users_guide: "User's Guide"
-  app: Stable
-  latest: Latest
+  app: VeraInViewer
+  latest: VeraInViewer
 
 index:
   users_guide: Get started
