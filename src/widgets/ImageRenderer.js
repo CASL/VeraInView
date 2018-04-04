@@ -44,7 +44,7 @@ export default class ImageRenderer extends React.Component {
     return (
       <div className={style.mainImageFrame}>
         <ReactTooltip
-          id="overTime"
+          id="mainImg"
           delayShow={50}
           scrollHide
           getContent={[this.getTooltip, 50]}
@@ -52,13 +52,16 @@ export default class ImageRenderer extends React.Component {
             this.tooltipRef = c;
           }}
         />
-        <img
-          data-for="overTime"
-          data-tip=""
-          alt="Element rendering"
-          src={this.props.content}
-          onClick={this.onClick}
-        />
+        <div style={{ position: 'relative' }}>
+          <div className={style.imageOverlayText}>{this.props.overlayText}</div>
+          <img
+            data-for="mainImg"
+            data-tip=""
+            alt="Element rendering"
+            src={this.props.content}
+            onClick={this.onClick}
+          />
+        </div>
       </div>
     );
   }
@@ -71,11 +74,13 @@ ImageRenderer.propTypes = {
   position: PropTypes.object,
   elementDimensions: PropTypes.object,
   pad: PropTypes.number,
+  overlayText: PropTypes.string,
 };
 
 ImageRenderer.defaultProps = {
   position: {},
   elementDimensions: {},
-  pad: 50,
+  pad: 0,
   onClick: null,
+  overlayText: '',
 };

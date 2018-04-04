@@ -238,7 +238,10 @@ export default class MainView extends React.Component {
 
     if (this.state.content && !(this.state.use3D && this.state.has3D)) {
       contents.push(
-        <div key="2d-content" className={style.mainImage}>
+        <div
+          key="2d-content"
+          className={this.state.legend ? style.mainImageFull : style.mainImage}
+        >
           <ReactCursorPosition>
             <ImageRenderer
               content={this.state.content}

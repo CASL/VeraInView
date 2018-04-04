@@ -5,15 +5,15 @@
 }
 </style>
 
-# VERAViewer
+# VeraInView
 
-VERAViewer is a standalone HTML file that can act as an application to visualize your VERAin XML files.
+VeraInView is a standalone HTML file that can act as an application to visualize your VERAin XML files.
 
 ![](core_state_controls.jpg)
 
 ## Getting started
 
-Double-click `VERAViewer.html` to open it in your default browser.
+You can use VeraInView directly from the website, or you can download it so it can be used without internet access. If you download it, double-click `VeraInView.html` to open it in your default browser.
 
 Click on the [+] button or the main window image to load the VERAin XML file you want to visualize.
 
@@ -41,7 +41,7 @@ These items are similar - they specify a set of rodmaps that locate cells in a u
 
 ### Core
 
-The core combines all the assemblies into a complete picture of the reactor. The `3D stack` menu item shows the entire reactor in 3D. A number of controls for the 3D view are discussed below. Each elevation range that has different assembly pieces is listed individually. In 2D, each assembly is assigned a unique color. Detectors overlay the assembly with a circle labeled with `D`, Inserts with vertical bars labeled with `I`, and Controls with horoizontal bars labeled with `C`. In 3D, the current elevation range is indicated with a wireframe box around the core, and any rodmap that intersects that elevation range is shown.
+The core combines all the assemblies into a complete picture of the reactor. The `3D stack` menu item shows the entire reactor in 3D. A number of controls for the 3D view are discussed below. Each elevation range that has different assembly pieces is listed individually. In 2D, each assembly is assigned a unique color. Detectors overlay the assembly with a circle labeled with `D`, Inserts with vertical bars labeled with `I`, and Controls with horizontal bars labeled with `C`. In 3D, the current elevation range is indicated with a wireframe box around the core, and any rodmap that intersects that elevation range is shown.
 
 ## Main view, 2D
 
@@ -69,7 +69,7 @@ The 3D view has its own toolbar. Some toolbar items only show in the Core `3D st
 
 `States` toggle. Opens a panel to control transitioning between State cards, discussed below. Only shown if the input file has states.
 
-`Plate`, `Vessel`, `Baffle`, `Grid` toggles. Each shows or hides parts of the reactor structure. Since they generally obscure the rods, it may be desirable to hide them. Only shown if the input file specifies the appropriate element.
+`Plate`, `Vessel`, `Baffle`, `Grid` toggles. Each shows or hides parts of the reactor structure. Since they generally obscure the rods, it may be desirable to hide them. They are only shown if the input file specifies the appropriate element.
 
 ![](reset-camera.jpg)
 
@@ -105,8 +105,12 @@ Use the `<<` and `>>` buttons next to the Controls tab to fully insert or withdr
 
 Each rod group gets its own toggle and slider. The toggle can hide or show the group.
 
-The slider sets the amount the group is inserted or withdrawn, in units of steps, which are specified in the 'stroke' card. It has a label showing where it would be positioned when progressing through the state cards in order. If the current state card sets its position, it is highlighted magenta. Typically, State_1 will set the position of all control rod groups.
+The slider sets the amount the group is inserted or withdrawn, in units of steps, which are specified in the `stroke` card. It has a label showing where it would be positioned when progressing through the state cards in order. If the current state card sets its position, it is highlighted magenta. Typically, State_1 will set the position of all control rod groups.
 
 The `Apply group color` button will re-display the control rod groups with different colors, if the user changes some of the material visibility toggles.
 
 The `Reset to state positions` button will assign all rod groups to the positions seen by the simulation code - i.e. the positions set if each state is visited in order, up to the current state.
+
+## Problems and suggestions
+
+The source for this manual is on-line at [Github](https://github.com/CASL/VeraInView/tree/master/Documentation/content/users_guide). We welcome your feedback! Please [submit an issue](https://github.com/CASL/VeraInView/issues) with your suggestions. Thanks!
