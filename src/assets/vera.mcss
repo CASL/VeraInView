@@ -145,6 +145,9 @@
   margin-right: 8px;
 }
 
+.mainImageFull {
+  flex: 1;
+}
 .mainImage {
   flex: 1;
   max-width: 600px;
