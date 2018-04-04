@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "markdown-pdf": "8.1.1",
-        "@doe-casl/verain-view": "0.1.0",
+        "@doe-casl/verain-view": "1.0.0",
         "inline-source-cli": "1.2.0",
         "antd": "2.13.11",
         "react": "16.1.1",
