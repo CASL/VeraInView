@@ -29,9 +29,9 @@
         "react": "16.1.1",
         "react-dom": "16.1.1",
         "react-cursor-position": "2.4.1",
-        "react-tooltip": "3.4.0",
-        "kw-doc": "1.1.1",
-        "kw-web-suite": "5.0.1",
+        "react-tooltip": "3.4.1",
+        "kw-doc": "1.1.2",
+        "kw-web-suite": "6.0.1",
         "prettier": "1.9.2"
     },
     "scripts": {
@@ -42,11 +42,11 @@
         "doc": "kw-doc -c ./Documentation/config.js",
         "doc:www": "kw-doc -c ./Documentation/config.js -s",
         "doc:publish": "kw-doc -c ./Documentation/config.js -mp",
-        "build": "webpack --progress --colors",
+        "build": "webpack --progress --colors --mode development",
         "build:debug": "npm run build -- --display-modules",
-        "build:release": "npm run build -- --env.release",
+        "build:release": "webpack --progress --colors --mode production",
         "bundle": "inline-source --compress false --root ./dist ./dist/index.html ./dist/VeraInView.html",
-        "start": "webpack-dev-server",
+        "start": "webpack-dev-server --mode development",
         "commit": "git cz",
         "semantic-release": "semantic-release"
     },
