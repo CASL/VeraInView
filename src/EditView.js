@@ -35,6 +35,7 @@ const EDITORS = {
   Cells: CellEditor,
   Assemblies: AssemblyEditor,
   Rodmaps: AssemblyLayoutEditor,
+  Coremaps: AssemblyLayoutEditor,
   Params: ParamEditor,
 };
 
@@ -74,6 +75,12 @@ const TEMPLATES = {
     axial_elevations: [],
     axial_labels: [],
     layout: [],
+  },
+  coremaps: {
+    label: 'New',
+    id: 'new-000',
+    cellMap: '',
+    symmetry: 'oct',
   },
 };
 
@@ -139,9 +146,12 @@ export default class EditView extends React.Component {
       cells: [],
       rodmaps: [],
       assemblies: [],
+      coremaps: [],
       params: {
         numPins: 1,
         pinPitch: 1.26,
+        numAssemblies: 1,
+        assemblyPitch: 21.5,
       },
       content: null,
       path: ['Home'],
@@ -363,6 +373,10 @@ export default class EditView extends React.Component {
           params.numPins = Math.max(params.numPins, assembly.num_pins);
           params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
         });
+        if (newState.core) {
+          params.numAssemblies = newState.core.numAssemblies;
+          params.assemblyPitch = newState.core.assemblyPitch;
+        }
         this.setState({
           rodmaps: newLayout,
           assemblies: newAssemblies,
@@ -396,6 +410,7 @@ export default class EditView extends React.Component {
           defaultMaterial={defaultMaterial}
           cells={this.state.cells}
           assemblyLayouts={this.state.rodmaps}
+          assemblies={this.state.assemblies}
           imageSize={this.props.imageSize}
         />
       );
@@ -451,6 +466,36 @@ export default class EditView extends React.Component {
                   Global Parameters
                 </span>
               </Menu.Item>
+              <SubMenu
+                key="coremaps"
+                title={
+                  <span className={style.itemWithIcon}>
+                    <Icon type="global" />Core
+                  </span>
+                }
+              >
+                {this.state.assemblies.length > 0 && (
+                  <Menu.ItemGroup
+                    key="coremaps"
+                    title={
+                      <GroupTitle
+                        title="Core Maps"
+                        icon="global"
+                        onClick={() => this.onMenuNew('coremaps', 'coremaps')}
+                      />
+                    }
+                  >
+                    {this.state.coremaps.map((a) => (
+                      <Menu.Item key={`coremaps:${a.id}`}>
+                        <span className={style.itemWithSmallIcon}>
+                          <Icon type="global" />
+                          {a.labelToUse || a.label}
+                        </span>
+                      </Menu.Item>
+                    ))}
+                  </Menu.ItemGroup>
+                )}
+              </SubMenu>
               <SubMenu
                 key="assemblies"
                 title={

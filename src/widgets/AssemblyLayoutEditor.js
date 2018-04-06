@@ -116,12 +116,25 @@ export default class AssemblyLayoutEditor extends React.Component {
     this.props.remove(e);
   }
 
+  getNumPins() {
+    return this.props.content.group === 'coremaps'
+      ? this.props.params.numAssemblies
+      : this.props.params.numPins;
+  }
+
+  getCells() {
+    return this.props.content.group === 'coremaps'
+      ? this.props.assemblies
+      : this.props.cells.filter(
+          (cell) => cell.group === this.props.content.group
+        );
+  }
   getSymCells(inI, inJ) {
     let i = inI;
     let j = inJ;
     // i, j are from upper-left, coords in full cell map.
     // Mirror to upper quad.
-    const { numPins } = this.props.params;
+    const numPins = this.getNumPins();
     const { symmetry } = this.props.content;
     const halfPins = Math.floor(numPins * 0.5);
     if (i > halfPins) i = numPins - i - 1;
@@ -160,7 +173,7 @@ export default class AssemblyLayoutEditor extends React.Component {
     const map = [];
     const { cell_map: cellMap } = this.props.content;
     const symmetry = this.props.content.symmetry || 'none';
-    const { numPins } = this.props.params;
+    const numPins = this.getNumPins();
     const halfPins = Math.floor(numPins * 0.5);
     // copy from the lower-right quad, and left octant.
     if (halfPins > 0 && symmetry === 'oct') {
@@ -189,7 +202,7 @@ export default class AssemblyLayoutEditor extends React.Component {
   getFullMap() {
     // Verify items in the cellMap. Unrecognized cells are empty.
     const symmetry = this.props.content.symmetry || 'none';
-    const { numPins } = this.props.params;
+    const numPins = this.getNumPins();
     let cellMap = this.props.content.cellMap.trim();
     if (cellMap !== '') cellMap = cellMap.split(/[\n]+/);
     else cellMap = [];
@@ -244,17 +257,22 @@ export default class AssemblyLayoutEditor extends React.Component {
 
   update3D() {
     updateLookupTables();
-    if (this.props.cells.length) {
+    if (
+      (this.props.content.group === 'coremaps' &&
+        this.props.assemblies.length) ||
+      this.props.cells.length
+    ) {
       const cellNameToIdMap = {};
-      this.props.cells
-        .filter((cell) => cell.group === this.props.content.group)
-        .forEach((cell) => {
-          if (cell.id !== 'new-000') {
-            cellNameToIdMap[cell.label] = cell.id;
-          }
-        });
+      this.getCells().forEach((cell) => {
+        if (cell.id !== 'new-000') {
+          cellNameToIdMap[cell.label] = cell.id;
+        }
+      });
       // Verify items in the cellMap. Unrecognized cells are empty.
-      const { numPins, pinPitch } = this.props.params;
+      const pinPitch =
+        this.props.content.group === 'coremaps'
+          ? this.props.params.assemblyPitch
+          : this.props.params.pinPitch;
 
       this.props.content.cell_map = this.getFullMap();
       if (!this.props.content.cellMap) {
@@ -265,7 +283,7 @@ export default class AssemblyLayoutEditor extends React.Component {
         cellNameToIdMap,
         this.props.imageSize,
         pinPitch,
-        numPins
+        this.getNumPins()
       );
       this.setState({
         rendering: this.props.content.has3D,
@@ -317,7 +335,7 @@ export default class AssemblyLayoutEditor extends React.Component {
             <Input.TextArea
               style={{ fontFamily: 'monospace' }}
               value={this.props.content.cellMap}
-              rows={Math.min(this.props.params.numPins, 3)}
+              rows={Math.min(this.getNumPins(), 3)}
               data-id="cellMap"
               onChange={this.onFieldUpdate}
             />
@@ -354,16 +372,14 @@ export default class AssemblyLayoutEditor extends React.Component {
                   value={this.state.paintCell}
                   onChange={(val) => this.setState({ paintCell: val })}
                 >
-                  {this.props.cells
-                    .filter((cell) => cell.group === this.props.content.group)
-                    .map(
-                      (cell) =>
-                        cell.id === 'new-000' ? null : (
-                          <Option key={cell.id} value={`${cell.label}`}>
-                            {cell.label}
-                          </Option>
-                        )
-                    )}
+                  {this.getCells().map(
+                    (cell) =>
+                      cell.id === 'new-000' ? null : (
+                        <Option key={cell.id} value={`${cell.label}`}>
+                          {cell.label}
+                        </Option>
+                      )
+                  )}
                   <Option key="empty" value="-">
                     -
                   </Option>
@@ -407,6 +423,7 @@ AssemblyLayoutEditor.propTypes = {
   addNew: PropTypes.func,
   type: PropTypes.string,
   cells: PropTypes.array,
+  assemblies: PropTypes.array,
   imageSize: PropTypes.number,
 };
 
@@ -415,5 +432,6 @@ AssemblyLayoutEditor.defaultProps = {
   type: null,
   // materials: [],
   cells: [],
+  assemblies: [],
   imageSize: 512,
 };

@@ -216,6 +216,7 @@ function updateLayoutImage(
   const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
+  const isCoreMap = item.group === 'coremaps';
 
   WORKING_CANVAS.setAttribute('width', size);
   WORKING_CANVAS.setAttribute('height', size);
@@ -272,6 +273,21 @@ function updateLayoutImage(
           pointSets[cellId].coordinates.push(i * gridSpacing);
           pointSets[cellId].coordinates.push(j * gridSpacing);
           pointSets[cellId].coordinates.push(0);
+        } else if (isCoreMap && cellId) {
+          ctx.beginPath();
+          ctx.rect(i * recSide, j * recSide, recSide, recSide);
+          ctx.stroke();
+
+          const assemColor = colorManagerByCategory.ASSEMBLIES.getColorRGBA(
+            cellId
+          );
+          if (assemColor) {
+            ctx.fillStyle = assemColor;
+            ctx.fill();
+            // colorLegend[
+            //   `Assembly(${stripCategory(assemKey)})`
+            // ] = localColorManager.getColorRGBA(assemKey);
+          }
         }
       }
     }
@@ -319,11 +335,10 @@ function getLayoutCell(item, posx, posy) {
   const cellMap = item.cell_map;
   // default to match the input map, but interactive cell maps might be shorter
   const width = item.numPins || Math.sqrt(cellMap.length);
-  const recSide = width;
-  const i = Math.floor(posx * recSide);
-  const j = Math.floor(posy * recSide);
+  const i = Math.floor(posx * width);
+  const j = Math.floor(posy * width);
   const pidx = j * width + i;
-  // console.log(width, recSide, i, j, pidx);
+  // console.log(width, i, j, pidx);
   return { cell: cellMap[pidx], index: pidx, i, j };
 }
 
