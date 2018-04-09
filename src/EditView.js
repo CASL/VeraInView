@@ -35,6 +35,7 @@ const EDITORS = {
   Cells: CellEditor,
   Assemblies: AssemblyEditor,
   Rodmaps: AssemblyLayoutEditor,
+  Coremaps: AssemblyLayoutEditor,
   Params: ParamEditor,
 };
 
@@ -75,6 +76,13 @@ const TEMPLATES = {
     axial_labels: [],
     layout: [],
   },
+  coremaps: {
+    type: 'coremaps',
+    label: 'New',
+    id: 'new-000',
+    cellMap: '',
+    symmetry: 'oct',
+  },
 };
 
 const GROUP_TYPES = [
@@ -111,12 +119,14 @@ function GroupTitle(props) {
       <Icon type={props.icon} />
       {props.title}
       <span style={{ flex: 1 }} />
-      <Button
-        shape="circle"
-        icon="plus"
-        className={style.menuAddNew}
-        onClick={props.onClick}
-      />
+      {props.onClick && (
+        <Button
+          shape="circle"
+          icon="plus"
+          className={style.menuAddNew}
+          onClick={props.onClick}
+        />
+      )}
     </span>
   );
 }
@@ -124,7 +134,10 @@ function GroupTitle(props) {
 GroupTitle.propTypes = {
   title: PropTypes.string.isRequired,
   icon: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
+};
+GroupTitle.defaultProps = {
+  onClick: null,
 };
 
 export default class EditView extends React.Component {
@@ -139,9 +152,12 @@ export default class EditView extends React.Component {
       cells: [],
       rodmaps: [],
       assemblies: [],
+      coremaps: [],
       params: {
         numPins: 1,
         pinPitch: 1.26,
+        numAssemblies: 1,
+        assemblyPitch: 21.5,
       },
       content: null,
       path: ['Home'],
@@ -291,84 +307,101 @@ export default class EditView extends React.Component {
   parseFile(file) {
     this.setState({ title: file.name, file });
     ModelHelper.parseFile(file, this.props.imageSize, (newState) => {
+      const groupTrans = {
+        A: 'assemblies',
+        I: 'inserts',
+        C: 'controls',
+        D: 'detectors',
+      };
+      const groupList = Object.keys(groupTrans).map((key) => groupTrans[key]);
       if (newState.cells) {
         // make sure each is unique - ids derived from radii+mat
         const idMap = {};
-        const labelMap = {};
+        // const labelMap = {};
+
         const newCells = this.state.cells.slice();
         this.state.cells.forEach((cell) => {
           idMap[cell.id] = cell;
-          labelMap[cell.label] = cell;
+          // labelMap[cell.label] = cell;
         });
         let count = newState.cells.length;
         while (count--) {
           const cell = newState.cells[count];
-          // TODO: all cells
-          // only extract assembly cells, to avoid label conflicts.
+          // TODO label conflicts.
           if (
             !idMap[cell.id] &&
-            (!cell.labelToUse || cell.labelToUse[0] === 'A')
+            (!cell.labelToUse || groupTrans[cell.labelToUse[0]])
           ) {
             idMap[cell.id] = cell;
-            let extra = 2;
-            const base = cell.label;
-            while (labelMap[cell.label]) {
-              cell.label = `${base}_${extra}`;
-              extra += 1;
-            }
-            labelMap[cell.label] = cell;
+            cell.group = groupTrans[cell.labelToUse[0]];
+            // let extra = 2;
+            // const base = cell.label;
+            // while (labelMap[cell.label]) {
+            //   cell.label = `${base}_${extra}`;
+            //   extra += 1;
+            // }
+            // labelMap[cell.label] = cell;
+            cell.labelToUse = cell.label;
             newCells.unshift(cell);
           }
         }
         this.setState({ cells: newCells });
       }
-      if (newState.assemblies) {
-        const labelMap = {};
-        const newLayout = this.state.rodmaps.slice();
-        const newAssemblies = this.state.assemblies.slice();
-        const params = Object.assign({}, this.state.params);
-        newLayout.forEach((layout) => {
-          labelMap[layout.label] = layout;
-        });
-        newAssemblies.forEach((a) => {
-          labelMap[a.id] = a;
-        });
-        newState.assemblies.forEach((assembly) => {
-          let count = assembly.layout.length;
-          while (count--) {
-            const layout = assembly.layout[count];
-            if (!labelMap[layout.label]) {
-              layout.id = `layout-${layout.label}`;
-              const numPins = assembly.num_pins;
-              layout.numPins = numPins;
-              const map = [];
-              for (let i = 0; i < numPins; ++i) {
-                map.push(
-                  layout.cell_map
-                    .slice(i * numPins, (i + 1) * numPins)
-                    .join(' ')
-                );
+      const newLayout = this.state.rodmaps.slice();
+      const newAssemblies = this.state.assemblies.slice();
+      const params = Object.assign({}, this.state.params);
+      const labelMap = {};
+      groupList.forEach((group) => {
+        if (newState[group]) {
+          // newLayout.forEach((layout) => {
+          //   labelMap[layout.label] = layout;
+          // });
+          // newAssemblies.forEach((a) => {
+          //   labelMap[a.id] = a;
+          // });
+          newState[group].forEach((assembly) => {
+            let count = assembly.layout.length;
+            while (count--) {
+              const layout = assembly.layout[count];
+              layout.id = `layout-${group}-${layout.label}`;
+              if (!labelMap[layout.id]) {
+                const numPins = assembly.num_pins;
+                layout.numPins = numPins;
+                layout.group = group;
+                const map = [];
+                for (let i = 0; i < numPins; ++i) {
+                  map.push(
+                    layout.cell_map
+                      .slice(i * numPins, (i + 1) * numPins)
+                      .join(' ')
+                  );
+                }
+                layout.cellMap = map.join('\n');
+                newLayout.unshift(layout);
+                labelMap[layout.id] = layout;
               }
-              layout.cellMap = map.join('\n');
-              newLayout.unshift(layout);
-              labelMap[layout.label] = layout;
             }
+            // use ID to avoid conflict with layouts.
+            if (!labelMap[`assembly-${group}-${assembly.label}`]) {
+              assembly.id = `assembly-${group}-${assembly.label}`;
+              assembly.group = group;
+              newAssemblies.unshift(assembly);
+              labelMap[assembly.id] = assembly;
+            }
+            params.numPins = Math.max(params.numPins, assembly.num_pins);
+            params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
+          });
+          if (newState.core) {
+            params.numAssemblies = newState.core.numAssemblies;
+            params.assemblyPitch = newState.core.assemblyPitch;
           }
-          // use ID to avoid conflict with layouts.
-          if (!labelMap[`assembly-${assembly.label}`]) {
-            assembly.id = `assembly-${assembly.label}`;
-            newAssemblies.unshift(assembly);
-            labelMap[assembly.id] = assembly;
-          }
-          params.numPins = Math.max(params.numPins, assembly.num_pins);
-          params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
-        });
-        this.setState({
-          rodmaps: newLayout,
-          assemblies: newAssemblies,
-          params,
-        });
-      }
+          this.setState({
+            rodmaps: newLayout,
+            assemblies: newAssemblies,
+            params,
+          });
+        }
+      });
       console.log('editor', newState);
     });
     return false;
@@ -396,6 +429,7 @@ export default class EditView extends React.Component {
           defaultMaterial={defaultMaterial}
           cells={this.state.cells}
           assemblyLayouts={this.state.rodmaps}
+          assemblies={this.state.assemblies}
           imageSize={this.props.imageSize}
         />
       );
@@ -452,6 +486,52 @@ export default class EditView extends React.Component {
                 </span>
               </Menu.Item>
               <SubMenu
+                key="coremaps"
+                title={
+                  <span className={style.itemWithIcon}>
+                    <Icon type="global" />Core
+                  </span>
+                }
+              >
+                {GROUP_TYPES.map((info) => {
+                  const anyAsm = this.state.assemblies.filter(
+                    (asm) => asm.group === info.group
+                  ).length;
+                  if (anyAsm) {
+                    // only allow a single coremap of each type.
+                    const coremaps = this.state.coremaps.filter(
+                      (a) => a.group === info.group
+                    );
+                    return (
+                      <Menu.ItemGroup
+                        key={`${info.label}Coremaps`}
+                        title={
+                          <GroupTitle
+                            title={`${info.label} Map`}
+                            icon="global"
+                            onClick={
+                              coremaps.length
+                                ? null
+                                : () => this.onMenuNew('coremaps', info.group)
+                            }
+                          />
+                        }
+                      >
+                        {coremaps.map((a) => (
+                          <Menu.Item key={`coremaps:${a.id}`}>
+                            <span className={style.itemWithSmallIcon}>
+                              <Icon type="global" />
+                              {a.labelToUse || a.label}
+                            </span>
+                          </Menu.Item>
+                        ))}
+                      </Menu.ItemGroup>
+                    );
+                  }
+                  return null;
+                })}
+              </SubMenu>
+              <SubMenu
                 key="assemblies"
                 title={
                   <span className={style.itemWithIcon}>
@@ -459,29 +539,38 @@ export default class EditView extends React.Component {
                   </span>
                 }
               >
-                {this.state.rodmaps.length > 0 && (
-                  <Menu.ItemGroup
-                    key="stacks"
-                    title={
-                      <GroupTitle
-                        title="Axial Stacks"
-                        icon="api"
-                        onClick={() =>
-                          this.onMenuNew('assemblies', 'assemblies')
+                {GROUP_TYPES.map((info) => {
+                  const anyRods = this.state.rodmaps.filter(
+                    (rm) => rm.group === info.group
+                  ).length;
+                  if (anyRods)
+                    return (
+                      <Menu.ItemGroup
+                        key={`${info.label}Stacks`}
+                        title={
+                          <GroupTitle
+                            title={info.label}
+                            icon="api"
+                            onClick={() =>
+                              this.onMenuNew('assemblies', info.group)
+                            }
+                          />
                         }
-                      />
-                    }
-                  >
-                    {this.state.assemblies.map((a) => (
-                      <Menu.Item key={`assemblies:${a.id}`}>
-                        <span className={style.itemWithSmallIcon}>
-                          <Icon type="api" />
-                          {a.labelToUse || a.label}
-                        </span>
-                      </Menu.Item>
-                    ))}
-                  </Menu.ItemGroup>
-                )}
+                      >
+                        {this.state.assemblies
+                          .filter((a) => a.group === info.group)
+                          .map((a) => (
+                            <Menu.Item key={`assemblies:${a.id}`}>
+                              <span className={style.itemWithSmallIcon}>
+                                <Icon type="api" />
+                                {a.labelToUse || a.label}
+                              </span>
+                            </Menu.Item>
+                          ))}
+                      </Menu.ItemGroup>
+                    );
+                  return null;
+                })}
               </SubMenu>
               <SubMenu
                 key="rodmaps"

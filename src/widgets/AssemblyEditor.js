@@ -163,17 +163,24 @@ export default class AssemblyEditor extends React.Component {
             wrapperCol={{ span: 20 }}
           >
             <Row>
-              {this.props.content.axial_labels.map((m, idx) => (
+              {this.props.content.axial_labels.map((ax, idx) => (
                 <Col span={3} key={`layout-${idx.toString(16)}`}>
-                  <Select value={m} showSearch onChange={this.onLayoutUpdate}>
-                    {this.props.assemblyLayouts.map(
-                      (mt) =>
-                        mt.id === 'new-000' ? null : (
-                          <Option key={mt.id} value={`${idx}::${mt.label}`}>
-                            {mt.label}
-                          </Option>
-                        )
-                    )}
+                  <Select value={ax} showSearch onChange={this.onLayoutUpdate}>
+                    {this.props.assemblyLayouts
+                      .filter(
+                        (layout) => layout.group === this.props.content.group
+                      )
+                      .map(
+                        (layout) =>
+                          layout.id === 'new-000' ? null : (
+                            <Option
+                              key={layout.id}
+                              value={`${idx}::${layout.label}`}
+                            >
+                              {layout.label}
+                            </Option>
+                          )
+                      )}
                   </Select>
                 </Col>
               ))}

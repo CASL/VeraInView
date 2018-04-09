@@ -53,6 +53,28 @@ export default class ParamEditor extends React.Component {
               onChange={this.onFieldUpdate}
             />
           </FormItem>
+          <FormItem
+            label="Core Assemblies"
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 20 }}
+          >
+            <Input
+              value={this.props.params.numAssemblies}
+              data-id="numAssemblies"
+              onChange={this.onFieldUpdate}
+            />
+          </FormItem>
+          <FormItem
+            label="Assembly Spacing"
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 20 }}
+          >
+            <Input
+              value={this.props.params.assemblyPitch}
+              data-id="assemblyPitch"
+              onChange={this.onFieldUpdate}
+            />
+          </FormItem>
         </Form>
       </div>
     );

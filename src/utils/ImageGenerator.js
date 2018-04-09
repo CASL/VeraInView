@@ -216,6 +216,7 @@ function updateLayoutImage(
   const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
+  const isCoreMap = item.type === 'coremaps';
 
   WORKING_CANVAS.setAttribute('width', size);
   WORKING_CANVAS.setAttribute('height', size);
@@ -272,6 +273,21 @@ function updateLayoutImage(
           pointSets[cellId].coordinates.push(i * gridSpacing);
           pointSets[cellId].coordinates.push(j * gridSpacing);
           pointSets[cellId].coordinates.push(0);
+        } else if (isCoreMap && cellId) {
+          ctx.beginPath();
+          ctx.rect(i * recSide, j * recSide, recSide, recSide);
+          ctx.stroke();
+
+          const assemColor = colorManagerByCategory.ASSEMBLIES.getColorRGBA(
+            cellId
+          );
+          if (assemColor) {
+            ctx.fillStyle = assemColor;
+            ctx.fill();
+            // colorLegend[
+            //   `Assembly(${stripCategory(assemKey)})`
+            // ] = localColorManager.getColorRGBA(assemKey);
+          }
         }
       }
     }
@@ -319,12 +335,23 @@ function getLayoutCell(item, posx, posy) {
   const cellMap = item.cell_map;
   // default to match the input map, but interactive cell maps might be shorter
   const width = item.numPins || Math.sqrt(cellMap.length);
-  const recSide = width;
-  const i = Math.floor(posx * recSide);
-  const j = Math.floor(posy * recSide);
+  const i = Math.floor(posx * width);
+  const j = Math.floor(posy * width);
   const pidx = j * width + i;
-  // console.log(width, recSide, i, j, pidx);
+  // console.log(width, i, j, pidx);
   return { cell: cellMap[pidx], index: pidx, i, j };
+}
+
+// Layouts can move between assemblies in the same category.
+// Pick current assembly first, then matching layout in a different assembly.
+function getLayout(category, assemblyLabel, layoutName) {
+  if (LAYOUT_MAP[category][assemblyLabel][layoutName]) {
+    return LAYOUT_MAP[category][assemblyLabel][layoutName];
+  }
+  return Object.keys(LAYOUT_MAP[category]).reduce(
+    (prev, key) => LAYOUT_MAP[category][key][layoutName] || prev,
+    null
+  );
 }
 
 // ----------------------------------------------------------------------------
@@ -386,8 +413,8 @@ function updateItemWithLayoutImages(
     const z1 = item.axial_elevations[i + 1];
     const zScale = Math.abs(z1 - z0);
     const zLayer = (z0 + z1) * 0.5;
-    const template3D =
-      LAYOUT_MAP[category][item.label][layoutName].has3D.layouts;
+    const template3D = getLayout(category, item.label, layoutName).has3D
+      .layouts;
     for (let j = 0; j < template3D.length; j++) {
       const clonedItem = Object.assign({}, template3D[j]);
       clonedItem.pointsData = Float32Array.from(clonedItem.pointsData);

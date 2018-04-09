@@ -500,6 +500,8 @@ function parseFile(file, imageSize, updateFn) {
           6,
           lastPPitch / 2
         );
+        core.assemblyPitch = dataModel.CASEID.CORE.apitch;
+        core.numAssemblies = dataModel.CASEID.CORE.core_size;
         // extract info about control-rod motion
         if (controls && controls[0] && controls[0].stroke && core.stack.has3D) {
           // stroke card is specified once for [CONTROL] block - extract the first.
