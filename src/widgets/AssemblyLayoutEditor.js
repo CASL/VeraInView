@@ -117,18 +117,18 @@ export default class AssemblyLayoutEditor extends React.Component {
   }
 
   getNumPins() {
-    return this.props.content.group === 'coremaps'
+    return this.props.content.type === 'coremaps'
       ? this.props.params.numAssemblies
       : this.props.params.numPins;
   }
 
   getCells() {
-    return this.props.content.group === 'coremaps'
+    return (this.props.content.type === 'coremaps'
       ? this.props.assemblies
-      : this.props.cells.filter(
-          (cell) => cell.group === this.props.content.group
-        );
+      : this.props.cells
+    ).filter((cell) => cell.group === this.props.content.group);
   }
+
   getSymCells(inI, inJ) {
     let i = inI;
     let j = inJ;
@@ -258,7 +258,7 @@ export default class AssemblyLayoutEditor extends React.Component {
   update3D() {
     updateLookupTables();
     if (
-      (this.props.content.group === 'coremaps' &&
+      (this.props.content.type === 'coremaps' &&
         this.props.assemblies.length) ||
       this.props.cells.length
     ) {
@@ -270,7 +270,7 @@ export default class AssemblyLayoutEditor extends React.Component {
       });
       // Verify items in the cellMap. Unrecognized cells are empty.
       const pinPitch =
-        this.props.content.group === 'coremaps'
+        this.props.content.type === 'coremaps'
           ? this.props.params.assemblyPitch
           : this.props.params.pinPitch;
 

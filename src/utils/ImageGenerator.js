@@ -216,7 +216,7 @@ function updateLayoutImage(
   const width = numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
-  const isCoreMap = item.group === 'coremaps';
+  const isCoreMap = item.type === 'coremaps';
 
   WORKING_CANVAS.setAttribute('width', size);
   WORKING_CANVAS.setAttribute('height', size);
@@ -342,6 +342,18 @@ function getLayoutCell(item, posx, posy) {
   return { cell: cellMap[pidx], index: pidx, i, j };
 }
 
+// Layouts can move between assemblies in the same category.
+// Pick current assembly first, then matching layout in a different assembly.
+function getLayout(category, assemblyLabel, layoutName) {
+  if (LAYOUT_MAP[category][assemblyLabel][layoutName]) {
+    return LAYOUT_MAP[category][assemblyLabel][layoutName];
+  }
+  return Object.keys(LAYOUT_MAP[category]).reduce(
+    (prev, key) => LAYOUT_MAP[category][key][layoutName] || prev,
+    null
+  );
+}
+
 // ----------------------------------------------------------------------------
 /* eslint-disable no-underscore-dangle */
 
@@ -401,8 +413,8 @@ function updateItemWithLayoutImages(
     const z1 = item.axial_elevations[i + 1];
     const zScale = Math.abs(z1 - z0);
     const zLayer = (z0 + z1) * 0.5;
-    const template3D =
-      LAYOUT_MAP[category][item.label][layoutName].has3D.layouts;
+    const template3D = getLayout(category, item.label, layoutName).has3D
+      .layouts;
     for (let j = 0; j < template3D.length; j++) {
       const clonedItem = Object.assign({}, template3D[j]);
       clonedItem.pointsData = Float32Array.from(clonedItem.pointsData);
