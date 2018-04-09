@@ -6,6 +6,7 @@ module.exports = {
     description: '"The Web Viewer for VERAin files"',
     subtitle: '"CASL simulation input file viewer."',
     author: 'DOE CASL',
+    authorLink: 'https://www.casl.gov/',
     timezone: 'UTC',
     url: 'https://casl.github.io/VeraInView',
     root: '/VeraInView/',
