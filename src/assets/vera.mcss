@@ -66,20 +66,29 @@
 
 .fileLoader {
   composes: fileButton;
-  margin: 10px 0 0 0;
+  margin: 10px 0 0 20px;
   display: block;
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
   cursor: pointer;
 
   float: right;
-  background: rgba(128, 128, 128, 0.5);
+  background-color: rgba(128, 128, 128, 0.5);
 }
-
+.fileLoader:focus, .fileLoader[disabled] {
+  background-color: rgba(128, 128, 128, 0.5);
+}
+.fileLoader:hover {
+  background-color: white;
+}
 .fileLoaderTrigger {
   composes: fileButton;
   display: table-cell;
   vertical-align: middle;
+  font-size: 28px;
+  color: #999;
+}
+.fileLoader i {
   font-size: 28px;
   color: #999;
 }

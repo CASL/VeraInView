@@ -262,7 +262,7 @@ function updateLayoutImage(
       if (pidx < cellMap.length) {
         const cellId = cellNameToIdMap[cellMap[pidx++]];
         const cell = CELL_MAP[cellId];
-        if (cell && cell.image) {
+        if (!isCoreMap && cell && cell.image) {
           const img = cell.image;
           ctx.drawImage(img, i * recSide, j * recSide, recSide, recSide);
 

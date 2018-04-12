@@ -47,7 +47,7 @@ export default class ImageRenderer extends React.Component {
           id="mainImg"
           delayShow={50}
           scrollHide
-          getContent={[this.getTooltip, 50]}
+          getContent={this.getTooltip}
           ref={(c) => {
             this.tooltipRef = c;
           }}

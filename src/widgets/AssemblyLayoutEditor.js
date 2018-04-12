@@ -6,6 +6,7 @@ import { Form, Input, Button, Radio, Select, Row, Col, Switch } from 'antd';
 // import macro from 'vtk.js/Sources/macro';
 import DualRenderer from './DualRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
+import InpHelper from '../utils/InpHelper';
 
 import style from '../assets/vera.mcss';
 
@@ -117,9 +118,7 @@ export default class AssemblyLayoutEditor extends React.Component {
   }
 
   getNumPins() {
-    return this.props.content.type === 'coremaps'
-      ? this.props.params.numAssemblies
-      : this.props.params.numPins;
+    return InpHelper.getNumPins(this.props.content, this.props.params);
   }
 
   getCells() {
@@ -170,89 +169,12 @@ export default class AssemblyLayoutEditor extends React.Component {
   // This stomps on user input, so we only want to use when initializing,
   // or when updated via click-to-place on the image.
   getTextMap() {
-    const map = [];
-    const { cell_map: cellMap } = this.props.content;
-    const symmetry = this.props.content.symmetry || 'none';
-    const numPins = this.getNumPins();
-    const halfPins = Math.floor(numPins * 0.5);
-    // copy from the lower-right quad, and left octant.
-    if (halfPins > 0 && symmetry === 'oct') {
-      for (let j = halfPins; j < numPins; ++j) {
-        // i range is halfPins -> j
-        map.push(
-          cellMap.slice(j * numPins + halfPins, j * numPins + j + 1).join(' ')
-        );
-      }
-    } else if (halfPins > 0 && symmetry === 'quad') {
-      for (let j = halfPins; j < numPins; ++j) {
-        // i range is halfPins -> end of row
-        map.push(
-          cellMap.slice(j * numPins + halfPins, (j + 1) * numPins).join(' ')
-        );
-      }
-    } else {
-      for (let i = 0; i < numPins; ++i) {
-        map.push(cellMap.slice(i * numPins, (i + 1) * numPins).join(' '));
-      }
-    }
-    return map.join('\n');
+    return InpHelper.getTextMap(this.props.content, this.props.params);
   }
 
   // given the text map with symmetry, generate the full array. Expand as necessary.
   getFullMap() {
-    // Verify items in the cellMap. Unrecognized cells are empty.
-    const symmetry = this.props.content.symmetry || 'none';
-    const numPins = this.getNumPins();
-    let cellMap = this.props.content.cellMap.trim();
-    if (cellMap !== '') cellMap = cellMap.split(/[\n]+/);
-    else cellMap = [];
-    cellMap.forEach((row, i) => {
-      cellMap[i] = row.trim().split(/[,\s]+/);
-      cellMap[i].forEach((c, j) => {
-        if (c === '') cellMap[i][j] = '-';
-      });
-    });
-    let mapSize = numPins;
-    const halfPins = Math.ceil(numPins * 0.5);
-    if (symmetry === 'oct' || symmetry === 'quad') {
-      // mapSize = halfPins * (halfPins + 1) / 2;
-      mapSize = halfPins;
-    }
-    for (let i = 0; i < mapSize; ++i) {
-      const rowSize = symmetry === 'oct' ? i + 1 : mapSize;
-      if (!cellMap[i]) cellMap[i] = [];
-      while (cellMap[i].length < rowSize) {
-        cellMap[i].push('-');
-      }
-      while (cellMap[i].length > rowSize) {
-        cellMap[i].pop();
-      }
-    }
-
-    if (symmetry === 'oct') {
-      // rebuild quad map
-      for (let j = 0; j < halfPins; ++j) {
-        for (let i = j + 1; i < halfPins; ++i) {
-          cellMap[j].push(cellMap[i][j]);
-        }
-      }
-    }
-    if (symmetry === 'oct' || symmetry === 'quad') {
-      // we have the bottom-right - add the bottom-left, as a mirror
-      for (let j = 0; j < halfPins; ++j) {
-        cellMap[j] = cellMap[j]
-          .slice(1)
-          .reverse()
-          .concat(cellMap[j]);
-      }
-      // add the top half, mirrored.
-      cellMap = cellMap
-        .slice(1) // this is a copy, with the duplicate center row dropped.
-        .reverse()
-        .concat(cellMap);
-    }
-    // now flatten.
-    return cellMap.reduce((p, row) => p.concat(row));
+    return InpHelper.getFullMap(this.props.content, this.props.params);
   }
 
   update3D() {
@@ -328,7 +250,11 @@ export default class AssemblyLayoutEditor extends React.Component {
             />
           </FormItem>
           <FormItem
-            label="Cell Map"
+            label={
+              this.props.content.type === 'coremaps'
+                ? 'Assembly Map'
+                : 'Cell Map'
+            }
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
           >
