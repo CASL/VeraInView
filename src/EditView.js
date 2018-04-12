@@ -16,6 +16,7 @@ import AssemblyEditor from './widgets/AssemblyEditor';
 import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
 // import VTKRenderer from './widgets/VTKRenderer';
 import ModelHelper from './utils/ModelHelper';
+import InpHelper from './utils/InpHelper';
 import Materials from './utils/Materials';
 
 import style from './assets/vera.mcss';
@@ -113,6 +114,19 @@ function uniqueLabel(label, avoidList) {
   return newLabel;
 }
 
+let fileURL = null;
+function makeTextFile(text) {
+  const blob = new Blob([text], { type: 'text/plain' });
+  if (fileURL !== null) {
+    window.URL.revokeObjectURL(fileURL);
+  }
+
+  fileURL = window.URL.createObjectURL(blob);
+
+  // can be used as an 'href'
+  return fileURL;
+}
+
 function GroupTitle(props) {
   return (
     <span className={style.itemWithSmallIcon}>
@@ -174,6 +188,7 @@ export default class EditView extends React.Component {
     this.forceUpdate = this.forceUpdate.bind(this);
     this.getSelectionByKey = this.getSelectionByKey.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.onDownload = this.onDownload.bind(this);
     this.onNew = this.onNew.bind(this);
     this.onRemove = this.onRemove.bind(this);
     this.onSelect = this.onSelect.bind(this);
@@ -266,6 +281,20 @@ export default class EditView extends React.Component {
     }, 100);
   }
 
+  onDownload() {
+    const link = document.createElement('a');
+    link.setAttribute('download', 'verain.inp');
+    link.href = makeTextFile(InpHelper.writeToInp(this.state, GROUP_TYPES));
+    document.body.appendChild(link);
+
+    // wait for the link to be added to the document
+    window.setTimeout(() => {
+      const event = new MouseEvent('click');
+      link.dispatchEvent(event);
+      document.body.removeChild(link);
+    }, 0);
+  }
+
   getSelectionByKey(keyPath) {
     const tokens = keyPath.split(':');
     const path = [capitalize(tokens[0])];
@@ -317,12 +346,10 @@ export default class EditView extends React.Component {
       if (newState.cells) {
         // make sure each is unique - ids derived from radii+mat
         const idMap = {};
-        // const labelMap = {};
 
         const newCells = this.state.cells.slice();
         this.state.cells.forEach((cell) => {
           idMap[cell.id] = cell;
-          // labelMap[cell.label] = cell;
         });
         let count = newState.cells.length;
         while (count--) {
@@ -351,14 +378,15 @@ export default class EditView extends React.Component {
       const newAssemblies = this.state.assemblies.slice();
       const params = Object.assign({}, this.state.params);
       const labelMap = {};
+      newLayout.forEach((rm) => {
+        labelMap[rm.id] = rm;
+      });
+      newAssemblies.forEach((assembly) => {
+        labelMap[assembly.id] = assembly;
+      });
+
       groupList.forEach((group) => {
         if (newState[group]) {
-          // newLayout.forEach((layout) => {
-          //   labelMap[layout.label] = layout;
-          // });
-          // newAssemblies.forEach((a) => {
-          //   labelMap[a.id] = a;
-          // });
           newState[group].forEach((assembly) => {
             let count = assembly.layout.length;
             while (count--) {
@@ -381,15 +409,17 @@ export default class EditView extends React.Component {
                 labelMap[layout.id] = layout;
               }
             }
-            // use ID to avoid conflict with layouts.
-            if (!labelMap[`assembly-${group}-${assembly.label}`]) {
-              assembly.id = `assembly-${group}-${assembly.label}`;
+            assembly.id = `assembly-${group}-${assembly.label}`;
+            if (!labelMap[assembly.id]) {
               assembly.group = group;
               newAssemblies.unshift(assembly);
               labelMap[assembly.id] = assembly;
             }
-            params.numPins = Math.max(params.numPins, assembly.num_pins);
-            params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
+            // inserts only set num_pins, not ppitch
+            if (assembly.num_pins && assembly.ppitch) {
+              params.numPins = Math.max(params.numPins, assembly.num_pins);
+              params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
+            }
           });
           if (newState.core) {
             params.numAssemblies = newState.core.numAssemblies;
@@ -454,6 +484,14 @@ export default class EditView extends React.Component {
             onKeyPress={this.handleKeyPress}
           />
           <div className={style.title}>{this.state.title}</div>
+          <Button
+            className={style.fileLoader}
+            icon="download"
+            size="large"
+            type="dashed"
+            disabled={this.state.cells.length === 0}
+            onClick={this.onDownload}
+          />
           {this.state.file ? null : (
             <Upload
               accept="xml"

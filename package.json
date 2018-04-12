@@ -23,13 +23,13 @@
     },
     "devDependencies": {
         "markdown-pdf": "8.1.1",
-        "@doe-casl/verain-view": "1.0.0",
+        "@doe-casl/verain-view": "1.0.1",
         "inline-source-cli": "1.2.0",
         "antd": "2.13.11",
         "react": "16.1.1",
         "react-dom": "16.1.1",
         "react-cursor-position": "2.4.1",
-        "react-tooltip": "3.4.1",
+        "react-tooltip": "3.5.0",
         "kw-doc": "1.1.2",
         "kw-web-suite": "6.0.1",
         "prettier": "1.9.2"
