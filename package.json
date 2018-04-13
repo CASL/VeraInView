@@ -19,21 +19,17 @@
         "README.md",
         "LICENSE"
     ],
-    "dependencies": {
-        "vtk.js": "6.2.7"
-    },
     "devDependencies": {
+        "vtk.js": "6.2.7",
         "markdown-pdf": "8.1.1",
         "@doe-casl/verain-view": "1.0.1",
-        "inline-source-cli": "1.2.0",
         "antd": "2.13.11",
         "react": "16.1.1",
         "react-dom": "16.1.1",
         "react-cursor-position": "2.4.1",
         "react-tooltip": "3.5.0",
         "kw-doc": "1.1.2",
-        "kw-web-suite": "6.0.1",
-        "prettier": "1.9.2"
+        "kw-web-suite": "6.0.2"
     },
     "scripts": {
         "guide": "markdown-pdf -c ./Documentation/content/users_guide/ -f Legal -o ./Documentation/content/users_guide/VeraInViewer-UserGuide.pdf ./Documentation/content/users_guide/index.md",
