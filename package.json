@@ -14,7 +14,8 @@
     "homepage": "https://github.com/CASL/VeraInView#readme",
     "main": "./dist/VeraInView.html",
     "files": [
-        "dist/VeraInView.html",
+        "dist/*",
+        "src/*",
         "README.md",
         "LICENSE"
     ],
