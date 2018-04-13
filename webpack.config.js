@@ -1,23 +1,27 @@
 const path = require('path');
 
-const plugins = [];
-const entry = path.join(__dirname, './src/index.js');
-const sourcePath = path.join(__dirname, './src');
-const outputPath = path.join(__dirname, './dist');
-
 const linterRules = require('./rules/linter.js');
 const veraRules = require('./rules/vera.js');
 const vtkRules = require('./rules/vtkjs.js');
 
+const plugins = [];
+const app = path.join(__dirname, './src/index.js');
+const simput = path.join(__dirname, './src/simput/index.js');
+const sourcePath = path.join(__dirname, './src');
+const outputPath = path.join(__dirname, './dist');
+
 module.exports = {
   plugins,
-  entry,
+  entry: {
+    vera: app,
+    'simput-external-vera': simput,
+  },
   output: {
     path: outputPath,
-    filename: 'vera.js',
+    filename: '[name].js',
   },
   module: {
-    rules: [{ test: entry, loader: 'expose-loader?vera' }].concat(
+    rules: [{ test: app, loader: 'expose-loader?vera' }].concat(
       linterRules,
       veraRules,
       vtkRules
