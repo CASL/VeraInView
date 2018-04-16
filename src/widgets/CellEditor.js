@@ -7,6 +7,7 @@ import { Form, Input, Button, Select, Row, Col } from 'antd';
 // import macro from 'vtk.js/Sources/macro';
 import DualRenderer from './DualRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
+import CellTip from './CellTip';
 
 import style from '../assets/vera.mcss';
 
@@ -205,11 +206,7 @@ export default class CellEditor extends React.Component {
               posx,
               posy
             );
-            return mat ? (
-              <span>
-                {mat.radius} cm <br /> {mat.mat}
-              </span>
-            ) : null;
+            return mat ? <CellTip mat={mat} /> : null;
           }}
         />
       </div>

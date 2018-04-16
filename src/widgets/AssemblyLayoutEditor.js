@@ -332,7 +332,7 @@ export default class AssemblyLayoutEditor extends React.Component {
               posx,
               posy
             );
-            return cell;
+            return `Cell: ${cell}`;
           }}
           onClick={this.on2DClick}
         />
