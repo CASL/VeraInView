@@ -37,9 +37,9 @@ function getFullMap(rodmap, params) {
   // Verify items in the cellMap. Unrecognized cells are empty.
   const symmetry = rodmap.symmetry || 'none';
   const numPins = getNumPins(rodmap, params);
-  let cellMap = rodmap.cellMap.trim();
-  if (cellMap !== '') cellMap = cellMap.split(/[\n]+/);
-  else cellMap = [];
+  let cellMap = [];
+  if (rodmap.cellMap) cellMap = rodmap.cellMap.split(/[\n]+/);
+
   cellMap.forEach((row, i) => {
     cellMap[i] = row.trim().split(/[,\s]+/);
     cellMap[i].forEach((c, j) => {
@@ -89,10 +89,27 @@ function getFullMap(rodmap, params) {
   return cellMap.reduce((p, row) => p.concat(row));
 }
 
+function padCellMap(rodmap, params) {
+  // if a coremap hasn't been initialized, it will
+  // have short rows where core_shape is zero. Pad with '-'
+  const numPins = getNumPins(rodmap, params);
+  if (params.coreShapeMap && rodmap.cell_map.length !== numPins * numPins) {
+    let pidx = 0;
+    const newMap = params.coreShapeMap.map((occupied, i) => {
+      if (!occupied) return '-';
+      return rodmap.cell_map[pidx++];
+    });
+    rodmap.cell_map = newMap;
+  }
+}
+
 // rodmaps from xml don't have their symmetry set -
 // test and set symmetry and text map.
 function setSymmetry(rodmap, params) {
   if (rodmap.symmetry === undefined) {
+    if (rodmap.type === 'coremaps') {
+      padCellMap(rodmap, params);
+    }
     const saveTextMap = rodmap.cellMap;
     rodmap.symmetry = 'oct';
     rodmap.cellMap = getTextMap(rodmap, params);
@@ -112,8 +129,8 @@ function setSymmetry(rodmap, params) {
           true
         )
       ) {
-        rodmap.cellMap = saveTextMap;
         rodmap.symmetry = 'none';
+        rodmap.cellMap = saveTextMap || getTextMap(rodmap, params);
       }
     }
   }
@@ -226,5 +243,6 @@ export default {
   getNumPins,
   getTextMap,
   getFullMap,
+  setSymmetry,
   writeToInp,
 };
