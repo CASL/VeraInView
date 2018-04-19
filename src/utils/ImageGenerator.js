@@ -292,6 +292,59 @@ function updateLayoutImage(
       }
     }
   }
+  if (item.coreShape) {
+    // display an indication of the core shape on editor coremaps.
+    ctx.beginPath();
+    const minmax = [];
+    minmax[-1] = [width, -1];
+    for (let j = 0; j < width; j++) {
+      const halfJ = j < width / 2 ? j : width - j - 1;
+      let minI = width;
+      let maxI = -1;
+      for (let i = 0; i < width; i++) {
+        if (item.coreShape[j * width + i]) {
+          minI = Math.min(minI, i);
+          maxI = Math.max(maxI, i + 1);
+        }
+      }
+      minmax[halfJ] = minmax[halfJ]
+        ? [Math.min(minI, minmax[halfJ][0]), Math.max(maxI, minmax[halfJ][1])]
+        : [minI, maxI];
+    }
+    for (let j = 1; j < width / 2; j++) {
+      // the previous row, away from the middle, sets a bound.
+      minmax[j][0] = Math.min(minmax[j - 1][0], minmax[j][0]);
+      minmax[j][1] = Math.max(minmax[j - 1][1], minmax[j][1]);
+    }
+    // console.log(...minmax);
+    for (let j = 0; j <= width; j++) {
+      const halfJ = j < width / 2 ? j : width - j - 1;
+      // symmetric, top and bottom half. Not sure about non-symmetric assembly maps?
+      const [prevMin, prevMax] = minmax[j < width / 2 ? halfJ - 1 : halfJ + 1];
+      let [minI, maxI] = minmax[halfJ];
+      if (prevMax !== -1) {
+        // cap the last full row.
+        if (maxI === -1) {
+          maxI = prevMax;
+          minI = prevMax;
+        }
+        ctx.moveTo(prevMin * recSide, (j - 1) * recSide);
+        ctx.lineTo(prevMin * recSide, j * recSide);
+        ctx.lineTo(minI * recSide, j * recSide);
+        ctx.moveTo(prevMax * recSide, (j - 1) * recSide);
+        ctx.lineTo(prevMax * recSide, j * recSide);
+        ctx.lineTo(maxI * recSide, j * recSide);
+      } else if (maxI !== -1) {
+        // cap the starting row.
+        ctx.moveTo(minI * recSide, j * recSide);
+        ctx.lineTo(maxI * recSide, j * recSide);
+      }
+    }
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(20, 20, 20, 1)';
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  }
   item.cellNameToIdMap = cellNameToIdMap;
 
   item.imageSrc = WORKING_CANVAS.toDataURL();
@@ -534,113 +587,6 @@ function getElevationKey(map, itemMap, itemMapkey, elevation) {
   }
   return `${map.__category};${key}:${label || ''}`.replace(/-/g, '');
 }
-
-// ----------------------------------------------------------------------------
-
-// function isEmpty(key) {
-//   const subKey = [];
-//   const tokens = key.split(':');
-//   let count = tokens.length;
-//   while (count--) {
-//     subKey.push(tokens[count--]);
-//   }
-//   return !subKey.join('').length;
-// }
-
-// ----------------------------------------------------------------------------
-
-// function getCoreCompositionLabel(key) {
-//   const tokens = key.split(':');
-//   const categories = ['Assembly', 'Control', 'Detector', 'Insert'];
-//   const label = [];
-//   for (let i = 0; i < categories.length; i++) {
-//     if (tokens[i * 2 + 1]) {
-//       label.push(`${categories[i]}(${tokens[i * 2]}:${tokens[i * 2 + 1]})`);
-//     }
-//   }
-//   return label.join(' ');
-// }
-
-// ----------------------------------------------------------------------------
-
-// function computeCoreImageAt(elevation, core, size = 1500, edge = 5) {
-//   WORKING_CANVAS.setAttribute('width', size);
-//   WORKING_CANVAS.setAttribute('height', size);
-//   const ctx = WORKING_CANVAS.getContext('2d');
-//   ctx.clearRect(0, 0, size, size);
-
-//   const coreSize = core.core_size;
-//   const recWidth = Math.floor((size - 2 * edge) / coreSize);
-//   const coreShape = core.shape;
-//   const offset = (size - recWidth * coreSize) / 2;
-
-//   // Create local color manager
-//   if (!colorManagerByElevation[elevation]) {
-//     colorManagerByElevation[elevation] = ColorManager.createColorManager();
-//   }
-//   const localColorManager = colorManagerByElevation[elevation];
-
-//   ctx.lineWidth = '1';
-//   ctx.strokeStyle = 'black';
-
-//   // Local variables for mapping
-//   const assemMap = core.assm_map;
-//   const ctrlMap = core.crd_map;
-//   const detMap = core.det_map;
-//   const insMap = core.insert_map;
-
-//   let pidx = 0;
-//   for (let j = 0; j < coreSize; j++) {
-//     for (let i = 0; i < coreSize; i++) {
-//       if (coreShape[i + j * coreSize]) {
-//         const colorKey = [
-//           assemMap
-//             ? getElevationKey(LAYOUT_MAP.ASSEMBLIES, assemMap[pidx], elevation)
-//             : ':',
-//           ctrlMap
-//             ? getElevationKey(LAYOUT_MAP.CONTROLS, ctrlMap[pidx], elevation)
-//             : ':',
-//           detMap
-//             ? getElevationKey(LAYOUT_MAP.DETECTORS, detMap[pidx], elevation)
-//             : ':',
-//           insMap
-//             ? getElevationKey(LAYOUT_MAP.INSERTS, insMap[pidx], elevation)
-//             : ':',
-//         ]
-//           .join(':')
-//           .replace(/-/g, '');
-
-//         if (isEmpty(colorKey)) {
-//           ctx.rect(
-//             offset + i * recWidth,
-//             offset + j * recWidth,
-//             recWidth,
-//             recWidth
-//           );
-//           ctx.stroke();
-//         } else {
-//           ctx.beginPath();
-//           ctx.fillStyle = ColorManager.toRGBA(
-//             localColorManager.getColor(getCoreCompositionLabel(colorKey))
-//           );
-//           ctx.rect(
-//             offset + i * recWidth,
-//             offset + j * recWidth,
-//             recWidth,
-//             recWidth
-//           );
-//           ctx.stroke();
-//           ctx.fill();
-//         }
-
-//         // Move to the next element
-//         pidx++;
-//       }
-//     }
-//   }
-
-//   return WORKING_CANVAS.toDataURL();
-// }
 
 function uniqueMapTags(map) {
   if (!map) return [];
