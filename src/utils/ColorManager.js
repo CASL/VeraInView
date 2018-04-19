@@ -45,7 +45,11 @@ function createColorManager(palette = PALETTE) {
         // if all have been used.
         let minLengthSeen = 1000;
         Object.keys(colorInfo).forEach((infoRGBA) => {
-          if (!rgba || colorInfo[infoRGBA].names.length < minLengthSeen) {
+          // avoid assigning colors with a '0' alpha
+          if (
+            colorInfo[infoRGBA].color[3] > 0 &&
+            (!rgba || colorInfo[infoRGBA].names.length < minLengthSeen)
+          ) {
             rgba = infoRGBA;
             minLengthSeen = colorInfo[infoRGBA].names.length;
           }

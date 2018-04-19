@@ -87,10 +87,10 @@ const TEMPLATES = {
 };
 
 const GROUP_TYPES = [
-  { label: 'Assembly', group: 'assemblies' },
-  { label: 'Insert', group: 'inserts' },
-  { label: 'Control', group: 'controls' },
-  { label: 'Detector', group: 'detectors' },
+  { label: 'Assembly', group: 'assemblies', coremap: 'assm_map' },
+  { label: 'Insert', group: 'inserts', coremap: 'insert_map' },
+  { label: 'Control', group: 'controls', coremap: 'crd_map' },
+  { label: 'Detector', group: 'detectors', coremap: 'det_map' },
 ];
 
 // todo get from vtk-js
@@ -211,13 +211,15 @@ export default class EditView extends React.Component {
 
   onMenuNew(type, group) {
     // create a new item based on the currently selected one.
-    // state.content holds the current item.
+    // state.content holds the current item. Might be null for coremaps.
     const base =
       capitalize(type) !== this.state.path[0]
         ? TEMPLATES[type]
-        : this.state.content;
+        : this.state.content || TEMPLATES[type];
     const newItem = EDITORS[capitalize(type)].createNew(base);
     newItem.group = group;
+    // need to override ID for coremaps so they are selectable in the menu
+    if (type === 'coremaps') newItem.id = `${newItem.group}-1`;
     if (newItem.label !== undefined) {
       newItem.label = uniqueLabel(newItem.label, this.state[type]);
       if (newItem.labelToUse !== undefined) {
@@ -385,9 +387,15 @@ export default class EditView extends React.Component {
         labelMap[assembly.id] = assembly;
       });
 
+      let foundSomething = false;
       groupList.forEach((group) => {
         if (newState[group]) {
           newState[group].forEach((assembly) => {
+            // inserts only set num_pins, not ppitch
+            if (assembly.num_pins && assembly.ppitch) {
+              params.numPins = Math.max(params.numPins, assembly.num_pins);
+              params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
+            }
             let count = assembly.layout.length;
             while (count--) {
               const layout = assembly.layout[count];
@@ -396,16 +404,9 @@ export default class EditView extends React.Component {
                 const numPins = assembly.num_pins;
                 layout.numPins = numPins;
                 layout.group = group;
-                const map = [];
-                for (let i = 0; i < numPins; ++i) {
-                  map.push(
-                    layout.cell_map
-                      .slice(i * numPins, (i + 1) * numPins)
-                      .join(' ')
-                  );
-                }
-                layout.cellMap = map.join('\n');
+                InpHelper.setSymmetry(layout, params);
                 newLayout.unshift(layout);
+                foundSomething = true;
                 labelMap[layout.id] = layout;
               }
             }
@@ -413,25 +414,45 @@ export default class EditView extends React.Component {
             if (!labelMap[assembly.id]) {
               assembly.group = group;
               newAssemblies.unshift(assembly);
+              foundSomething = true;
               labelMap[assembly.id] = assembly;
             }
-            // inserts only set num_pins, not ppitch
-            if (assembly.num_pins && assembly.ppitch) {
-              params.numPins = Math.max(params.numPins, assembly.num_pins);
-              params.pinPitch = Math.max(params.pinPitch, assembly.ppitch);
-            }
-          });
-          if (newState.core) {
-            params.numAssemblies = newState.core.numAssemblies;
-            params.assemblyPitch = newState.core.assemblyPitch;
-          }
-          this.setState({
-            rodmaps: newLayout,
-            assemblies: newAssemblies,
-            params,
           });
         }
       });
+      if (foundSomething) {
+        this.setState({
+          rodmaps: newLayout,
+          assemblies: newAssemblies,
+          params,
+        });
+      }
+      if (newState.core) {
+        params.numAssemblies = newState.core.numAssemblies;
+        params.assemblyPitch = newState.core.assemblyPitch;
+        params.coreShapeMap = newState.core.shape;
+        const coremaps = [];
+        GROUP_TYPES.forEach((info) => {
+          const coremap = newState.core[info.coremap];
+          if (coremap) {
+            const newMap = {
+              id: `${info.group}-1`,
+              type: 'coremaps',
+              label: info.label,
+              cell_map: coremap,
+              group: info.group,
+            };
+            InpHelper.setSymmetry(newMap, params);
+            console.log(newMap);
+            coremaps.push(newMap);
+          }
+        });
+
+        this.setState({
+          params,
+          coremaps,
+        });
+      }
       console.log('editor', newState);
     });
     return false;
@@ -540,30 +561,25 @@ export default class EditView extends React.Component {
                     const coremaps = this.state.coremaps.filter(
                       (a) => a.group === info.group
                     );
+                    // menu item key must match ID of the single coremap per type.
                     return (
-                      <Menu.ItemGroup
-                        key={`${info.label}Coremaps`}
-                        title={
-                          <GroupTitle
-                            title={`${info.label} Map`}
-                            icon="global"
-                            onClick={
-                              coremaps.length
-                                ? null
-                                : () => this.onMenuNew('coremaps', info.group)
-                            }
-                          />
-                        }
-                      >
-                        {coremaps.map((a) => (
-                          <Menu.Item key={`coremaps:${a.id}`}>
-                            <span className={style.itemWithSmallIcon}>
-                              <Icon type="global" />
-                              {a.labelToUse || a.label}
-                            </span>
-                          </Menu.Item>
-                        ))}
-                      </Menu.ItemGroup>
+                      <Menu.Item key={`coremaps:${info.group}-1`}>
+                        <span className={style.itemWithSmallIcon}>
+                          <Icon type="global" />
+                          {`${info.label} Map`}
+                          <span style={{ flex: 1 }} />
+                          {coremaps.length === 0 && (
+                            <Button
+                              shape="circle"
+                              icon="plus"
+                              className={style.menuAddNew}
+                              onClick={() =>
+                                this.onMenuNew('coremaps', info.group)
+                              }
+                            />
+                          )}
+                        </span>
+                      </Menu.Item>
                     );
                   }
                   return null;

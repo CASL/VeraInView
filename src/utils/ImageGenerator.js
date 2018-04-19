@@ -516,9 +516,11 @@ function updateItemWithLayoutImages(
 }
 
 // ----------------------------------------------------------------------------
-// key will be "ASSEMBLIES;1:" if not present at this elevation,
+// return will be "ASSEMBLIES;1:" if not present at this elevation,
 // or "ASSEMBLIES;1:PLEN" if present.
-function getElevationKey(map, key, elevation) {
+function getElevationKey(map, itemMap, itemMapkey, elevation) {
+  if (!itemMap) return ':';
+  const key = itemMap[itemMapkey];
   const layoutItem = map[key];
   if (!layoutItem) {
     return `${map.__category};${key}:`.replace(/-/g, '');
@@ -668,9 +670,9 @@ function computeCoreColorsAt(elevation, core) {
   const lastColorManager = colorManagerByElevation[lastElevation];
   lastElevation = elevation;
 
-  assemMap.forEach((tag) => {
+  assemMap.forEach((tag, i) => {
     const assemKey = assemMap
-      ? getElevationKey(LAYOUT_MAP.ASSEMBLIES, tag, elevation)
+      ? getElevationKey(LAYOUT_MAP.ASSEMBLIES, assemMap, i, elevation)
       : ':';
     // assign a color only if there's a tag for a cellmap.
     if (assemKey.split(':')[1].length) {
@@ -695,8 +697,10 @@ function computeCoreColorsAt(elevation, core) {
   ];
   processingList.forEach((entry) => {
     const [container, keyMap] = entry;
-    keyMap.forEach((tag) => {
-      const key = keyMap ? getElevationKey(container, tag, elevation) : ':';
+    keyMap.forEach((tag, i) => {
+      const key = keyMap
+        ? getElevationKey(container, keyMap, i, elevation)
+        : ':';
       if (key.split(':')[1].length) {
         let prevColor = null;
         if (lastColorManager) {
@@ -814,31 +818,43 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
       if (coreShape[i + j * coreSize]) {
         // if the coremap has an assembly at this location, tag comes before the ':'
         // if the assembly has a cellmap at this elevation, tag comes after ':'
-        const assemKey = assemMap
-          ? getElevationKey(LAYOUT_MAP.ASSEMBLIES, assemMap[pidx], elevation)
-          : ':';
+        const assemKey = getElevationKey(
+          LAYOUT_MAP.ASSEMBLIES,
+          assemMap,
+          pidx,
+          elevation
+        );
         // assign a color only if there's a tag for a cellmap.
         const assemColor = assemKey.split(':')[1].length
           ? localColorManager.getColorRGBA(assemKey)
           : null;
 
-        const ctrKey = ctrlMap
-          ? getElevationKey(LAYOUT_MAP.CONTROLS, ctrlMap[pidx], elevation)
-          : ':';
+        const ctrKey = getElevationKey(
+          LAYOUT_MAP.CONTROLS,
+          ctrlMap,
+          pidx,
+          elevation
+        );
         const ctrColor = ctrKey.split(':')[1].length
           ? localColorManager.getColorRGBA(ctrKey)
           : null;
 
-        const detKey = detMap
-          ? getElevationKey(LAYOUT_MAP.DETECTORS, detMap[pidx], elevation)
-          : ':';
+        const detKey = getElevationKey(
+          LAYOUT_MAP.DETECTORS,
+          detMap,
+          pidx,
+          elevation
+        );
         const detColor = detKey.split(':')[1].length
           ? localColorManager.getColorRGBA(detKey)
           : null;
 
-        const insKey = insMap
-          ? getElevationKey(LAYOUT_MAP.INSERTS, insMap[pidx], elevation)
-          : ':';
+        const insKey = getElevationKey(
+          LAYOUT_MAP.INSERTS,
+          insMap,
+          pidx,
+          elevation
+        );
         const insColor = insKey.split(':')[1].length
           ? localColorManager.getColorRGBA(insKey)
           : null;

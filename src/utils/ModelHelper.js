@@ -508,6 +508,18 @@ function parseFile(file, imageSize, updateFn) {
           core.stack.has3D.stroke = controls[0].stroke;
           core.stack.has3D.maxstep = controls[0].maxstep;
         }
+        // add maps for editor
+        [
+          'assm_map',
+          'crd_map',
+          'det_map',
+          'insert_map',
+          'crd_bank',
+          'shape',
+        ].forEach((mapName) => {
+          const map = dataModel.CASEID.CORE[mapName];
+          if (map) core[mapName] = [].concat(map);
+        });
 
         count = elevations.length - 1;
         while (count--) {

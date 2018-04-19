@@ -37,9 +37,9 @@ function getFullMap(rodmap, params) {
   // Verify items in the cellMap. Unrecognized cells are empty.
   const symmetry = rodmap.symmetry || 'none';
   const numPins = getNumPins(rodmap, params);
-  let cellMap = rodmap.cellMap.trim();
-  if (cellMap !== '') cellMap = cellMap.split(/[\n]+/);
-  else cellMap = [];
+  let cellMap = [];
+  if (rodmap.cellMap) cellMap = rodmap.cellMap.split(/[\n]+/);
+
   cellMap.forEach((row, i) => {
     cellMap[i] = row.trim().split(/[,\s]+/);
     cellMap[i].forEach((c, j) => {
@@ -89,10 +89,27 @@ function getFullMap(rodmap, params) {
   return cellMap.reduce((p, row) => p.concat(row));
 }
 
+function padCellMap(rodmap, params) {
+  // if a coremap hasn't been initialized, it will
+  // have short rows where core_shape is zero. Pad with '-'
+  const numPins = getNumPins(rodmap, params);
+  if (params.coreShapeMap && rodmap.cell_map.length !== numPins * numPins) {
+    let pidx = 0;
+    const newMap = params.coreShapeMap.map((occupied, i) => {
+      if (!occupied) return '-';
+      return rodmap.cell_map[pidx++];
+    });
+    rodmap.cell_map = newMap;
+  }
+}
+
 // rodmaps from xml don't have their symmetry set -
 // test and set symmetry and text map.
 function setSymmetry(rodmap, params) {
   if (rodmap.symmetry === undefined) {
+    if (rodmap.type === 'coremaps') {
+      padCellMap(rodmap, params);
+    }
     const saveTextMap = rodmap.cellMap;
     rodmap.symmetry = 'oct';
     rodmap.cellMap = getTextMap(rodmap, params);
@@ -112,8 +129,8 @@ function setSymmetry(rodmap, params) {
           true
         )
       ) {
-        rodmap.cellMap = saveTextMap;
         rodmap.symmetry = 'none';
+        rodmap.cellMap = saveTextMap || getTextMap(rodmap, params);
       }
     }
   }
@@ -121,6 +138,20 @@ function setSymmetry(rodmap, params) {
 
 const labelCompare = (a, b) => a.label.localeCompare(b.label);
 
+// anywhere the core map has zero, strip '-' from the text map.
+function stripCoreZeros(textMap, coreMap) {
+  const coreRows = coreMap
+    .split('\n')
+    .map((line) => line.trim().split(/[,\s]+/));
+  const lines = textMap.split('\n').map((line, i) => {
+    const row = line.trim().split(/[,\s]+/);
+    return row
+      .map((cell, j) => (coreRows[i][j] === '0' ? ' ' : cell))
+      .join(' ');
+    // .trim();
+  });
+  return lines.join('\n');
+}
 // inverse of 'parseFile' - take a state, and write as much as
 // we can to .inp format, as a string.
 function writeToInp(state, GROUP_TYPES) {
@@ -135,9 +166,49 @@ function writeToInp(state, GROUP_TYPES) {
   result.push(`  apitch ${state.params.assemblyPitch}`);
 
   const groupTitles = {};
+  let coreShapeMap = null;
+  // set title, build a core_shape array.
+  // Set locations occupied in any map to 1, empty to 0
   state.coremaps.forEach((cm) => {
     groupTitles[cm.group] = cm.label;
+    if (!coreShapeMap) coreShapeMap = cm.cell_map.map((c) => 0);
+    cm.cell_map.forEach((cell, i) => {
+      if (cell !== '-') coreShapeMap[i] = 1;
+    });
   });
+  if (coreShapeMap) {
+    const coreShape = {
+      type: 'coremaps',
+      symmetry: 'none',
+      cell_map: coreShapeMap,
+    };
+    const coreText = getTextMap(coreShape, state.params);
+    result.push('\n  core_shape');
+    coreText.split('\n').forEach((line) => {
+      result.push(`    ${line}`);
+    });
+
+    // get symmetry text maps for comparison with assemblies.
+    const coreMaps = {
+      none: coreText,
+      oct: (coreShape.symmetry = 'oct') && getTextMap(coreShape, state.params),
+      quad:
+        (coreShape.symmetry = 'quad') && getTextMap(coreShape, state.params),
+    };
+    GROUP_TYPES.forEach((info) => {
+      const mapList = state.coremaps.filter((a) => a.group === info.group);
+      if (!mapList.length) return;
+      const assemMap = mapList[0];
+      result.push(`\n  ${info.coremap}`);
+      setSymmetry(assemMap, state.params);
+      let textMap = getTextMap(assemMap, state.params);
+      // strips locations that are '0' in coreShape map.
+      textMap = stripCoreZeros(textMap, coreMaps[assemMap.symmetry]);
+      textMap.split('\n').forEach((line) => {
+        result.push(`    ${line}`);
+      });
+    });
+  }
 
   GROUP_TYPES.forEach((info) => {
     const isAssembly = info.label === 'Assembly';
@@ -226,5 +297,6 @@ export default {
   getNumPins,
   getTextMap,
   getFullMap,
+  setSymmetry,
   writeToInp,
 };

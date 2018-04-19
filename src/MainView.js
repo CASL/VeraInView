@@ -11,6 +11,7 @@ import macro from 'vtk.js/Sources/macro';
 import Color from './widgets/Color';
 import ImageRenderer from './widgets/ImageRenderer';
 import VTKRenderer from './widgets/VTKRenderer';
+import CellTip from './widgets/CellTip';
 import ModelHelper from './utils/ModelHelper';
 import ImageGenerator from './utils/ImageGenerator';
 
@@ -172,15 +173,11 @@ export default class MainView extends React.Component {
     const { item } = this.getSelectionByKey(this.state.lastKey);
     if (this.state.has3D && this.state.has3D.type === 'layout') {
       const { cell } = ImageGenerator.getLayoutCell(item, posx, posy);
-      return cell;
+      return `Cell: ${cell}`;
     }
     if (this.state.has3D && this.state.has3D.type === 'cell') {
       const mat = ImageGenerator.getCellMaterial(item, posx, posy);
-      return mat ? (
-        <span>
-          {mat.radius} cm <br /> {mat.mat}
-        </span>
-      ) : null;
+      return mat ? <CellTip mat={mat} /> : null;
     }
     return null;
   }
