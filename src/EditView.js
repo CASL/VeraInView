@@ -211,13 +211,15 @@ export default class EditView extends React.Component {
 
   onMenuNew(type, group) {
     // create a new item based on the currently selected one.
-    // state.content holds the current item.
+    // state.content holds the current item. Might be null for coremaps.
     const base =
       capitalize(type) !== this.state.path[0]
         ? TEMPLATES[type]
-        : this.state.content;
+        : this.state.content || TEMPLATES[type];
     const newItem = EDITORS[capitalize(type)].createNew(base);
     newItem.group = group;
+    // need to override ID for coremaps so they are selectable in the menu
+    if (type === 'coremaps') newItem.id = `${newItem.group}-1`;
     if (newItem.label !== undefined) {
       newItem.label = uniqueLabel(newItem.label, this.state[type]);
       if (newItem.labelToUse !== undefined) {
@@ -434,7 +436,7 @@ export default class EditView extends React.Component {
           const coremap = newState.core[info.coremap];
           if (coremap) {
             const newMap = {
-              id: `coremap-${info.group}`,
+              id: `${info.group}-1`,
               type: 'coremaps',
               label: info.label,
               cell_map: coremap,
@@ -559,30 +561,25 @@ export default class EditView extends React.Component {
                     const coremaps = this.state.coremaps.filter(
                       (a) => a.group === info.group
                     );
+                    // menu item key must match ID of the single coremap per type.
                     return (
-                      <Menu.ItemGroup
-                        key={`${info.label}Coremaps`}
-                        title={
-                          <GroupTitle
-                            title={`${info.label} Map`}
-                            icon="global"
-                            onClick={
-                              coremaps.length
-                                ? null
-                                : () => this.onMenuNew('coremaps', info.group)
-                            }
-                          />
-                        }
-                      >
-                        {coremaps.map((a) => (
-                          <Menu.Item key={`coremaps:${a.id}`}>
-                            <span className={style.itemWithSmallIcon}>
-                              <Icon type="global" />
-                              {a.labelToUse || a.label}
-                            </span>
-                          </Menu.Item>
-                        ))}
-                      </Menu.ItemGroup>
+                      <Menu.Item key={`coremaps:${info.group}-1`}>
+                        <span className={style.itemWithSmallIcon}>
+                          <Icon type="global" />
+                          {`${info.label} Map`}
+                          <span style={{ flex: 1 }} />
+                          {coremaps.length === 0 && (
+                            <Button
+                              shape="circle"
+                              icon="plus"
+                              className={style.menuAddNew}
+                              onClick={() =>
+                                this.onMenuNew('coremaps', info.group)
+                              }
+                            />
+                          )}
+                        </span>
+                      </Menu.Item>
                     );
                   }
                   return null;
