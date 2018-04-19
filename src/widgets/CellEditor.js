@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 // import ReactCursorPosition from 'react-cursor-position';
 
-import { Form, Input, Button, Select, Row, Col } from 'antd';
+import { Form, Input, InputNumber, Button, Select, Row, Col } from 'antd';
 
 // import macro from 'vtk.js/Sources/macro';
 import DualRenderer from './DualRenderer';
@@ -56,7 +56,9 @@ export default class CellEditor extends React.Component {
 
     this.onFieldUpdate = this.onFieldUpdate.bind(this);
     this.addNew = this.addNew.bind(this);
-    this.onRadiiUpdate = this.onRadiiUpdate.bind(this);
+    // this.onRadiiUpdate = this.onRadiiUpdate.bind(this);
+    this.onRadiiAdd = this.onRadiiAdd.bind(this);
+    this.onRadiiDelete = this.onRadiiDelete.bind(this);
     this.onMaterialUpdate = this.onMaterialUpdate.bind(this);
     this.update3D = this.update3D.bind(this);
   }
@@ -78,11 +80,17 @@ export default class CellEditor extends React.Component {
     this.update3D();
   }
 
-  onRadiiUpdate(e) {
-    const radii = e.target.value
-      .split(/[,\s]+/)
-      .map((s) => s.trim())
-      .map((s) => Number(s));
+  onRadiiUpdate(id, value) {
+    // const id = e.target.dataset.id;
+    // const newRadii = e.target.value
+    //   .split(/[,\s]+/)
+    //   .map((s) => s.trim())
+    //   .map((s) => Number(s));
+    const radii = [].concat(this.props.content.radii);
+
+    // radii.splice(id, 1, ...newRadii);
+    radii[id] = value;
+    console.log(radii);
     const numRings = radii.length;
     const mats = [].concat(this.props.content.mats);
     if (numRings > 0 && mats.length === 0) {
@@ -94,11 +102,30 @@ export default class CellEditor extends React.Component {
     while (mats.length > numRings) {
       mats.pop();
     }
-    this.props.content.radiiStr = e.target.value;
+    // this.props.content.radiiStr = e.target.value;
     this.props.content.radii = radii;
     this.props.content.num_rings = numRings;
     this.props.content.mats = mats;
     this.update3D();
+  }
+
+  onRadiiAdd(e) {
+    const id = e.target.dataset.id;
+    this.props.content.radii.splice(id, 0, this.props.content.radii[id]);
+    console.log(id, this.props.content.radii);
+    this.props.content.mats.splice(id, 0, this.props.content.mats[id]);
+    this.props.content.num_rings += 1;
+    this.update3D();
+  }
+  onRadiiDelete(e) {
+    const id = e.target.dataset.id;
+    if (this.props.content.num_rings > 1) {
+      this.props.content.radii.splice(id, 1);
+      console.log(id, this.props.content.radii);
+      this.props.content.mats.splice(id, 1);
+      this.props.content.num_rings -= 1;
+      this.update3D();
+    }
   }
 
   onMaterialUpdate(value) {
@@ -131,7 +158,7 @@ export default class CellEditor extends React.Component {
   }
 
   render() {
-    /* eslint-disable react/no-array-index-key */
+    /* eslint-disable react/no-array-index-key, react/jsx-no-bind */
     return (
       <div className={style.form}>
         <Button
@@ -157,21 +184,48 @@ export default class CellEditor extends React.Component {
             />
           </FormItem>
           <FormItem
-            label="Radii"
+            label="Radii & Materials"
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
           >
-            <Input
-              defaultValue={this.props.content.radii}
-              data-id="radii"
-              onChange={this.onRadiiUpdate}
-            />
-          </FormItem>
-          <FormItem
-            label="Materials"
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
-          >
+            <Row>
+              {this.props.content.radii.map((m, idx) => (
+                <Col span={3} key={`rad-${idx.toString(16)}`}>
+                  <InputNumber
+                    value={this.props.content.radii[idx]}
+                    step={0.02}
+                    data-id={idx}
+                    size="100%"
+                    style={{ width: '100%' }}
+                    onChange={this.onRadiiUpdate.bind(this, idx)}
+                  />
+                </Col>
+              ))}
+            </Row>
+            <Row>
+              {this.props.content.mats.map((m, idx) => (
+                <Col span={3} key={`add-${idx.toString(16)}`}>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button
+                      shape="circle"
+                      icon="plus"
+                      data-id={idx}
+                      className={style.cellNewRing}
+                      onClick={this.onRadiiAdd}
+                    />
+                    {this.props.content.num_rings > 1 && (
+                      <Button
+                        shape="circle"
+                        icon="delete"
+                        data-id={idx}
+                        className={style.cellNewRing}
+                        onClick={this.onRadiiDelete}
+                      />
+                    )}
+                  </div>
+                </Col>
+              ))}
+            </Row>
             <Row>
               {this.props.content.mats.map((m, idx) => (
                 <Col span={3} key={`mat-${idx.toString(16)}`}>

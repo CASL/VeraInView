@@ -176,36 +176,39 @@ function writeToInp(state, GROUP_TYPES) {
       if (cell !== '-') coreShapeMap[i] = 1;
     });
   });
-  const coreShape = {
-    type: 'coremaps',
-    symmetry: 'none',
-    cell_map: coreShapeMap,
-  };
-  const coreText = getTextMap(coreShape, state.params);
-  result.push('\n  core_shape');
-  coreText.split('\n').forEach((line) => {
-    result.push(`    ${line}`);
-  });
-
-  // get symmetry text maps for comparison with assemblies.
-  const coreMaps = {
-    none: coreText,
-    oct: (coreShape.symmetry = 'oct') && getTextMap(coreShape, state.params),
-    quad: (coreShape.symmetry = 'quad') && getTextMap(coreShape, state.params),
-  };
-  GROUP_TYPES.forEach((info) => {
-    const mapList = state.coremaps.filter((a) => a.group === info.group);
-    if (!mapList.length) return;
-    const assemMap = mapList[0];
-    result.push(`\n  ${info.coremap}`);
-    setSymmetry(assemMap, state.params);
-    let textMap = getTextMap(assemMap, state.params);
-    // strips locations that are '0' in coreShape map.
-    textMap = stripCoreZeros(textMap, coreMaps[assemMap.symmetry]);
-    textMap.split('\n').forEach((line) => {
+  if (coreShapeMap) {
+    const coreShape = {
+      type: 'coremaps',
+      symmetry: 'none',
+      cell_map: coreShapeMap,
+    };
+    const coreText = getTextMap(coreShape, state.params);
+    result.push('\n  core_shape');
+    coreText.split('\n').forEach((line) => {
       result.push(`    ${line}`);
     });
-  });
+
+    // get symmetry text maps for comparison with assemblies.
+    const coreMaps = {
+      none: coreText,
+      oct: (coreShape.symmetry = 'oct') && getTextMap(coreShape, state.params),
+      quad:
+        (coreShape.symmetry = 'quad') && getTextMap(coreShape, state.params),
+    };
+    GROUP_TYPES.forEach((info) => {
+      const mapList = state.coremaps.filter((a) => a.group === info.group);
+      if (!mapList.length) return;
+      const assemMap = mapList[0];
+      result.push(`\n  ${info.coremap}`);
+      setSymmetry(assemMap, state.params);
+      let textMap = getTextMap(assemMap, state.params);
+      // strips locations that are '0' in coreShape map.
+      textMap = stripCoreZeros(textMap, coreMaps[assemMap.symmetry]);
+      textMap.split('\n').forEach((line) => {
+        result.push(`    ${line}`);
+      });
+    });
+  }
 
   GROUP_TYPES.forEach((info) => {
     const isAssembly = info.label === 'Assembly';

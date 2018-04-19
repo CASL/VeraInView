@@ -29,6 +29,7 @@ export default class ImageRenderer extends React.Component {
       elementDimensions: { width = 0, height = 0 } = {},
       position: { x = 0, y = 0 } = {},
     } = this.props;
+    // console.log(x, y);
 
     // pass position as 0 -> 1
     const posx = (x - this.props.pad) / (width - 2 * this.props.pad);
@@ -48,6 +49,7 @@ export default class ImageRenderer extends React.Component {
           delayShow={50}
           scrollHide
           getContent={this.getTooltip}
+          isCapture
           ref={(c) => {
             this.tooltipRef = c;
           }}
