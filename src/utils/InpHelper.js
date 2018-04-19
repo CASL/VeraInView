@@ -152,6 +152,24 @@ function stripCoreZeros(textMap, coreMap) {
   });
   return lines.join('\n');
 }
+
+function getCoreShape(coremaps, inShapeMap = null) {
+  let coreShapeMap = inShapeMap;
+  // set title, build a core_shape array.
+  // Set locations occupied in any map to 1, empty to 0
+  coremaps.forEach((cm, j) => {
+    if (!coreShapeMap) {
+      coreShapeMap = cm.cell_map.map((cell) => (cell !== '-' ? 1 : 0));
+    } else {
+      cm.cell_map.forEach((cell, i) => {
+        if (cell !== '-') coreShapeMap[i] = 1;
+        else if (j === 0) coreShapeMap[i] = 0;
+      });
+    }
+  });
+  return coreShapeMap;
+}
+
 // inverse of 'parseFile' - take a state, and write as much as
 // we can to .inp format, as a string.
 function writeToInp(state, GROUP_TYPES) {
@@ -166,15 +184,11 @@ function writeToInp(state, GROUP_TYPES) {
   result.push(`  apitch ${state.params.assemblyPitch}`);
 
   const groupTitles = {};
-  let coreShapeMap = null;
+  const coreShapeMap = getCoreShape(state.coremaps);
   // set title, build a core_shape array.
   // Set locations occupied in any map to 1, empty to 0
   state.coremaps.forEach((cm) => {
     groupTitles[cm.group] = cm.label;
-    if (!coreShapeMap) coreShapeMap = cm.cell_map.map((c) => 0);
-    cm.cell_map.forEach((cell, i) => {
-      if (cell !== '-') coreShapeMap[i] = 1;
-    });
   });
   if (coreShapeMap) {
     const coreShape = {
@@ -294,6 +308,7 @@ function writeToInp(state, GROUP_TYPES) {
 }
 
 export default {
+  getCoreShape,
   getNumPins,
   getTextMap,
   getFullMap,

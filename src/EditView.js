@@ -481,6 +481,7 @@ export default class EditView extends React.Component {
           cells={this.state.cells}
           assemblyLayouts={this.state.rodmaps}
           assemblies={this.state.assemblies}
+          coremaps={this.state.coremaps}
           imageSize={this.props.imageSize}
         />
       );

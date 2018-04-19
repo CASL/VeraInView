@@ -200,6 +200,13 @@ export default class AssemblyLayoutEditor extends React.Component {
       if (!this.props.content.cellMap) {
         this.props.content.cellMap = this.getTextMap();
       }
+      if (this.props.content.type === 'coremaps') {
+        // update the coreShape
+        this.props.content.coreShape = InpHelper.getCoreShape(
+          this.props.coremaps,
+          this.props.content.coreShape
+        );
+      }
       updateLayoutImage(
         this.props.content,
         cellNameToIdMap,
@@ -350,6 +357,7 @@ AssemblyLayoutEditor.propTypes = {
   type: PropTypes.string,
   cells: PropTypes.array,
   assemblies: PropTypes.array,
+  coremaps: PropTypes.array,
   imageSize: PropTypes.number,
 };
 
@@ -359,5 +367,6 @@ AssemblyLayoutEditor.defaultProps = {
   // materials: [],
   cells: [],
   assemblies: [],
+  coremaps: [],
   imageSize: 512,
 };
