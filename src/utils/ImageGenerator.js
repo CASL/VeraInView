@@ -451,14 +451,13 @@ function updateItemWithLayoutImages(
 
     // Update map
     if (!LAYOUT_MAP[category][item.label]) {
-      LAYOUT_MAP[category][item.label] = {
-        __axial_labels: item.axial_labels,
-        __axial_elevations: item.axial_elevations,
-        __3d_layouts: item.stack.has3D.layouts,
-      };
+      LAYOUT_MAP[category][item.label] = {};
     }
-    LAYOUT_MAP[category][item.label][item.layout[count].label] =
-      item.layout[count];
+    const map = LAYOUT_MAP[category][item.label];
+    map.__axial_labels = item.axial_labels;
+    map.__axial_elevations = item.axial_elevations;
+    map.__3d_layouts = item.stack.has3D.layouts;
+    map[item.layout[count].label] = item.layout[count];
   }
 
   // Create 3D stack assembly
@@ -942,36 +941,66 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
 
 // ----------------------------------------------------------------------------
 
-function compute3DCore(core, resolution = 6, baffleOffset = 0) {
-  const coreSize = core.core_size;
-  const coreShape = core.shape;
-  const gridSpacing = core.apitch;
+function compute3DCore(
+  content,
+  core,
+  resolution = 6,
+  baffleOffset = 0,
+  params = null,
+  mapList = null
+) {
+  // maps coming from the editor are completely filled out with '-',
+  // so no coreShape array to provide bounds.
+  const coreSize = core ? core.core_size : params.numAssemblies;
+  const coreShape = core ? core.shape : null;
+  const gridSpacing = core ? core.apitch : params.assemblyPitch;
 
   // Local variables for mapping
-  const assemMap = core.assm_map;
-  const ctrlMap = core.crd_map;
-  const detMap = core.det_map;
-  const insMap = core.insert_map;
+  const assemMap = core
+    ? core.assm_map
+    : mapList.reduce(
+        (prev, m) => (m.group === 'assemblies' ? m.cell_map : prev),
+        null
+      );
+  const ctrlMap = core
+    ? core.crd_map
+    : mapList.reduce(
+        (prev, m) => (m.group === 'controls' ? m.cell_map : prev),
+        null
+      );
+  const detMap = core
+    ? core.det_map
+    : mapList.reduce(
+        (prev, m) => (m.group === 'detectors' ? m.cell_map : prev),
+        null
+      );
+  const insMap = core
+    ? core.insert_map
+    : mapList.reduce(
+        (prev, m) => (m.group === 'inserts' ? m.cell_map : prev),
+        null
+      );
+
   // labels specific control rods (crd)
-  const bankMap = core.crd_bank;
+  const bankMap = core ? core.crd_bank : null;
+
+  const coreHeight = core ? core.height : 300;
 
   const layouts = [];
   const grids = [];
   let gridArraySize = 0;
-  const content = {
-    labelToUse: 'Full core',
-    has3D: {
-      id: idFor3D++,
-      type: 'core',
-      lookupTable: materialLookupTable,
-      layouts: [],
-      center: [
-        coreSize * gridSpacing * 0.5,
-        coreSize * gridSpacing * 0.5,
-        core.height * 0.5,
-      ],
-      height: core.height,
-    },
+  content.labelToUse = 'Full core';
+  content.has3D = {
+    id: idFor3D++,
+    type: 'core',
+    lookupTable: materialLookupTable,
+    layouts: [],
+    center: [
+      coreSize * gridSpacing * 0.5,
+      coreSize * gridSpacing * 0.5,
+      coreHeight * 0.5,
+    ],
+    height: coreHeight,
   };
 
   const processingList = [
@@ -984,7 +1013,7 @@ function compute3DCore(core, resolution = 6, baffleOffset = 0) {
   let pidx = 0;
   for (let j = 0; j < coreSize; j++) {
     for (let i = 0; i < coreSize; i++) {
-      if (coreShape[i + j * coreSize]) {
+      if (!coreShape || coreShape[i + j * coreSize]) {
         const offsetX = i * gridSpacing;
         const offsetY = j * gridSpacing;
         for (let k = 0; k < processingList.length; k++) {
@@ -1124,6 +1153,8 @@ function compute3DCore(core, resolution = 6, baffleOffset = 0) {
     colorData: gridColorData,
     lookupTable: materialLookupTable,
   };
+
+  if (!core) return content;
 
   // Add vessel
   const vesselGlyph = ModelHelper.extractVesselAsCellFromCore(core);

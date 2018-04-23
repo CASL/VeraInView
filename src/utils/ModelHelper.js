@@ -425,7 +425,7 @@ function parseFile(file, imageSize, updateFn) {
   updateFn({ title: file.name, file });
   XMLVeraParser.parseFile(file).then(
     (dataModel) => {
-      const core = {};
+      const core = { stack: {} };
       const elevations = extractElevations(dataModel);
       const cells = extractCells(dataModel);
       const mask = {};
@@ -495,7 +495,8 @@ function parseFile(file, imageSize, updateFn) {
         ImageGenerator.updateLookupTables();
 
         // Fill core
-        core.stack = ImageGenerator.compute3DCore(
+        ImageGenerator.compute3DCore(
+          core.stack,
           dataModel.CASEID.CORE,
           6,
           lastPPitch / 2
