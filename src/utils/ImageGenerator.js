@@ -328,19 +328,21 @@ function updateLayoutImage(
           maxI = prevMax;
           minI = prevMax;
         }
-        ctx.moveTo(prevMin * recSide, (j - 1) * recSide);
-        ctx.lineTo(prevMin * recSide, j * recSide);
+        // lines at 0 get cut off
+        ctx.moveTo(Math.max(1, prevMin * recSide), (j - 1) * recSide);
+        ctx.lineTo(Math.max(1, prevMin * recSide), j * recSide);
         ctx.lineTo(minI * recSide, j * recSide);
         ctx.moveTo(prevMax * recSide, (j - 1) * recSide);
         ctx.lineTo(prevMax * recSide, j * recSide);
         ctx.lineTo(maxI * recSide, j * recSide);
       } else if (maxI !== -1) {
         // cap the starting row.
-        ctx.moveTo(minI * recSide, j * recSide);
-        ctx.lineTo(maxI * recSide, j * recSide);
+        ctx.moveTo(minI * recSide, Math.max(1, j * recSide));
+        ctx.lineTo(maxI * recSide, Math.max(1, j * recSide));
       }
     }
     ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
     ctx.strokeStyle = 'rgba(20, 20, 20, 1)';
     ctx.stroke();
     ctx.lineWidth = 1;
