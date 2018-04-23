@@ -6,7 +6,6 @@ const vtkRules = require('./rules/vtkjs.js');
 
 const plugins = [];
 const app = path.join(__dirname, './src/index.js');
-const simput = path.join(__dirname, './src/simput/index.js');
 const sourcePath = path.join(__dirname, './src');
 const outputPath = path.join(__dirname, './dist');
 
@@ -14,7 +13,6 @@ module.exports = {
   plugins,
   entry: {
     vera: app,
-    'simput-external-vera': simput,
   },
   output: {
     path: outputPath,
