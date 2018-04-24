@@ -14,6 +14,7 @@ import ParamEditor from './widgets/ParamEditor';
 import CellEditor from './widgets/CellEditor';
 import AssemblyEditor from './widgets/AssemblyEditor';
 import AssemblyLayoutEditor from './widgets/AssemblyLayoutEditor';
+import CoreEditor from './widgets/CoreEditor';
 // import VTKRenderer from './widgets/VTKRenderer';
 import ModelHelper from './utils/ModelHelper';
 import InpHelper from './utils/InpHelper';
@@ -37,6 +38,7 @@ const EDITORS = {
   Assemblies: AssemblyEditor,
   Rodmaps: AssemblyLayoutEditor,
   Coremaps: AssemblyLayoutEditor,
+  Core: CoreEditor,
   Params: ParamEditor,
 };
 
@@ -167,6 +169,7 @@ export default class EditView extends React.Component {
       rodmaps: [],
       assemblies: [],
       coremaps: [],
+      core: { stack: {} },
       params: {
         numPins: 1,
         pinPitch: 1.26,
@@ -443,7 +446,7 @@ export default class EditView extends React.Component {
               group: info.group,
             };
             InpHelper.setSymmetry(newMap, params);
-            console.log(newMap);
+            // console.log(newMap);
             coremaps.push(newMap);
           }
         });
@@ -453,7 +456,7 @@ export default class EditView extends React.Component {
           coremaps,
         });
       }
-      console.log('editor', newState);
+      // console.log('editor', newState);
     });
     return false;
   }
@@ -482,6 +485,7 @@ export default class EditView extends React.Component {
           assemblyLayouts={this.state.rodmaps}
           assemblies={this.state.assemblies}
           coremaps={this.state.coremaps}
+          core={this.state.core}
           imageSize={this.props.imageSize}
         />
       );
@@ -553,6 +557,13 @@ export default class EditView extends React.Component {
                   </span>
                 }
               >
+                {this.state.coremaps.length && (
+                  <Menu.Item key="core">
+                    <span className={style.itemWithSmallIcon}>
+                      <Icon type="check-square-o" />Full stack
+                    </span>
+                  </Menu.Item>
+                )}
                 {GROUP_TYPES.map((info) => {
                   const anyAsm = this.state.assemblies.filter(
                     (asm) => asm.group === info.group

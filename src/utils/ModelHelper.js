@@ -287,6 +287,18 @@ function extractElevations(model) {
   return elevations.filter((v, i, a) => a[i - 1] !== v);
 }
 
+function extractCoremapElevations(mapList) {
+  let elevations = [];
+  let count = mapList.length;
+  while (count--) {
+    elevations = elevations.concat(mapList[count].axial_elevations);
+  }
+
+  elevations.sort(compareNumbers);
+
+  return elevations.filter((v, i, a) => a[i - 1] !== v);
+}
+
 function extractStates(model) {
   const rootKey = 'STATES';
   const result = [];
@@ -421,11 +433,34 @@ function extractBaffleLayoutFrom(core, baffleOffset) {
   return baffle;
 }
 
+function extractCoreElevations(core, elevations, dataModel) {
+  let count = elevations.length - 1;
+  while (count--) {
+    const elevation = elevations[count];
+    // pre-assign non-conflicting colors.
+    ImageGenerator.computeCoreColorsAt(elevation, dataModel);
+  }
+  count = elevations.length - 1;
+  while (count--) {
+    const elevation = elevations[count];
+    core[elevation] = {
+      imageSrc: ImageGenerator.computeCore2ImageAt(elevation, dataModel),
+      legend: ImageGenerator.getColorLegendAt(elevation),
+      has3D: ImageGenerator.compute3DSlice(
+        core.stack.has3D,
+        elevation,
+        elevations[count + 1]
+      ),
+      labelToUse: `${elevation} to ${elevations[count + 1]}`,
+    };
+  }
+}
+
 function parseFile(file, imageSize, updateFn) {
   updateFn({ title: file.name, file });
   XMLVeraParser.parseFile(file).then(
     (dataModel) => {
-      const core = {};
+      const core = { stack: {} };
       const elevations = extractElevations(dataModel);
       const cells = extractCells(dataModel);
       const mask = {};
@@ -495,13 +530,15 @@ function parseFile(file, imageSize, updateFn) {
         ImageGenerator.updateLookupTables();
 
         // Fill core
-        core.stack = ImageGenerator.compute3DCore(
+        ImageGenerator.compute3DCore(
+          core.stack,
           dataModel.CASEID.CORE,
           6,
           lastPPitch / 2
         );
         core.assemblyPitch = dataModel.CASEID.CORE.apitch;
         core.numAssemblies = dataModel.CASEID.CORE.core_size;
+        core.name = dataModel.CASEID.CORE.name;
         // extract info about control-rod motion
         if (controls && controls[0] && controls[0].stroke && core.stack.has3D) {
           // stroke card is specified once for [CONTROL] block - extract the first.
@@ -521,29 +558,7 @@ function parseFile(file, imageSize, updateFn) {
           if (map) core[mapName] = [].concat(map);
         });
 
-        count = elevations.length - 1;
-        while (count--) {
-          const elevation = elevations[count];
-          // pre-assign non-conflicting colors.
-          ImageGenerator.computeCoreColorsAt(elevation, dataModel.CASEID.CORE);
-        }
-        count = elevations.length - 1;
-        while (count--) {
-          const elevation = elevations[count];
-          core[elevation] = {
-            imageSrc: ImageGenerator.computeCore2ImageAt(
-              elevation,
-              dataModel.CASEID.CORE
-            ),
-            legend: ImageGenerator.getColorLegendAt(elevation),
-            has3D: ImageGenerator.compute3DSlice(
-              core.stack.has3D,
-              elevation,
-              elevations[count + 1]
-            ),
-            labelToUse: `${elevation} to ${elevations[count + 1]}`,
-          };
-        }
+        extractCoreElevations(core, elevations, dataModel.CASEID.CORE);
 
         updateFn({
           assemblies,
@@ -569,6 +584,7 @@ function parseFile(file, imageSize, updateFn) {
 }
 
 export default {
+  extractCoreElevations,
   extractVesselAsCellFromCore,
   extractPadAsCellsFromCore,
   extractPlateAsCellsFromCore,
@@ -579,6 +595,7 @@ export default {
   extractDetectors,
   extractInserts,
   extractElevations,
+  extractCoremapElevations,
   extractBaffleLayoutFrom,
   parseFile,
 };
