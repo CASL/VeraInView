@@ -9,6 +9,7 @@ import { Switch } from 'antd';
 import VTKRenderer from './VTKRenderer';
 // import ImageGenerator from '../utils/ImageGenerator';
 import ImageRenderer from './ImageRenderer';
+import Color from './Color';
 
 import style from '../assets/vera.mcss';
 
@@ -28,11 +29,36 @@ export default class DualRenderer extends React.Component {
   render() {
     const contents = [];
     if (
+      this.props.content &&
+      this.props.content.legend &&
+      !(this.state.use3D && this.props.content.has3D)
+    ) {
+      contents.push(
+        <div key="2d-legend" className={style.legendContainer}>
+          {this.props.content.legend.map((m) => (
+            <Color
+              className={style.legend}
+              key={`core-${m.title}`}
+              title={m.title}
+              color={m.color}
+              border
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (
       this.props.content.imageSrc &&
       !(this.state.use3D && this.props.content.has3D)
     ) {
       contents.push(
-        <div key="2d-content" className={style.mainImage}>
+        <div
+          key="2d-content"
+          className={
+            this.props.content.legend ? style.mainImageFull : style.mainImage
+          }
+        >
           <ReactCursorPosition>
             <ImageRenderer
               content={this.props.content.imageSrc}

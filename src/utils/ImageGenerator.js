@@ -679,7 +679,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
   const coreSize = core.core_size;
   const recWidth = Math.floor((size - 2 * edge) / coreSize);
   const radius = recWidth / 6;
-  const coreShape = core.shape;
+  const coreShape = core.shape; // might be null
   const offset = (size - recWidth * coreSize) / 2;
   const colorLegend = {};
   const localColorManager = colorManagerByElevation[elevation];
@@ -762,7 +762,7 @@ function computeCore2ImageAt(elevation, core, size = 1500, edge = 250) {
   let pidx = 0;
   for (let j = 0; j < coreSize; j++) {
     for (let i = 0; i < coreSize; i++) {
-      if (coreShape[i + j * coreSize]) {
+      if (!coreShape || coreShape[i + j * coreSize]) {
         // if the coremap has an assembly at this location, tag comes before the ':'
         // if the assembly has a cellmap at this elevation, tag comes after ':'
         const assemKey = getElevationKey(
@@ -951,40 +951,20 @@ function compute3DCore(
 ) {
   // maps coming from the editor are completely filled out with '-',
   // so no coreShape array to provide bounds.
-  const coreSize = core ? core.core_size : params.numAssemblies;
-  const coreShape = core ? core.shape : null;
-  const gridSpacing = core ? core.apitch : params.assemblyPitch;
+  const coreSize = core.core_size;
+  const coreShape = core.shape;
+  const gridSpacing = core.apitch;
 
   // Local variables for mapping
-  const assemMap = core
-    ? core.assm_map
-    : mapList.reduce(
-        (prev, m) => (m.group === 'assemblies' ? m.cell_map : prev),
-        null
-      );
-  const ctrlMap = core
-    ? core.crd_map
-    : mapList.reduce(
-        (prev, m) => (m.group === 'controls' ? m.cell_map : prev),
-        null
-      );
-  const detMap = core
-    ? core.det_map
-    : mapList.reduce(
-        (prev, m) => (m.group === 'detectors' ? m.cell_map : prev),
-        null
-      );
-  const insMap = core
-    ? core.insert_map
-    : mapList.reduce(
-        (prev, m) => (m.group === 'inserts' ? m.cell_map : prev),
-        null
-      );
+  const assemMap = core.assm_map;
+  const ctrlMap = core.crd_map;
+  const detMap = core.det_map;
+  const insMap = core.insert_map;
 
   // labels specific control rods (crd)
-  const bankMap = core ? core.crd_bank : null;
+  const bankMap = core.crd_bank;
 
-  const coreHeight = core ? core.height : 300;
+  const coreHeight = core.height;
 
   const layouts = [];
   const grids = [];
@@ -1154,7 +1134,7 @@ function compute3DCore(
     lookupTable: materialLookupTable,
   };
 
-  if (!core) return content;
+  if (!core.shape) return content;
 
   // Add vessel
   const vesselGlyph = ModelHelper.extractVesselAsCellFromCore(core);

@@ -558,7 +558,7 @@ export default class EditView extends React.Component {
                 }
               >
                 {this.state.coremaps.length && (
-                  <Menu.Item key="core:stack">
+                  <Menu.Item key="core">
                     <span className={style.itemWithSmallIcon}>
                       <Icon type="check-square-o" />Full stack
                     </span>
