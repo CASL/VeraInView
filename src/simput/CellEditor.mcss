@@ -34,3 +34,25 @@
   width: 25px;
   border-radius: 50%;
 }
+
+.visualizer {
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row;
+  justify-content: center;
+  width: calc(100% - 20px);
+  padding: 8px 10px;
+}
+
+.visualizerPanel {
+  display: flex;
+  flex-flow: column;
+  position: relative;
+  flex: 1;
+  padding: 0 5px;
+  text-align: center;
+}
+
+.visualizerPanelHeadline {
+  font-weight: bold;
+}
