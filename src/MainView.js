@@ -207,6 +207,15 @@ export default class MainView extends React.Component {
           };
         }
       }
+
+      if (newState.core && newState.elevations && newState.pitch) {
+        newState.rectilinearGrid = ModelHelper.exportRectilinearGrid(
+          newState.elevations,
+          newState.core,
+          newState.pitch
+        );
+      }
+
       this.setState(newState);
     });
     return false;
@@ -328,6 +337,17 @@ export default class MainView extends React.Component {
               <Icon type="plus" className={style.fileLoaderTrigger} />
             </Upload>
           )}
+          {this.state.rectilinearGrid ? (
+            <a
+              href={this.state.rectilinearGrid}
+              download="core-cell-types.vtk"
+              className={style.fileLoader}
+              alt="Download cell type mapping as VTK file"
+              title="Download cell type mapping as VTK file"
+            >
+              <Icon type="file-add" className={style.fileLoaderTrigger} />
+            </a>
+          ) : null}
         </Header>
         <Layout>
           <Sider

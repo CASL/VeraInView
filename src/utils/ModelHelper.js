@@ -17,6 +17,88 @@ function compareNumbers(a, b) {
   return a - b;
 }
 
+// BEGIN ---- New viz as cell map ---
+
+const CELL_IDS = { NEXT_ID: 1 };
+function getCellId(item) {
+  if (item.cellId === undefined) {
+    return null;
+  }
+
+  if (!CELL_IDS[item.cellId]) {
+    CELL_IDS[item.cellId] = CELL_IDS.NEXT_ID++;
+  }
+
+  return CELL_IDS[item.cellId];
+}
+
+function fillBufferLayer(pitch, item, buffer) {
+  const id = getCellId(item);
+  if (!id) {
+    return;
+  }
+
+  const size = item.pointsData.length;
+  for (let offset = 0; offset < size; offset += 3) {
+    const i = Math.round(item.pointsData[offset] / pitch - 0.49);
+    const j = Math.round(item.pointsData[offset + 1] / pitch - 0.49);
+    buffer[j * 255 + i] = id;
+  }
+}
+
+function exportRectilinearGrid(elevations, core, pitch = 1.26) {
+  const lines = [
+    '# vtk DataFile Version 2.0',
+    'Really cool data',
+    'ASCII',
+    'DATASET RECTILINEAR_GRID',
+    `DIMENSIONS 256 256 ${elevations.length}`,
+  ];
+
+  // Add coordinates
+  lines.push('X_COORDINATES 256 float');
+  lines.push(new Float64Array(256).map((v, i) => i * pitch).join(' '));
+  lines.push('Y_COORDINATES 256 float');
+  lines.push(new Float64Array(256).map((v, i) => i * pitch).join(' '));
+  lines.push(`Z_COORDINATES ${elevations.length} float`);
+  lines.push(elevations.join(' '));
+
+  // Add cell data
+  lines.push(`CELL_DATA ${255 * 255 * (elevations.length - 1)}`);
+  lines.push('SCALARS cellType unsigned_char 1');
+  lines.push('LOOKUP_TABLE default');
+
+  // Write each elevation map
+  const size = 255 * 255;
+  const buffer = new Uint8Array(size);
+  for (let i = 0; i < elevations.length - 1; i++) {
+    buffer.fill(0);
+    const { layouts } = core[elevations[i]].has3D;
+    for (let j = 0; j < layouts.length; j++) {
+      fillBufferLayer(pitch, layouts[j], buffer);
+    }
+
+    for (let j = 0; j < 255; j++) {
+      const line = [];
+      for (let k = 0; k < 255; k++) {
+        line.push(buffer[k + 255 * j]);
+      }
+      lines.push(line.join(' '));
+    }
+  }
+
+  const blob = new Blob([lines.join('\n')], {
+    type: 'application/octet-stream',
+  });
+  const url = URL.createObjectURL(blob);
+  // window.open(url, '_blank');
+  // setTimeout(() => {
+  //   URL.revokeObjectURL(url);
+  // }, 10000);
+  return url;
+}
+// END ---- New viz as cell map ---
+
 // make an ID out of materials and radii, to recognize cell-reuse.
 function cellToId(cell) {
   const layers = [];
@@ -565,8 +647,10 @@ function parseFile(file, imageSize, updateFn) {
           controls,
           detectors,
           inserts,
-          core,
           states,
+          core, // needed for vtk export
+          elevations, // needed for vtk export
+          pitch: lastPPitch, // needed for vtk export
         });
       });
 
@@ -598,4 +682,5 @@ export default {
   extractCoremapElevations,
   extractBaffleLayoutFrom,
   parseFile,
+  exportRectilinearGrid,
 };
