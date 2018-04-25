@@ -225,9 +225,7 @@ export default class CellEditor extends React.Component {
                     +
                   </button>
                 </td>
-                <td>
-                  Add a material (<b>Be sure to create materials first!</b>)
-                </td>
+                <td>Add a material</td>
               </tr>
             ) : null}
           </tbody>
@@ -257,7 +255,10 @@ export default class CellEditor extends React.Component {
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKRenderer nested content={this.cell.has3D} />
+            <VTKRenderer
+              nested
+              content={items.length > 0 ? this.cell.has3D : {}}
+            />
           </div>
         </div>
       </div>
