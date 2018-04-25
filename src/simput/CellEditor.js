@@ -9,11 +9,7 @@ import ImageGenerator from '../utils/ImageGenerator';
 
 import style from './CellEditor.mcss';
 
-const {
-  materialColorManager,
-  updateLookupTables,
-  updateCellImage,
-} = ImageGenerator;
+const { updateLookupTables, updateCellImage } = ImageGenerator;
 
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable react/no-array-index-key */
@@ -33,12 +29,9 @@ export default class CellEditor extends React.Component {
 
     this.state = {
       imageSize: 512,
-      materials: ['he', 'mod', 'zirc', 'ss', 'U31', 'U32', 'U34', 'boron'],
       pinPitch: 1.6,
     };
 
-    // Ensure a color for each material
-    this.state.materials.forEach(materialColorManager.getColor);
     this.updateCellRendering();
 
     this.addRadius = this.addRadius.bind(this);
@@ -91,16 +84,27 @@ export default class CellEditor extends React.Component {
 
   addRadius(e) {
     const { data } = this.props;
-    if (data.value && data.value.length) {
+    const materials = this.props.ui.domain;
+    if (
+      data.value &&
+      data.value.length &&
+      !('materials not found' in materials)
+    ) {
       const cell = data.value[0];
       const idx = Number(e.currentTarget.dataset.idx) + 1;
+      const length = cell.mats.length;
 
-      if (cell.mats.length === idx) {
-        cell.mats.push(cell.mats[idx - 1]);
-        cell.radii.push(1 + cell.radii[idx - 1]);
+      cell.mats.splice(idx, 0, cell.mats[idx - 1] || Object.keys(materials)[0]);
+      cell.radii.splice(idx, 0, cell.radii[idx - 1] || 0);
+
+      if (length === idx) {
+        cell.radii[idx] = Math.min(
+          cell.radii[idx] + 1,
+          this.state.pinPitch / 2
+        );
       } else {
-        cell.mats.splice(idx, 0, cell.mats[idx - 1]);
-        cell.radii.splice(idx, 0, cell.radii[idx - 1] + cell.radii[idx] * 0.5);
+        // set radius to between before and after cell
+        cell.radii[idx] += (cell.radii[idx] - cell.radii[idx - 1]) / 2;
       }
 
       this.updateCellRendering();
@@ -116,11 +120,6 @@ export default class CellEditor extends React.Component {
 
       cell.mats.splice(idx, 1);
       cell.radii.splice(idx, 1);
-
-      if (cell.mats.length === 0) {
-        cell.mats.push(this.state.materials[0]);
-        cell.radii.push(0.5);
-      }
 
       this.updateCellRendering();
       this.props.onChange(data);
@@ -143,6 +142,9 @@ export default class CellEditor extends React.Component {
 
   render() {
     const { data } = this.props;
+    const materials =
+      'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
+
     let items = [];
     if (data.value && data.value.length) {
       const cell = data.value[0];
@@ -181,9 +183,9 @@ export default class CellEditor extends React.Component {
                     value={material}
                     className={style.material}
                   >
-                    {this.state.materials.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
+                    {Object.keys(materials).map((key) => (
+                      <option key={key} value={materials[key].name}>
+                        {materials[key].name}
                       </option>
                     ))}
                   </select>
@@ -212,6 +214,22 @@ export default class CellEditor extends React.Component {
                 </td>
               </tr>
             ))}
+            {items.length === 0 ? (
+              <tr>
+                <td className={style.right}>
+                  <button
+                    data-idx={-1}
+                    className={style.addRadius}
+                    onClick={this.addRadius}
+                  >
+                    +
+                  </button>
+                </td>
+                <td>
+                  Add a material (<b>Be sure to create materials first!</b>)
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
         <div className={style.visualizer}>
@@ -253,7 +271,7 @@ CellEditor.propTypes = {
   // name: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   // show: PropTypes.func.isRequired,
-  // ui: PropTypes.object.isRequired,
+  ui: PropTypes.object.isRequired,
   // viewData: PropTypes.object.isRequired,
 };
 
