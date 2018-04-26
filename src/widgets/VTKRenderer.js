@@ -75,7 +75,7 @@ export default class VTKRenderer extends React.Component {
       // this.state.controlRods
     );
     this.pipeline.resetCamera();
-    this.pipeline.resize();
+    setTimeout(() => this.pipeline.resize(), 1);
     window.addEventListener('resize', this.resize);
 
     // Force a second render to flush actorVisibility switch
