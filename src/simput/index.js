@@ -1,5 +1,6 @@
 import React from 'react';
 import CellEditor from './CellEditor';
+import Rod2DPreview from '../widgets/Rod2DPreview';
 
 function registerLocalEditors(Simput) {
   if (Simput && Simput.updateWidgetMapping) {
@@ -12,6 +13,9 @@ function registerLocalEditors(Simput) {
         show={prop.show}
         onChange={onChange || prop.onChange}
       />
+    ));
+    Simput.updateWidgetMapping('RodPreview', (prop, viewData, onChange) => (
+      <Rod2DPreview key={prop.data.id} />
     ));
   }
 }
