@@ -179,27 +179,33 @@ export default class CellEditor extends React.Component {
             ))}
           </tbody>
         </table>
-        <div>
-          <ReactCursorPosition>
-            <ImageRenderer
-              content={this.cell.imageSrc}
-              getImageInfo={(posx, posy) => {
-                const mat = ImageGenerator.getCellMaterial(
-                  this.cell,
-                  posx,
-                  posy
-                );
-                return mat ? (
-                  <span>
-                    {mat.radius} cm <br /> {mat.mat}
-                  </span>
-                ) : null;
-              }}
-              overlayText={`Contact radius: ${this.state.pinPitch * 0.5}`}
-              onClick={() => {}}
-            />
-          </ReactCursorPosition>
-          <VTKRenderer nested content={this.cell.has3D} />
+        <div className={style.visualizer}>
+          <div className={style.visualizerPanel}>
+            <span className={style.visualizerPanelHeadline}>2D</span>
+            <ReactCursorPosition>
+              <ImageRenderer
+                content={this.cell.imageSrc}
+                getImageInfo={(posx, posy) => {
+                  const mat = ImageGenerator.getCellMaterial(
+                    this.cell,
+                    posx,
+                    posy
+                  );
+                  return mat ? (
+                    <span>
+                      {mat.radius} cm <br /> {mat.mat}
+                    </span>
+                  ) : null;
+                }}
+                overlayText={`Contact radius: ${this.state.pinPitch * 0.5}`}
+                onClick={() => {}}
+              />
+            </ReactCursorPosition>
+          </div>
+          <div className={style.visualizerPanel}>
+            <span className={style.visualizerPanelHeadline}>3D</span>
+            <VTKRenderer nested content={this.cell.has3D} />
+          </div>
         </div>
       </div>
     );
