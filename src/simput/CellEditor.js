@@ -9,17 +9,18 @@ import ImageGenerator from '../utils/ImageGenerator';
 
 import style from './CellEditor.mcss';
 
-const {
-  materialColorManager,
-  updateLookupTables,
-  updateCellImage,
-} = ImageGenerator;
+const { updateLookupTables, updateCellImage } = ImageGenerator;
 
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable react/no-array-index-key */
 
-function sortRadius(a, b) {
-  return a.radius - b.radius;
+function zip(...lists) {
+  const result = [];
+  const length = lists.reduce((min, l) => Math.min(min, l.length), Infinity);
+  for (let i = 0; i < length; ++i) {
+    result.push(lists.map((l) => l[i]));
+  }
+  return result;
 }
 
 export default class CellEditor extends React.Component {
@@ -28,19 +29,11 @@ export default class CellEditor extends React.Component {
 
     this.state = {
       imageSize: 512,
-      items: [
-        { material: 'he', radius: 0.1 },
-        { material: 'mod', radius: 0.2 },
-      ],
-      materials: ['he', 'mod', 'zirc', 'ss', 'U31', 'U32', 'U34', 'boron'],
       pinPitch: 1.6,
     };
 
-    // Ensure a color for each material
-    this.state.materials.forEach(materialColorManager.getColor);
-    this.updateCellRendering(this.state.items);
+    this.updateCellRendering();
 
-    this.onChange = this.onChange.bind(this);
     this.addRadius = this.addRadius.bind(this);
     this.onMaterialChange = this.onMaterialChange.bind(this);
     this.onRadiusChange = this.onRadiusChange.bind(this);
@@ -50,72 +43,116 @@ export default class CellEditor extends React.Component {
     this.updateCellRendering = this.updateCellRendering.bind(this);
   }
 
-  onChange() {
-    console.log('data', this.props.data);
-    console.log(this.props);
-  }
-
   onMaterialChange(e) {
-    const { items } = this.state;
-    const idx = Number(e.currentTarget.dataset.idx);
-    items[idx].material = e.target.value;
-    this.setState({ items });
-    this.updateCellRendering(items);
+    const { data } = this.props;
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      const idx = Number(e.currentTarget.dataset.idx);
+      cell.mats[idx] = e.target.value;
+
+      this.updateCellRendering();
+      this.props.onChange(data);
+    }
   }
 
   onRadiusChange(e) {
-    const { items } = this.state;
-    const idx = Number(e.currentTarget.dataset.idx);
-    items[idx].radius = Number(e.target.value);
-    this.setState({ items });
-    this.updateCellRendering(items);
+    const { data } = this.props;
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      const idx = Number(e.currentTarget.dataset.idx);
+      cell.radii[idx] = Number(e.target.value);
+
+      this.updateCellRendering();
+      this.props.onChange(data);
+    }
   }
 
-  updateCellRendering(items) {
-    this.cell = {
-      num_rings: items.length,
-      radii: items.map((i) => i.radius),
-      mats: items.map((i) => i.material),
-    };
-    updateLookupTables();
-    updateCellImage(this.cell, this.state.imageSize, this.state.pinPitch);
-    this.cell.has3D.source.forceUpdate = true;
+  updateCellRendering() {
+    const { data } = this.props;
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      this.cell = {
+        num_rings: cell.mats.length,
+        radii: cell.radii,
+        mats: cell.mats,
+      };
+      updateLookupTables();
+      updateCellImage(this.cell, this.state.imageSize, this.state.pinPitch);
+      this.cell.has3D.source.forceUpdate = true;
+    }
   }
 
   addRadius(e) {
-    const { items } = this.state;
-    const idx = Number(e.currentTarget.dataset.idx) + 1;
-    if (items.length === idx) {
-      const { material, radius } = items[idx - 1];
-      items.push({ material, radius: radius + 1 });
-    } else {
-      const radius = (items[idx - 1].radius + items[idx].radius) * 0.5;
-      const { material } = items[idx - 1];
-      items.splice(idx, 0, { radius, material });
+    const { data } = this.props;
+    const materials = this.props.ui.domain;
+    if (
+      data.value &&
+      data.value.length &&
+      !('materials not found' in materials)
+    ) {
+      const cell = data.value[0];
+      const idx = Number(e.currentTarget.dataset.idx) + 1;
+      const length = cell.mats.length;
+
+      cell.mats.splice(idx, 0, cell.mats[idx - 1] || Object.keys(materials)[0]);
+      cell.radii.splice(idx, 0, cell.radii[idx - 1] || 0);
+
+      if (length === idx) {
+        cell.radii[idx] = Math.min(
+          cell.radii[idx] + 1,
+          this.state.pinPitch / 2
+        );
+      } else {
+        // set radius to between before and after cell
+        cell.radii[idx] += (cell.radii[idx] - cell.radii[idx - 1]) / 2;
+      }
+
+      this.updateCellRendering();
+      this.props.onChange(data);
     }
-    this.setState({ items });
-    this.updateCellRendering(items);
   }
 
   deleteEntry(e) {
-    const { items } = this.state;
-    const idx = Number(e.currentTarget.dataset.idx);
-    items.splice(idx, 1);
-    if (items.length === 0) {
-      items.push({ material: this.state.materials[0], radius: 0.5 });
+    const { data } = this.props;
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      const idx = Number(e.currentTarget.dataset.idx);
+
+      cell.mats.splice(idx, 1);
+      cell.radii.splice(idx, 1);
+
+      this.updateCellRendering();
+      this.props.onChange(data);
     }
-    this.setState({ items });
-    this.updateCellRendering(items);
   }
 
   validateOrder() {
-    const { items } = this.state;
-    items.sort(sortRadius);
-    this.setState({ items });
-    this.updateCellRendering(items);
+    const { data } = this.props;
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      const zipped = zip(cell.mats, cell.radii);
+      zipped.sort((a, b) => a[1] - b[1]);
+      const [sortedMats, sortedRadii] = zip(...zipped);
+
+      cell.mats = sortedMats;
+      cell.radii = sortedRadii;
+      this.props.onChange(data);
+    }
   }
 
   render() {
+    const { data } = this.props;
+    const materials =
+      'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
+
+    let items = [];
+    if (data.value && data.value.length) {
+      const cell = data.value[0];
+      items = zip(cell.mats, cell.radii).map(([material, radius]) => ({
+        material,
+        radius,
+      }));
+    }
     return (
       <div className={style.container}>
         <table className={style.table}>
@@ -128,7 +165,7 @@ export default class CellEditor extends React.Component {
             </tr>
           </thead>
           <tbody>
-            {this.state.items.map(({ material, radius }, idx) => (
+            {items.map(({ material, radius }, idx) => (
               <tr key={`ring-${idx}`}>
                 <td className={style.right}>
                   <button
@@ -146,9 +183,9 @@ export default class CellEditor extends React.Component {
                     value={material}
                     className={style.material}
                   >
-                    {this.state.materials.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
+                    {Object.keys(materials).map((key) => (
+                      <option key={key} value={materials[key].name}>
+                        {materials[key].name}
                       </option>
                     ))}
                   </select>
@@ -177,6 +214,20 @@ export default class CellEditor extends React.Component {
                 </td>
               </tr>
             ))}
+            {items.length === 0 ? (
+              <tr>
+                <td className={style.right}>
+                  <button
+                    data-idx={-1}
+                    className={style.addRadius}
+                    onClick={this.addRadius}
+                  >
+                    +
+                  </button>
+                </td>
+                <td>Add a material</td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
         <div className={style.visualizer}>
@@ -204,7 +255,10 @@ export default class CellEditor extends React.Component {
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKRenderer nested content={this.cell.has3D} />
+            <VTKRenderer
+              nested
+              content={items.length > 0 ? this.cell.has3D : {}}
+            />
           </div>
         </div>
       </div>
@@ -216,9 +270,9 @@ CellEditor.propTypes = {
   data: PropTypes.object.isRequired,
   // help: PropTypes.string,
   // name: PropTypes.string,
-  // onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
   // show: PropTypes.func.isRequired,
-  // ui: PropTypes.object.isRequired,
+  ui: PropTypes.object.isRequired,
   // viewData: PropTypes.object.isRequired,
 };
 
