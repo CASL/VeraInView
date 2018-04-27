@@ -6,6 +6,7 @@ import ReactCursorPosition from 'react-cursor-position';
 import VTKRenderer from '../widgets/VTKRenderer';
 import ImageRenderer from '../widgets/ImageRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
+import EditableList from '../widgets/EditableList';
 
 import style from './CellEditor.mcss';
 
@@ -43,24 +44,22 @@ export default class CellEditor extends React.Component {
     this.updateCellRendering = this.updateCellRendering.bind(this);
   }
 
-  onMaterialChange(e) {
+  onMaterialChange(item, value) {
     const { data } = this.props;
     if (data.value && data.value.length) {
       const cell = data.value[0];
-      const idx = Number(e.currentTarget.dataset.idx);
-      cell.mats[idx] = e.target.value;
+      cell.mats[item.key] = value;
 
       this.updateCellRendering();
       this.props.onChange(data);
     }
   }
 
-  onRadiusChange(e) {
+  onRadiusChange(item, value) {
     const { data } = this.props;
     if (data.value && data.value.length) {
       const cell = data.value[0];
-      const idx = Number(e.currentTarget.dataset.idx);
-      cell.radii[idx] = Number(e.target.value);
+      cell.radii[item.key] = Number(value);
 
       this.updateCellRendering();
       this.props.onChange(data);
@@ -82,7 +81,7 @@ export default class CellEditor extends React.Component {
     }
   }
 
-  addRadius(e) {
+  addRadius(afterIdx) {
     const { data } = this.props;
     const materials = this.props.ui.domain;
     if (
@@ -91,7 +90,7 @@ export default class CellEditor extends React.Component {
       !('materials not found' in materials)
     ) {
       const cell = data.value[0];
-      const idx = Number(e.currentTarget.dataset.idx) + 1;
+      const idx = afterIdx + 1;
       const length = cell.mats.length;
 
       cell.mats.splice(idx, 0, cell.mats[idx - 1] || Object.keys(materials)[0]);
@@ -112,11 +111,10 @@ export default class CellEditor extends React.Component {
     }
   }
 
-  deleteEntry(e) {
+  deleteEntry(idx) {
     const { data } = this.props;
     if (data.value && data.value.length) {
       const cell = data.value[0];
-      const idx = Number(e.currentTarget.dataset.idx);
 
       cell.mats.splice(idx, 1);
       cell.radii.splice(idx, 1);
@@ -145,91 +143,64 @@ export default class CellEditor extends React.Component {
     const materials =
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
 
+    const materialOptions = Object.keys(materials).map((key) => (
+      <option key={key} value={materials[key].name}>
+        {materials[key].name}
+      </option>
+    ));
+
+    const columns = [
+      {
+        key: 'material',
+        dataKey: 'material',
+        label: 'Material',
+        render: (mat, item) => (
+          <select
+            onChange={(e) => this.onMaterialChange(item, e.target.value)}
+            value={mat}
+            className={style.material}
+          >
+            {materialOptions}
+          </select>
+        ),
+      },
+      {
+        key: 'radius',
+        dataKey: 'radius',
+        label: 'Radius',
+        render: (radius, item) => (
+          <input
+            className={style.radius}
+            type="number"
+            step="0.01"
+            max={this.state.pinPitch * 0.5}
+            min="0"
+            value={radius}
+            onChange={(e) => this.onRadiusChange(item, e.target.value)}
+            onBlur={this.validateOrder}
+          />
+        ),
+      },
+    ];
+
     let items = [];
     if (data.value && data.value.length) {
       const cell = data.value[0];
-      items = zip(cell.mats, cell.radii).map(([material, radius]) => ({
+      items = zip(cell.mats, cell.radii).map(([material, radius], idx) => ({
+        key: idx,
         material,
         radius,
       }));
     }
+
     return (
       <div className={style.container}>
-        <table className={style.table}>
-          <thead>
-            <tr>
-              <th />
-              <th>Material</th>
-              <th>Radius</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(({ material, radius }, idx) => (
-              <tr key={`ring-${idx}`}>
-                <td className={style.right}>
-                  <button
-                    data-idx={idx}
-                    className={style.addRadius}
-                    onClick={this.addRadius}
-                  >
-                    +
-                  </button>
-                </td>
-                <td>
-                  <select
-                    onChange={this.onMaterialChange}
-                    data-idx={idx}
-                    value={material}
-                    className={style.material}
-                  >
-                    {Object.keys(materials).map((key) => (
-                      <option key={key} value={materials[key].name}>
-                        {materials[key].name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <input
-                    className={style.radius}
-                    data-idx={idx}
-                    type="number"
-                    step="0.01"
-                    max={this.state.pinPitch * 0.5}
-                    min="0"
-                    value={radius}
-                    onChange={this.onRadiusChange}
-                    onBlur={this.validateOrder}
-                  />
-                </td>
-                <td>
-                  <button
-                    data-idx={idx}
-                    className={style.deleteEntry}
-                    onClick={this.deleteEntry}
-                  >
-                    x
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {items.length === 0 ? (
-              <tr>
-                <td className={style.right}>
-                  <button
-                    data-idx={-1}
-                    className={style.addRadius}
-                    onClick={this.addRadius}
-                  >
-                    +
-                  </button>
-                </td>
-                <td>Add a material</td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+        <EditableList
+          columns={columns}
+          data={items}
+          onAdd={this.addRadius}
+          onDelete={this.deleteEntry}
+        />
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>

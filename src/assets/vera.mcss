@@ -368,3 +368,22 @@
   top: 10px;
   color: black;
 }
+
+.editableListTable {
+  width: 100%;
+}
+
+.editableListAddBtn {
+  position: relative;
+  top: 15px;
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+}
+
+.editableListDelBtn {
+  margin-left: 5px;
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+}
