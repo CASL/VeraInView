@@ -33,8 +33,6 @@ export default class CellEditor extends React.Component {
       pinPitch: 1.6,
     };
 
-    this.updateCellRendering();
-
     this.addRadius = this.addRadius.bind(this);
     this.onMaterialChange = this.onMaterialChange.bind(this);
     this.onRadiusChange = this.onRadiusChange.bind(this);
@@ -50,7 +48,6 @@ export default class CellEditor extends React.Component {
       const cell = data.value[0];
       cell.mats[item.key] = value;
 
-      this.updateCellRendering();
       this.props.onChange(data);
     }
   }
@@ -61,7 +58,6 @@ export default class CellEditor extends React.Component {
       const cell = data.value[0];
       cell.radii[item.key] = Number(value);
 
-      this.updateCellRendering();
       this.props.onChange(data);
     }
   }
@@ -106,7 +102,6 @@ export default class CellEditor extends React.Component {
         cell.radii[idx] += (cell.radii[idx] - cell.radii[idx - 1]) / 2;
       }
 
-      this.updateCellRendering();
       this.props.onChange(data);
     }
   }
@@ -119,7 +114,6 @@ export default class CellEditor extends React.Component {
       cell.mats.splice(idx, 1);
       cell.radii.splice(idx, 1);
 
-      this.updateCellRendering();
       this.props.onChange(data);
     }
   }
@@ -139,6 +133,8 @@ export default class CellEditor extends React.Component {
   }
 
   render() {
+    this.updateCellRendering();
+
     const { data } = this.props;
     const materials =
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
