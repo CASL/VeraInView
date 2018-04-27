@@ -173,7 +173,6 @@ export default class CellEditor extends React.Component {
             className={style.radius}
             type="number"
             step="0.01"
-            max={this.state.pinPitch * 0.5}
             min="0"
             value={radius}
             onChange={(e) => this.onRadiusChange(item, e.target.value)}
