@@ -31,10 +31,13 @@ export default class VTKWidget extends React.Component {
 
     // Push data on first load
     this.componentWillReceiveProps(this.props);
-    this.props.viewer.resetCamera(this.props.orientation);
+    this.resetCamera();
+    setTimeout(this.resetCamera, 0);
+    setTimeout(this.resetCamera, 10);
   }
 
   componentWillReceiveProps(nextProps) {
+    this.props.viewer.setZScale(this.props.zScaling);
     this.props.viewer.setData(nextProps.data);
   }
 
@@ -54,7 +57,12 @@ export default class VTKWidget extends React.Component {
   }
 
   resetCamera() {
-    this.props.viewer.resetCamera(this.props.orientation, this.props.viewUp);
+    this.props.viewer.render();
+    this.props.viewer.resetCamera(
+      this.props.orientation,
+      this.props.viewUp,
+      this.props.zoom
+    );
   }
 
   render() {
@@ -77,10 +85,14 @@ VTKWidget.propTypes = {
   data: PropTypes.object,
   orientation: PropTypes.array,
   viewUp: PropTypes.array,
+  zoom: PropTypes.number,
+  zScaling: PropTypes.number,
 };
 
 VTKWidget.defaultProps = {
   data: null,
   orientation: [0, 0, 1000],
   viewUp: [0, 1, 0],
+  zoom: 1,
+  zScaling: 1,
 };

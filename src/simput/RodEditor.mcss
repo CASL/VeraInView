@@ -5,3 +5,8 @@
 .cellSelect {
     width: 100%;
 }
+
+.preview3d {
+  height: 100px;
+  margin-bottom: 20px;
+}

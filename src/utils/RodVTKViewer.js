@@ -2,6 +2,7 @@ import macro from 'vtk.js/Sources/macro';
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkConcentricCylinderSource from 'vtk.js/Sources/Filters/Sources/ConcentricCylinderSource';
+import vtkCubeSource from 'vtk.js/Sources/Filters/Sources/CubeSource';
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 
 import vtkVTKViewer from './VTKViewer';
@@ -13,13 +14,14 @@ function createCell(model, center, height, radius, cellFields) {
 
   const source = vtkConcentricCylinderSource.newInstance({
     resolution: 60,
-    startTheta: 0,
-    endTheta: 180,
+    startTheta: 180,
+    endTheta: 360,
     height,
     center,
     radius,
     cellFields,
   });
+
   const mapper = vtkMapper.newInstance({
     lookupTable,
     useLookupTableScalarRange: true,
@@ -63,7 +65,7 @@ function processCells(cells, materialIds) {
     const cellFields = [];
 
     for (let j = 0; j < cell.length; j++) {
-      const { material, radius } = cell[i];
+      const { material, radius } = cell[j];
       radii.push(radius);
       cellFields.push(materialIds.indexOf(material));
     }
@@ -81,12 +83,26 @@ function vtkRodVTKViewer(publicAPI, model) {
   // Set our className
   model.classHierarchy.push('vtkRodVTKViewer');
 
+  // 2D navigation
+  publicAPI.setParallelRendering(true);
+
   // Internal pipeline
   model.lookupTable = vtkColorTransferFunction.newInstance();
   model.stack = [];
 
+  model.sourceCtx = vtkCubeSource.newInstance();
+  model.mapperCtx = vtkMapper.newInstance({ scalarVisibility: false });
+  model.actorCtx = vtkActor.newInstance();
+
+  model.actorCtx
+    .getProperty()
+    .set(Object.assign({ representation: 1 }, vtkVTKViewer.PROPERTY_SETTINGS));
+  model.actorCtx.setMapper(model.mapperCtx);
+  model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
+
   // rod = {
   //   name: '',
+  //   pitch: 1.26,
   //   totalLength: 400,
   //   colors: {
   //     mod: [0, 0, 0.5],
@@ -131,9 +147,16 @@ function vtkRodVTKViewer(publicAPI, model) {
         cellFields
       );
       model.stack.push(cellPipeline);
-      offset += length / 2;
+      offset += length;
       publicAPI.addActor(cellPipeline.actor);
     }
+
+    // Update context
+    model.sourceCtx.setZLength(rod.totalLength);
+    model.sourceCtx.setXLength(rod.pitch);
+    model.sourceCtx.setYLength(rod.pitch);
+    model.sourceCtx.setCenter(0, 0, rod.totalLength * 0.5);
+    publicAPI.addActor(model.actorCtx);
 
     publicAPI.renderLater();
   };

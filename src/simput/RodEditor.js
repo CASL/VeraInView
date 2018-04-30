@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 
 import Rod2DPreview from '../widgets/Rod2DPreview';
 import EditableList from '../widgets/EditableList';
+import VTKWidget from '../widgets/VTKWidget';
+
+import vtkRodVTKViewer from '../utils/RodVTKViewer';
 
 import style from './RodEditor.mcss';
 
@@ -15,11 +18,13 @@ export default class RodEditor extends React.Component {
     this.onLengthChange = this.onLengthChange.bind(this);
     this.addLayer = this.addLayer.bind(this);
     this.delLayer = this.delLayer.bind(this);
+
+    this.rodViewer = vtkRodVTKViewer.newInstance();
   }
 
   onCellChange(layer, value) {
     const data = this.props.data;
-    const cells = this.props.ui.domain;
+    const cells = this.props.ui.domain.cells;
     if (data.value && data.value.length) {
       const stack = data.value[0].stack;
       if (value in cells) {
@@ -47,7 +52,7 @@ export default class RodEditor extends React.Component {
 
   addLayer(idx) {
     const data = this.props.data;
-    const cells = Object.keys(this.props.ui.domain);
+    const cells = Object.keys(this.props.ui.domain.cells);
     if (data.value && data.value.length && cells.length) {
       const stack = data.value[0].stack;
       const afterIdx = idx + 1;
@@ -72,7 +77,7 @@ export default class RodEditor extends React.Component {
   }
 
   render() {
-    const cells = Object.keys(this.props.ui.domain);
+    const cells = Object.keys(this.props.ui.domain.cells);
 
     const columns = [
       {
@@ -120,9 +125,71 @@ export default class RodEditor extends React.Component {
 
     const totalLength = Number(this.props.viewData.rodInfo.height.value[0]);
 
+    // rod = {
+    //   name: '',
+    //   pitch: 1.26,
+    //   totalLength: 400,
+    //   colors: {
+    //     mod: [0, 0, 0.5],
+    //     he: [0, 0.5, 0.3],
+    //     zirc: [0.5, 0.5, 0.3],
+    //     ss: [0.4, 0.5, 0.4],
+    //   },
+    //   cells: {
+    //      A: [
+    //         { material: 'mod', radius: 0.2 },
+    //         { material: 'he', radius: 0.3 },
+    //         { material: 'zirc', radius: 0.4 },
+    //         { material: 'ss', radius: 0.5 },
+    //      ],
+    //      B: [],
+    //      C: [],
+    //   },
+    //   layers: [
+    //     { cell: 'A', length: 10 },
+    //     { cell: 'B', length: 200 },
+    //     { cell: 'A', length: 5 },
+    //     { cell: 'C', length: 10 },
+    //   ],
+    // }
+    const colors = {};
+    Object.keys(this.props.ui.domain.materials).forEach((mat) => {
+      colors[mat] = this.props.ui.domain.materials[mat].color;
+    });
+    const layers = this.props.data.value[0].stack.map((l) => ({
+      cell: l.label,
+      length: l.length,
+    }));
+    const cellData = {};
+    Object.keys(this.props.ui.domain.cells).forEach((cellName) => {
+      cellData[cellName] = this.props.ui.domain.cells[
+        cellName
+      ].cell[0].mats.map((material, i) => ({
+        material,
+        radius: this.props.ui.domain.cells[cellName].cell[0].radii[i],
+      }));
+    });
+    const rodData = {
+      pitch: 1.26, // FIXME...
+      totalLength,
+      colors,
+      cells: cellData,
+      layers,
+    };
+
     return (
       <div>
         <Rod2DPreview stack={items} totalLength={totalLength} />
+        <div className={style.preview3d}>
+          <VTKWidget
+            viewer={this.rodViewer}
+            data={rodData}
+            orientation={[0, 1000, 0]}
+            viewUp={[1, 0, 0]}
+            zoom={10}
+            zScaling={0.1}
+          />
+        </div>
         <EditableList
           columns={columns}
           data={items}
