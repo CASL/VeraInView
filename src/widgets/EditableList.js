@@ -15,7 +15,11 @@ function EditableList(props) {
 
       const cellKey = `${col.dataKey}::${datum.key}`;
 
-      return <td key={cellKey}>{content}</td>;
+      return (
+        <td className={col.classes} key={cellKey}>
+          {content}
+        </td>
+      );
     });
 
     return (
