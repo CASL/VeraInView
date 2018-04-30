@@ -23,7 +23,10 @@ export default function Rod2DPreview(props) {
               }}
             />
           ))}
-          <td className={style.last} />
+          <td
+            className={style.last}
+            style={{ width: `${100 * remaining / props.totalLength}%` }}
+          />
         </tr>
         <tr className={style.labels}>
           {props.stack.map(({ label }, i) => (
