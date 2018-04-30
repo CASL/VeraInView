@@ -44,20 +44,37 @@ function vtkCellVTKViewer(publicAPI, model) {
   model.lookupTable = vtkColorTransferFunction.newInstance();
   model.source = vtkConcentricCylinderSource.newInstance({
     resolution: 60,
-    startTheta: 0,
-    endTheta: 180,
+    startTheta: -1,
+    endTheta: 179,
   });
   model.mapper = vtkMapper.newInstance({
     lookupTable: model.lookupTable,
     useLookupTableScalarRange: true,
   });
-  model.actor = vtkActor.newInstance({ scale: [1, 1, model.zScaling] });
+  model.actor = vtkActor.newInstance({
+    scale: [1, 1, model.zScaling],
+  });
+  // context
+  model.sourceCtx = vtkConcentricCylinderSource.newInstance({
+    resolution: 60,
+    startTheta: 178,
+  });
+  model.mapperCtx = vtkMapper.newInstance({ scalarVisibility: false });
+  model.actorCtx = vtkActor.newInstance({
+    scale: [1, 1, model.zScaling],
+  });
+  model.actorCtx.getProperty().setOpacity(0.3);
 
   model.actor.getProperty().set(vtkVTKViewer.PROPERTY_SETTINGS);
   model.actor.setMapper(model.mapper);
   model.mapper.setInputConnection(model.source.getOutputPort());
 
+  model.actorCtx.getProperty().set(vtkVTKViewer.PROPERTY_SETTINGS);
+  model.actorCtx.setMapper(model.mapperCtx);
+  model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
+
   publicAPI.addActor(model.actor);
+  publicAPI.addActor(model.actorCtx);
 
   // cell = {
   //   name: '',
@@ -81,8 +98,11 @@ function vtkCellVTKViewer(publicAPI, model) {
       cell.colors
     );
     model.lookupTable.applyColorMap({ RGBPoints });
-    model.source.set({ radius, cellFields });
-
+    model.source.clearRadius();
+    for (let i = 0; i < radius.length; i++) {
+      model.source.addRadius(radius[i], cellFields[i]);
+    }
+    model.sourceCtx.setRadius(0, cell.pitch * 0.5);
     publicAPI.renderLater();
   };
 }

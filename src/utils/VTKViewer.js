@@ -77,7 +77,6 @@ function vtkVTKViewer(publicAPI, model) {
         Math.floor(dims.height)
       );
       publicAPI.renderLater();
-      model.fpsMonitor.update();
     }
   };
 
@@ -131,6 +130,20 @@ function vtkVTKViewer(publicAPI, model) {
 
   publicAPI.renderLater = () => {
     setTimeout(model.renderWindow.render, 0);
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.resetCamera = (orientation = [0, 0, 1], viewUp = [0, 1, 0]) => {
+    const camera = model.renderer.getActiveCamera();
+    camera.setPosition(...orientation);
+    camera.setViewUp(...viewUp);
+    model.renderer.resetCamera();
+
+    model.interactorStyle3D.setCenterOfRotation(camera.getFocalPoint());
+    model.interactorStyle2D.setCenterOfRotation(camera.getFocalPoint());
+
+    publicAPI.renderLater();
   };
 
   // --------------------------------------------------------------------------

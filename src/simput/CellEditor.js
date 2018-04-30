@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 
 import ReactCursorPosition from 'react-cursor-position';
 
-import VTKRenderer from '../widgets/VTKRenderer';
+import VTKWidget from '../widgets/VTKWidget';
 import ImageRenderer from '../widgets/ImageRenderer';
 import ImageGenerator from '../utils/ImageGenerator';
 import EditableList from '../widgets/EditableList';
+
+import vtkCellVTKViewer from '../utils/CellVTKViewer';
 
 import style from './CellEditor.mcss';
 
@@ -32,6 +34,8 @@ export default class CellEditor extends React.Component {
       imageSize: 512,
       pinPitch: 1.6,
     };
+
+    this.cellViewer = vtkCellVTKViewer.newInstance();
 
     this.addRadius = this.addRadius.bind(this);
     this.onMaterialChange = this.onMaterialChange.bind(this);
@@ -188,6 +192,16 @@ export default class CellEditor extends React.Component {
       }));
     }
 
+    const colors = {};
+    Object.keys(materials).forEach((key) => {
+      colors[key] = materials[key].color;
+    });
+    const cellData = {
+      pitch: this.state.pinPitch,
+      colors,
+      layers: items,
+    };
+
     return (
       <div className={style.container}>
         <EditableList
@@ -221,10 +235,7 @@ export default class CellEditor extends React.Component {
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKRenderer
-              nested
-              content={items.length > 0 ? this.cell.has3D : {}}
-            />
+            <VTKWidget viewer={this.cellViewer} data={cellData} />
           </div>
         </div>
       </div>
