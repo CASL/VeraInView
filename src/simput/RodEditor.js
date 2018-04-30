@@ -11,9 +11,22 @@ export default class RodEditor extends React.Component {
     super(props);
     this.state = {};
 
+    this.onCellChange = this.onCellChange.bind(this);
     this.onLengthChange = this.onLengthChange.bind(this);
     this.addLayer = this.addLayer.bind(this);
     this.delLayer = this.delLayer.bind(this);
+  }
+
+  onCellChange(layer, value) {
+    const data = this.props.data;
+    const cells = this.props.ui.domain;
+    if (data.value && data.value.length) {
+      const stack = data.value[0].stack;
+      if (value in cells) {
+        stack[layer.key].label = value;
+        this.props.onChange(data);
+      }
+    }
   }
 
   onLengthChange(layer, value) {
@@ -34,12 +47,13 @@ export default class RodEditor extends React.Component {
 
   addLayer(idx) {
     const data = this.props.data;
-    if (data.value && data.value.length) {
+    const cells = Object.keys(this.props.ui.domain);
+    if (data.value && data.value.length && cells.length) {
       const stack = data.value[0].stack;
       const afterIdx = idx + 1;
       stack.splice(afterIdx, 0, {
         color: 'blue',
-        type: 'gap',
+        label: cells[0],
         length: 0,
       });
 
@@ -58,6 +72,8 @@ export default class RodEditor extends React.Component {
   }
 
   render() {
+    const cells = Object.keys(this.props.ui.domain);
+
     const columns = [
       {
         key: 'color',
@@ -65,9 +81,18 @@ export default class RodEditor extends React.Component {
         label: 'Color',
       },
       {
-        key: 'type',
-        dataKey: 'label',
-        label: 'Layer Type',
+        key: 'cell',
+        dataKey: 'cell',
+        label: 'Cell/Layer Type',
+        classes: style.centeredCell,
+        render: (cellName, layer) => (
+          <select
+            className={style.cellSelect}
+            onChange={(e) => this.onCellChange(layer, e.target.value)}
+          >
+            {cells.map((name) => <option key={name}>{name}</option>)}
+          </select>
+        ),
       },
       {
         key: 'length',
@@ -115,7 +140,7 @@ RodEditor.propTypes = {
   // name: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   // show: PropTypes.func.isRequired,
-  // ui: PropTypes.object.isRequired,
+  ui: PropTypes.object.isRequired,
   viewData: PropTypes.object.isRequired,
 };
 
