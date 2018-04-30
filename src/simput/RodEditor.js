@@ -4,8 +4,10 @@ import PropTypes from 'prop-types';
 import Rod2DPreview from '../widgets/Rod2DPreview';
 import EditableList from '../widgets/EditableList';
 import VTKWidget from '../widgets/VTKWidget';
+import Color from '../widgets/Color';
 
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
+import ColorManager from '../utils/ColorManager';
 
 import style from './RodEditor.mcss';
 
@@ -57,7 +59,6 @@ export default class RodEditor extends React.Component {
       const stack = data.value[0].stack;
       const afterIdx = idx + 1;
       stack.splice(afterIdx, 0, {
-        color: 'blue',
         label: cells[0],
         length: 0,
       });
@@ -82,8 +83,15 @@ export default class RodEditor extends React.Component {
     const columns = [
       {
         key: 'color',
-        dataKey: 'color',
+        dataKey: '',
         label: 'Color',
+        classes: style.centeredCell,
+        render: (_, layer) => {
+          const color = this.props.ui.domain.cells[layer.label].color;
+          // adds alpha channel
+          const out = ColorManager.toRGBA(color.concat([1]));
+          return <Color color={out} title="" border />;
+        },
       },
       {
         key: 'cell',
