@@ -1,0 +1,7 @@
+.centeredCell {
+    text-align: center;
+}
+
+.cellSelect {
+    width: 100%;
+}
