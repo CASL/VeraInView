@@ -87,15 +87,20 @@ export default class RodEditor extends React.Component {
       },
       {
         key: 'cell',
-        dataKey: 'cell',
+        dataKey: 'label',
         label: 'Cell/Layer Type',
         classes: style.centeredCell,
         render: (cellName, layer) => (
           <select
             className={style.cellSelect}
+            value={cellName}
             onChange={(e) => this.onCellChange(layer, e.target.value)}
           >
-            {cells.map((name) => <option key={name}>{name}</option>)}
+            {cells.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
           </select>
         ),
       },
