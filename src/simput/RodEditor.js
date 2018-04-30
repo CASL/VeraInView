@@ -193,6 +193,7 @@ export default class RodEditor extends React.Component {
             viewUp={[1, 0, 0]}
             zoom={10}
             zScaling={0.1}
+            zRange={[1, 0.01]}
           />
         </div>
         <EditableList

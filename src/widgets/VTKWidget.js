@@ -8,17 +8,23 @@ export default class VTKWidget extends React.Component {
   constructor(props) {
     super(props);
 
+    let zSlider = 1;
+    if (props.zRange) {
+      const [a, b] = props.zRange;
+      zSlider = Math.abs(Math.round(100 * (props.zScaling - a) / (b - a)));
+    }
+
     this.state = {
       parallelRendering: false,
-      zScaling: 1,
       capture: null,
+      zSlider,
     };
 
     // Functions for callback
-    this.onScaleChange = macro.throttle(this.onScaleChange.bind(this), 100);
     this.toggleParallelRendering = this.toggleParallelRendering.bind(this);
     this.resize = macro.throttle(props.viewer.resize, 100);
     this.resetCamera = this.resetCamera.bind(this);
+    this.sliderZScale = this.sliderZScale.bind(this);
   }
 
   componentDidMount() {
@@ -46,18 +52,12 @@ export default class VTKWidget extends React.Component {
     this.props.viewer.setContainer(null);
   }
 
-  onScaleChange(zScaling) {
-    this.setState({ zScaling });
-    this.props.viewer.setZScale(zScaling);
-  }
-
   toggleParallelRendering(parallelRendering) {
     this.setState({ parallelRendering });
     this.props.viewer.setParallelRendering(parallelRendering);
   }
 
   resetCamera() {
-    this.props.viewer.render();
     this.props.viewer.resetCamera(
       this.props.orientation,
       this.props.viewUp,
@@ -65,10 +65,31 @@ export default class VTKWidget extends React.Component {
     );
   }
 
+  sliderZScale(e) {
+    const zSlider = Number(e.target.value);
+    const [a, b] = this.props.zRange;
+    this.setState({ zSlider });
+
+    const zScaling = a + (b - a) * zSlider / 100;
+    this.props.viewer.setZScale(zScaling);
+    this.resetCamera();
+  }
+
   render() {
     return (
       <div className={style.container}>
         <div className={style.resetCamera} onClick={this.resetCamera} />
+        {this.props.zRange ? (
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={this.state.zSlider}
+            step="1"
+            className={style.slider}
+            onChange={this.sliderZScale}
+          />
+        ) : null}
         <div
           className={style.container}
           ref={(c) => {
@@ -87,6 +108,7 @@ VTKWidget.propTypes = {
   viewUp: PropTypes.array,
   zoom: PropTypes.number,
   zScaling: PropTypes.number,
+  zRange: PropTypes.array,
 };
 
 VTKWidget.defaultProps = {
@@ -95,4 +117,5 @@ VTKWidget.defaultProps = {
   viewUp: [0, 1, 0],
   zoom: 1,
   zScaling: 1,
+  zRange: null,
 };
