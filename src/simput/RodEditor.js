@@ -115,7 +115,7 @@ export default class RodEditor extends React.Component {
           <input
             type="number"
             min="0"
-            step="1"
+            step="any"
             value={layer.length}
             onChange={(e) => this.onLengthChange(layer, e.target.value)}
           />
