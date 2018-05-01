@@ -94,7 +94,7 @@ export default class RodEditor extends React.Component {
         classes: style.centeredCell,
         render: (cellName, layer) => (
           <select
-            className={style.cellSelect}
+            className={style.fullWidth}
             value={cellName}
             onChange={(e) => this.onCellChange(layer, e.target.value)}
           >
@@ -113,6 +113,7 @@ export default class RodEditor extends React.Component {
         classes: style.centeredCell,
         render: (value, layer) => (
           <input
+            className={style.fullWidth}
             type="number"
             min="0"
             step="any"

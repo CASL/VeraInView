@@ -2,7 +2,7 @@
     text-align: center;
 }
 
-.cellSelect {
+.fullWidth {
     width: 100%;
 }
 
