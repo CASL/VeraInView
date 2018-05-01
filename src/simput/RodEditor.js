@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import Rod2DPreview from '../widgets/Rod2DPreview';
 import EditableList from '../widgets/EditableList';
 import VTKWidget from '../widgets/VTKWidget';
-import Color from '../widgets/Color';
 
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
 import ColorManager from '../utils/ColorManager';
@@ -76,40 +75,34 @@ export default class RodEditor extends React.Component {
 
     const columns = [
       {
-        key: 'color',
-        dataKey: '',
-        label: 'Color',
-        classes: style.centeredCell,
-        render: (_, layer) => {
-          const color = this.props.ui.domain.cells[layer.label].color;
-          // adds alpha channel
-          const out = ColorManager.toRGBA(color.concat([1]));
-          return <Color color={out} title="" border />;
-        },
-      },
-      {
         key: 'cell',
         dataKey: 'label',
-        label: 'Cell/Layer Type',
+        label: 'Cell',
         classes: style.centeredCell,
-        render: (cellName, layer) => (
-          <select
-            className={style.fullWidth}
-            value={cellName}
-            onChange={(e) => this.onCellChange(layer, e.target.value)}
-          >
-            {cells.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        ),
+        render: (cellName, layer) => {
+          const color = this.props.ui.domain.cells[layer.label].color;
+          // adds alpha channel
+          const background = ColorManager.toRGBA(color.concat([1]));
+          return (
+            <select
+              className={style.fullWidth}
+              style={{ background }}
+              value={cellName}
+              onChange={(e) => this.onCellChange(layer, e.target.value)}
+            >
+              {cells.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          );
+        },
       },
       {
         key: 'length',
         dataKey: 'length',
-        label: 'Length',
+        label: 'Axial Length',
         classes: style.centeredCell,
         render: (value, layer) => (
           <input
