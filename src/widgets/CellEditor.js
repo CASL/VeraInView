@@ -253,6 +253,7 @@ export default class CellEditor extends React.Component {
         <DualRenderer
           content={this.props.content}
           rendering={this.state.rendering}
+          mask={this.props.mask}
           overlayText={`Contact radius: ${this.props.params.pinPitch * 0.5}`}
           getImageInfo={(posx, posy) => {
             const mat = ImageGenerator.getCellMaterial(
@@ -278,6 +279,7 @@ CellEditor.propTypes = {
   fuels: PropTypes.array,
   materials: PropTypes.array,
   defaultMaterial: PropTypes.object,
+  mask: PropTypes.object,
   imageSize: PropTypes.number,
 };
 
@@ -287,5 +289,6 @@ CellEditor.defaultProps = {
   fuels: [],
   materials: [],
   defaultMaterial: { label: 'ss' },
+  mask: {},
   imageSize: 512,
 };

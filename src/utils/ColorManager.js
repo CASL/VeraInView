@@ -25,7 +25,7 @@ function toRGBA(color) {
 function createColorManager(palette = PALETTE) {
   const colorInfo = {};
   const nameInfo = {};
-  let colorIds = 0;
+  let colorIds = 1;
   let count = palette.length;
   while (count--) {
     const color = palette[count];

@@ -1,9 +1,9 @@
-import macro from 'vtk.js/Sources/macro';
+// import macro from 'vtk.js/Sources/macro';
 
 import XMLVeraParser from './XMLVeraParser';
 import ImageGenerator from './ImageGenerator';
 
-const { capitalize } = macro;
+// const { capitalize } = macro;
 
 function compareLabels(a, b) {
   return a.label.localeCompare(b.label);
@@ -553,7 +553,7 @@ function parseFile(file, imageSize, updateFn) {
       ).map((name) => {
         mask[ImageGenerator.materialColorManager.getId(name)] = false;
         return {
-          title: capitalize(name),
+          label: name,
           color: ImageGenerator.materialColorManager.getColorRGBA(name),
           id: ImageGenerator.materialColorManager.getId(name),
           density: core.materials[name] ? core.materials[name].density : 1,

@@ -3,7 +3,7 @@ import 'antd/dist/antd.css';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Breadcrumb, Button, Icon, Layout, Menu, Upload } from 'antd';
+import { Breadcrumb, Button, Icon, Layout, Menu, Switch, Upload } from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
@@ -165,6 +165,7 @@ export default class EditView extends React.Component {
       title: '',
       materials,
       fuels,
+      mask: {},
       cells: [],
       rodmaps: [],
       assemblies: [],
@@ -197,6 +198,8 @@ export default class EditView extends React.Component {
     this.onSelect = this.onSelect.bind(this);
     this.onToggle3D = this.onToggle3D.bind(this);
     this.onToggleMenu = this.onToggleMenu.bind(this);
+    this.renderMaterial = this.renderMaterial.bind(this);
+    this.toggleMask = this.toggleMask.bind(this);
     this.parseFile = this.parseFile.bind(this);
     this.updateImageIndex = this.updateImageIndex.bind(this);
   }
@@ -253,6 +256,11 @@ export default class EditView extends React.Component {
   onSelect(options) {
     const selected = [options.key];
     const { item, path } = this.getSelectionByKey(options.key);
+    // console.log('select', this.ignoreNextSelect, path);
+    if (this.ignoreNextSelect) {
+      this.ignoreNextSelect = false;
+      return;
+    }
 
     if (item && EDITORS[path[0]]) {
       this.setState({
@@ -337,10 +345,30 @@ export default class EditView extends React.Component {
   updateImageIndex(imageIndex) {
     this.setState({ imageIndex });
   }
+  toggleMask(matId) {
+    if (!this.toggleMaskFn[matId]) {
+      // Ensure material callbacks exists
+      this.toggleMaskFn[matId] = (check) => {
+        console.log('toggle', matId);
+        // ignore the select of the Material menu item, when toggling.
+        if (this.state.path && this.state.path[0] !== 'Materials') {
+          this.ignoreNextSelect = true;
+        }
+        const { mask } = this.state;
+        mask[matId] = !check;
+        this.setState({ mask });
+      };
+    }
+    return this.toggleMaskFn[matId];
+  }
 
   parseFile(file) {
     this.setState({ title: file.name, file });
     ModelHelper.parseFile(file, this.props.imageSize, (newState) => {
+      if (newState.materials) {
+        Materials.addMaterials(newState.materials);
+        this.setState({ materials });
+      }
       const groupTrans = {
         A: 'assemblies',
         I: 'inserts',
@@ -461,6 +489,35 @@ export default class EditView extends React.Component {
     return false;
   }
 
+  renderMaterial(group) {
+    return (m) => {
+      const hasName = materialColorManager.hasName(m.label);
+      if (hasName) m.id = materialColorManager.getId(m.label);
+      return m.hide ? null : (
+        <Menu.Item
+          key={`${group}:${m.label}`}
+          className={style.materialSelector}
+        >
+          <Color
+            title={m.label}
+            color={
+              hasName ? materialColorManager.getColorRGBA(m.label) : m.color
+            }
+            key={`mat-${m.label}`}
+          />
+          {m.id && (
+            <Switch
+              className={style.materialSwitchEdit}
+              checked={!this.state.mask[m.id]}
+              size="small"
+              onChange={this.toggleMask(m.id)}
+            />
+          )}
+        </Menu.Item>
+      );
+    };
+  }
+
   render() {
     const contents = [];
     const menuSize = 240;
@@ -486,6 +543,7 @@ export default class EditView extends React.Component {
           assemblies={this.state.assemblies}
           coremaps={this.state.coremaps}
           core={this.state.core}
+          mask={this.state.mask}
           imageSize={this.props.imageSize}
         />
       );
@@ -729,25 +787,7 @@ export default class EditView extends React.Component {
                     />
                   }
                 >
-                  {this.state.fuels.map(
-                    (m) =>
-                      m.hide ? null : (
-                        <Menu.Item
-                          key={`fuels:${m.id}`}
-                          className={style.materialSelector}
-                        >
-                          <Color
-                            title={m.label}
-                            color={
-                              materialColorManager.hasName(m.label)
-                                ? materialColorManager.getColorRGBA(m.label)
-                                : m.color
-                            }
-                            key={`mat-${m.id}`}
-                          />
-                        </Menu.Item>
-                      )
-                  )}
+                  {this.state.fuels.map(this.renderMaterial('fuels'))}
                 </Menu.ItemGroup>
                 <Menu.ItemGroup
                   key="normalMaterials"
@@ -759,25 +799,7 @@ export default class EditView extends React.Component {
                     />
                   }
                 >
-                  {this.state.materials.map(
-                    (m) =>
-                      m.hide ? null : (
-                        <Menu.Item
-                          key={`materials:${m.id}`}
-                          className={style.materialSelector}
-                        >
-                          <Color
-                            title={m.label}
-                            color={
-                              materialColorManager.hasName(m.label)
-                                ? materialColorManager.getColorRGBA(m.label)
-                                : m.color
-                            }
-                            key={`mat-${m.id}`}
-                          />
-                        </Menu.Item>
-                      )
-                  )}
+                  {this.state.materials.map(this.renderMaterial('materials'))}
                 </Menu.ItemGroup>
               </SubMenu>
             </Menu>

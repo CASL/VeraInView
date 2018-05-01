@@ -463,10 +463,11 @@ function initMaterials() {
   // Add colors and titles
   materials.forEach((m, i) => {
     // m.title = macro.capitalize(m.name);
-    if (!m.id) {
+    if (m.color === undefined) {
       // m.label = m.name; // macro.capitalize(m.name);
       m.color = null; // materialColorManager.getColor(m.name);
-      m.id = `defaults-${i + 1}`;
+      // materials are only assigned an ID and color when they are used
+      // m.id = `defaults-${i + 1}`;
       m.names = m.names.join(', ');
       m.fracs = m.fracs.join(', ');
       if (m.label === 'ss') Object.assign(defaultMaterial, m);
@@ -474,17 +475,35 @@ function initMaterials() {
     // delete m.name;
   });
   fuels.forEach((m, i) => {
-    if (!m.id) {
+    if (m.color === undefined) {
       m.color = null;
-      m.id = `fuels-${i + 1}`;
+      // m.id = `fuels-${i + 1}`;
       m.names = m.names.join(', ');
       m.enrichments = m.enrichments.join(', ');
     }
   });
 }
+
+// take materials from an .xml input, and combine/overwrite
+// our defaults.
+function addMaterials(newMats) {
+  newMats.forEach((mat, i) => {
+    mat.label = mat.name;
+    const index = materials.findIndex((m) => m.label === mat.label);
+    if (index === -1) {
+      // add a new material
+      materials.push(mat);
+    } else {
+      materials[index] = mat;
+    }
+  });
+  initMaterials();
+}
+
 export default {
   fuels,
   materials,
   defaultMaterial,
+  addMaterials,
   initMaterials,
 };

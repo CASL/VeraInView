@@ -189,7 +189,11 @@ export default class AssemblyEditor extends React.Component {
         </Form>
         <div className={style.preview}>
           {this.state.rendering && (
-            <VTKRenderer nested content={this.state.rendering} />
+            <VTKRenderer
+              nested
+              content={this.state.rendering}
+              mask={this.props.mask}
+            />
           )}
         </div>
       </div>
@@ -205,6 +209,7 @@ AssemblyEditor.propTypes = {
   type: PropTypes.string,
   assemblyLayouts: PropTypes.array,
   cells: PropTypes.array,
+  mask: PropTypes.object,
   imageSize: PropTypes.number,
 };
 
@@ -213,5 +218,6 @@ AssemblyEditor.defaultProps = {
   type: null,
   assemblyLayouts: [],
   cells: [],
+  mask: {},
   imageSize: 512,
 };

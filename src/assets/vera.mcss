@@ -241,7 +241,7 @@
   background-color: #e91010;
 }
 
-.materialSelector:global(.ant-menu-item-disabled):global(.ant-menu-item) {
+.materialSelector {
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -250,12 +250,14 @@
   opacity: 1 !important;
 }
 
-.materialSwitch {
+.materialSwitch, .materialSwitchEdit {
   background-color: #607d8b;
 }
-
 .materialSwitch:global(.ant-switch-checked) {
   background-color: #108ee9;
+}
+.materialSwitchEdit:global(.ant-switch-checked) {
+  background-color: #f691ff;
 }
 
 .toggleLabel {
@@ -359,7 +361,7 @@
 .preview {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 600px;
 }
 
 .imageOverlayText {
