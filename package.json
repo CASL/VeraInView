@@ -49,7 +49,7 @@
         "build:release:vera": "webpack --progress --colors --mode production --config webpack.vera.config.js",
         "build:release:simput": "webpack --progress --colors --mode production --config webpack.simput.config.js",
         "bundle": "inline-source --compress false --root ./dist ./dist/index.html ./dist/VeraInView.html",
-        "start": "webpack-dev-server --mode development",
+        "start": "webpack-dev-server --mode development --config webpack.vera.config.js",
         "commit": "git cz",
         "semantic-release": "semantic-release"
     },
