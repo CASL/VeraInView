@@ -9,6 +9,7 @@ import ImageGenerator from '../utils/ImageGenerator';
 import EditableList from '../widgets/EditableList';
 
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
+import ColorManager from '../utils/ColorManager';
 
 import style from './CellEditor.mcss';
 
@@ -154,15 +155,22 @@ export default class CellEditor extends React.Component {
         key: 'material',
         dataKey: 'material',
         label: 'Material',
-        render: (mat, item) => (
-          <select
-            onChange={(e) => this.onMaterialChange(item, e.target.value)}
-            value={mat}
-            className={style.material}
-          >
-            {materialOptions}
-          </select>
-        ),
+        render: (mat, item) => {
+          // adds on opaque alpha channel
+          const color = ColorManager.toRGBA(materials[mat].color.concat([1]));
+          return (
+            <select
+              onChange={(e) => this.onMaterialChange(item, e.target.value)}
+              value={mat}
+              className={style.material}
+              style={{
+                backgroundColor: color,
+              }}
+            >
+              {materialOptions}
+            </select>
+          );
+        },
       },
       {
         key: 'radius',
