@@ -131,9 +131,18 @@ export default class RodEditor extends React.Component {
 
     let items = [];
     if (this.props.data.value && this.props.data.value.length) {
-      items = this.props.data.value[0].stack.map((layer, idx) =>
-        Object.assign({ key: idx }, layer)
-      );
+      items = this.props.data.value[0].stack.map((layer, idx) => {
+        const color = this.props.ui.domain.cells[layer.label].color;
+        // adds alpha channel
+        const background = ColorManager.toRGBA(color.concat([1]));
+        return Object.assign(
+          {
+            key: idx,
+            color: background,
+          },
+          layer
+        );
+      });
     }
 
     const totalLength = Number(this.props.viewData.rodInfo.height.value[0]);
