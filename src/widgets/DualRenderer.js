@@ -85,7 +85,12 @@ export default class DualRenderer extends React.Component {
     }
     if (this.props.content.has3D && this.state.use3D) {
       contents.push(
-        <VTKRenderer key="3d-renderer" nested content={this.props.rendering} />
+        <VTKRenderer
+          key="3d-renderer"
+          nested
+          content={this.props.rendering}
+          mask={this.props.mask}
+        />
       );
     }
     return <div className={style.preview}>{contents}</div>;
@@ -97,11 +102,13 @@ DualRenderer.propTypes = {
   content: PropTypes.object.isRequired,
   getImageInfo: PropTypes.func.isRequired,
   overlayText: PropTypes.string,
+  mask: PropTypes.object,
   onClick: PropTypes.func,
 };
 
 DualRenderer.defaultProps = {
   rendering: null,
   onClick: null,
+  mask: {},
   overlayText: '',
 };

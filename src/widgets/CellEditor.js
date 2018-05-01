@@ -262,6 +262,7 @@ export default class CellEditor extends React.Component {
             );
             return mat ? <CellTip mat={mat} /> : null;
           }}
+          mask={this.props.mask}
         />
       </div>
     );
@@ -278,6 +279,7 @@ CellEditor.propTypes = {
   fuels: PropTypes.array,
   materials: PropTypes.array,
   defaultMaterial: PropTypes.object,
+  mask: PropTypes.object,
   imageSize: PropTypes.number,
 };
 
@@ -287,5 +289,6 @@ CellEditor.defaultProps = {
   fuels: [],
   materials: [],
   defaultMaterial: { label: 'ss' },
+  mask: {},
   imageSize: 512,
 };
