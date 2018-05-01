@@ -40,15 +40,9 @@ export default class RodEditor extends React.Component {
     const data = this.props.data;
     if (data.value && data.value.length) {
       const stack = data.value[0].stack;
-      const newValue = Number(value);
-      const totalLength = Number(this.props.viewData.rodInfo.height.value[0]);
-      const currentLength = stack.reduce((t, l) => t + l.length, 0);
-      const newLength = currentLength - stack[layer.key].length + newValue;
+      stack[layer.key].length = Number(value);
 
-      if (newLength <= totalLength) {
-        stack[layer.key].length = newValue;
-        this.props.onChange(data);
-      }
+      this.props.onChange(data);
     }
   }
 
