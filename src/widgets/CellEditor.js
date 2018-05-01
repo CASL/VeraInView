@@ -253,6 +253,7 @@ export default class CellEditor extends React.Component {
         <DualRenderer
           content={this.props.content}
           rendering={this.state.rendering}
+          mask={this.props.mask}
           overlayText={`Contact radius: ${this.props.params.pinPitch * 0.5}`}
           getImageInfo={(posx, posy) => {
             const mat = ImageGenerator.getCellMaterial(
@@ -262,7 +263,6 @@ export default class CellEditor extends React.Component {
             );
             return mat ? <CellTip mat={mat} /> : null;
           }}
-          mask={this.props.mask}
         />
       </div>
     );

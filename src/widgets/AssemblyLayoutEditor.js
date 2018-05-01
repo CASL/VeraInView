@@ -333,6 +333,7 @@ export default class AssemblyLayoutEditor extends React.Component {
         <DualRenderer
           content={this.props.content}
           rendering={this.state.rendering}
+          mask={this.props.mask}
           getImageInfo={(posx, posy) => {
             const { cell } = ImageGenerator.getLayoutCell(
               this.props.content,
@@ -358,6 +359,7 @@ AssemblyLayoutEditor.propTypes = {
   cells: PropTypes.array,
   assemblies: PropTypes.array,
   coremaps: PropTypes.array,
+  mask: PropTypes.object,
   imageSize: PropTypes.number,
 };
 
@@ -368,5 +370,6 @@ AssemblyLayoutEditor.defaultProps = {
   cells: [],
   assemblies: [],
   coremaps: [],
+  mask: {},
   imageSize: 512,
 };

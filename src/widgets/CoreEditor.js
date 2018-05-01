@@ -160,6 +160,7 @@ export default class CoreEditor extends React.Component {
         <DualRenderer
           content={drContent}
           rendering={this.state.rendering}
+          mask={this.props.mask}
           getImageInfo={(posx, posy) => null}
         />
       </div>
@@ -174,9 +175,11 @@ CoreEditor.propTypes = {
   coremaps: PropTypes.array.isRequired,
   update: PropTypes.func.isRequired,
   params: PropTypes.object.isRequired,
+  mask: PropTypes.object,
   // imageSize: PropTypes.number,
 };
 
 CoreEditor.defaultProps = {
+  mask: {},
   // imageSize: 512,
 };

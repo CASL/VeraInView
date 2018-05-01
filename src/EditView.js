@@ -198,6 +198,7 @@ export default class EditView extends React.Component {
     this.onSelect = this.onSelect.bind(this);
     this.onToggle3D = this.onToggle3D.bind(this);
     this.onToggleMenu = this.onToggleMenu.bind(this);
+    this.renderMaterial = this.renderMaterial.bind(this);
     this.toggleMask = this.toggleMask.bind(this);
     this.parseFile = this.parseFile.bind(this);
     this.updateImageIndex = this.updateImageIndex.bind(this);
@@ -488,6 +489,35 @@ export default class EditView extends React.Component {
     return false;
   }
 
+  renderMaterial(group) {
+    return (m) => {
+      const hasName = materialColorManager.hasName(m.label);
+      if (hasName) m.id = materialColorManager.getId(m.label);
+      return m.hide ? null : (
+        <Menu.Item
+          key={`${group}:${m.label}`}
+          className={style.materialSelector}
+        >
+          <Color
+            title={m.label}
+            color={
+              hasName ? materialColorManager.getColorRGBA(m.label) : m.color
+            }
+            key={`mat-${m.label}`}
+          />
+          {m.id && (
+            <Switch
+              className={style.materialSwitchEdit}
+              checked={!this.state.mask[m.id]}
+              size="small"
+              onChange={this.toggleMask(m.id)}
+            />
+          )}
+        </Menu.Item>
+      );
+    };
+  }
+
   render() {
     const contents = [];
     const menuSize = 240;
@@ -757,25 +787,7 @@ export default class EditView extends React.Component {
                     />
                   }
                 >
-                  {this.state.fuels.map(
-                    (m) =>
-                      m.hide ? null : (
-                        <Menu.Item
-                          key={`fuels:${m.label}`}
-                          className={style.materialSelector}
-                        >
-                          <Color
-                            title={m.label}
-                            color={
-                              materialColorManager.hasName(m.label)
-                                ? materialColorManager.getColorRGBA(m.label)
-                                : m.color
-                            }
-                            key={`mat-${m.label}`}
-                          />
-                        </Menu.Item>
-                      )
-                  )}
+                  {this.state.fuels.map(this.renderMaterial('fuels'))}
                 </Menu.ItemGroup>
                 <Menu.ItemGroup
                   key="normalMaterials"
@@ -787,34 +799,7 @@ export default class EditView extends React.Component {
                     />
                   }
                 >
-                  {this.state.materials.map((m) => {
-                    const hasName = materialColorManager.hasName(m.label);
-                    if (hasName) m.id = materialColorManager.getId(m.label);
-                    return m.hide ? null : (
-                      <Menu.Item
-                        key={`materials:${m.label}`}
-                        className={style.materialSelector}
-                      >
-                        <Color
-                          title={m.label}
-                          color={
-                            hasName
-                              ? materialColorManager.getColorRGBA(m.label)
-                              : m.color
-                          }
-                          key={`mat-${m.label}`}
-                        />
-                        {m.id && (
-                          <Switch
-                            className={style.materialSwitchEdit}
-                            checked={!this.state.mask[m.id]}
-                            size="small"
-                            onChange={this.toggleMask(m.id)}
-                          />
-                        )}
-                      </Menu.Item>
-                    );
-                  })}
+                  {this.state.materials.map(this.renderMaterial('materials'))}
                 </Menu.ItemGroup>
               </SubMenu>
             </Menu>
