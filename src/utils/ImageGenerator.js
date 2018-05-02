@@ -271,7 +271,8 @@ function updateLayoutImage(
             pointSets[cellId] = { coordinates: [], cellId, cell };
           }
           pointSets[cellId].coordinates.push(i * gridSpacing);
-          pointSets[cellId].coordinates.push(j * gridSpacing);
+          // reverse top-down image coords for 3D
+          pointSets[cellId].coordinates.push((width - j - 1) * gridSpacing);
           pointSets[cellId].coordinates.push(0);
         } else if (isCoreMap && cellId) {
           ctx.beginPath();
@@ -995,7 +996,8 @@ function compute3DCore(
     for (let i = 0; i < coreSize; i++) {
       if (!coreShape || coreShape[i + j * coreSize]) {
         const offsetX = i * gridSpacing;
-        const offsetY = j * gridSpacing;
+        // reverse top-down image coords for 3D
+        const offsetY = (coreSize - j - 1) * gridSpacing;
         for (let k = 0; k < processingList.length; k++) {
           const [container, keyMap] = processingList[k];
           if (container && keyMap && container[keyMap[pidx]]) {

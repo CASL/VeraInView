@@ -530,14 +530,14 @@ export default class MainView extends React.Component {
                   (m) =>
                     m.hide ? null : (
                       <Menu.Item
-                        key={`materials:${m.title}`}
+                        key={`materials:${m.label}`}
                         disabled
                         className={style.materialSelector}
                       >
                         <Color
-                          title={m.title}
+                          title={m.label}
                           color={m.color}
-                          key={`mat-${m.title}`}
+                          key={`mat-${m.label}`}
                         />
                         <Switch
                           className={style.materialSwitch}

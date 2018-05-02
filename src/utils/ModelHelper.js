@@ -134,7 +134,7 @@ function extractPadAsCellsFromCore(core) {
   let countPads = core.pad_azi_locs.length;
   while (countPads--) {
     // VERA wants angle counter-clockwise from positive-X.
-    const center = (core.pad_azi_locs[countPads] + 180) % 360;
+    const center = core.pad_azi_locs[countPads] % 360;
     const cell = {
       labelToUse: 'pad',
       label: 'pad',
