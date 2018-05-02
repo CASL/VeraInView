@@ -1,6 +1,7 @@
 import React from 'react';
 import CellEditor from './CellEditor';
 import RodEditor from './RodEditor';
+import MapEditor from './MapEditor';
 
 function registerLocalEditors(Simput) {
   if (Simput && Simput.updateWidgetMapping) {
@@ -16,6 +17,16 @@ function registerLocalEditors(Simput) {
     ));
     Simput.updateWidgetMapping('RodEditor', (prop, viewData, onChange) => (
       <RodEditor
+        key={prop.data.id}
+        data={prop.data}
+        ui={prop.ui}
+        viewData={viewData}
+        show={prop.show}
+        onChange={onChange || prop.onChange}
+      />
+    ));
+    Simput.updateWidgetMapping('MapEditor', (prop, viewData, onChange) => (
+      <MapEditor
         key={prop.data.id}
         data={prop.data}
         ui={prop.ui}
