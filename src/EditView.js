@@ -3,7 +3,16 @@ import 'antd/dist/antd.css';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Breadcrumb, Button, Icon, Layout, Menu, Switch, Upload } from 'antd';
+import {
+  Breadcrumb,
+  Button,
+  Icon,
+  Layout,
+  Menu,
+  message,
+  Switch,
+  Upload,
+} from 'antd';
 
 import macro from 'vtk.js/Sources/macro';
 
@@ -28,8 +37,6 @@ const { Header, Content, Sider } = Layout;
 const { capitalize } = macro;
 const { fuels, materials, defaultMaterial, initMaterials } = Materials;
 const { materialColorManager } = ImageGenerator;
-
-ImageGenerator.setLogger(console.log);
 
 const EDITORS = {
   Fuels: MaterialEditor,
@@ -159,6 +166,10 @@ GroupTitle.defaultProps = {
 export default class EditView extends React.Component {
   constructor(props) {
     super(props);
+
+    // only change the logger if we're created.
+    ImageGenerator.setLogger(console.log);
+
     initMaterials();
     TEMPLATES.cells.mats[0] = defaultMaterial.label;
     this.state = {
@@ -364,6 +375,8 @@ export default class EditView extends React.Component {
 
   parseFile(file) {
     this.setState({ title: file.name, file });
+    // visible logger when loading, but avoid duplicate messages
+    ImageGenerator.setLogger(macro.debounce(message.info, 10));
     ModelHelper.parseFile(file, this.props.imageSize, (newState) => {
       if (newState.materials) {
         Materials.addMaterials(newState.materials);
@@ -457,6 +470,7 @@ export default class EditView extends React.Component {
           assemblies: newAssemblies,
           params,
         });
+        window.setTimeout(() => ImageGenerator.setLogger(console.log), 15);
       }
       if (newState.core) {
         params.numAssemblies = newState.core.numAssemblies;
