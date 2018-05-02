@@ -16,10 +16,11 @@ const PALETTE = [
   [255 / 255, 255 / 255, 179 / 255, 1], // light yellow
 ];
 
+// default alpha of 1 (opaque)
 function toRGBA(color) {
   return `rgba(${Math.floor(color[0] * 255)}, ${Math.floor(
     color[1] * 255
-  )}, ${Math.floor(color[2] * 255)}, ${color[3]})`;
+  )}, ${Math.floor(color[2] * 255)}, ${color[3] === undefined ? 1 : color[3]})`;
 }
 
 function createColorManager(palette = PALETTE) {
@@ -60,7 +61,8 @@ function createColorManager(palette = PALETTE) {
       }
       if (!colorInfo[rgba]) {
         colorInfo[rgba] = {
-          color,
+          // default alpha of 1 (opaque)
+          color: color[3] === undefined ? color.concat(1) : color,
           names: [],
         };
       }
