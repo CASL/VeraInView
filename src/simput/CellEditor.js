@@ -26,7 +26,6 @@ export default class CellEditor extends React.Component {
 
     this.state = {
       imageSize: 512,
-      pinPitch: 1.6,
     };
 
     this.cellViewer = vtkCellVTKViewer.newInstance();
@@ -64,13 +63,14 @@ export default class CellEditor extends React.Component {
     const { data } = this.props;
     if (data.value && data.value.length) {
       const cell = data.value[0];
+      const pitch = this.props.viewData.cell.pitch.value[0];
       this.cell = {
         num_rings: cell.mats.length,
         radii: cell.radii,
         mats: cell.mats,
       };
       updateLookupTables();
-      updateCellImage(this.cell, this.state.imageSize, this.state.pinPitch);
+      updateCellImage(this.cell, this.state.imageSize, pitch);
       this.cell.has3D.source.forceUpdate = true;
     }
   }
@@ -86,15 +86,13 @@ export default class CellEditor extends React.Component {
       const cell = data.value[0];
       const idx = afterIdx + 1;
       const length = cell.mats.length;
+      const pitch = this.props.viewData.cell.pitch.value[0];
 
       cell.mats.splice(idx, 0, cell.mats[idx - 1] || Object.keys(materials)[0]);
       cell.radii.splice(idx, 0, cell.radii[idx - 1] || 0);
 
       if (length === idx) {
-        cell.radii[idx] = Math.min(
-          cell.radii[idx] + 1,
-          this.state.pinPitch / 2
-        );
+        cell.radii[idx] = Math.min(cell.radii[idx] + 1, pitch / 2);
       } else {
         // set radius to between before and after cell
         cell.radii[idx] += (cell.radii[idx] - cell.radii[idx - 1]) / 2;
@@ -136,6 +134,7 @@ export default class CellEditor extends React.Component {
     const { data } = this.props;
     const materials =
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
+    const pitch = this.props.viewData.cell.pitch.value[0];
 
     const materialOptions = Object.keys(materials).map((id) => (
       <option key={id} value={id}>
@@ -198,7 +197,7 @@ export default class CellEditor extends React.Component {
       colors[key] = materials[key].color;
     });
     const cellData = {
-      pitch: this.state.pinPitch,
+      pitch,
       colors,
       layers: items,
     };
@@ -229,7 +228,7 @@ export default class CellEditor extends React.Component {
                     </span>
                   ) : null;
                 }}
-                overlayText={`Contact radius: ${this.state.pinPitch * 0.5}`}
+                overlayText={`Contact radius: ${pitch * 0.5}`}
                 onClick={() => {}}
               />
             </ReactCursorPosition>
@@ -251,7 +250,7 @@ CellEditor.propTypes = {
   onChange: PropTypes.func.isRequired,
   // show: PropTypes.func.isRequired,
   ui: PropTypes.object.isRequired,
-  // viewData: PropTypes.object.isRequired,
+  viewData: PropTypes.object.isRequired,
 };
 
 CellEditor.defaultProps = {
