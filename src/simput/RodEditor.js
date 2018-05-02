@@ -8,6 +8,8 @@ import VTKWidget from '../widgets/VTKWidget';
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
 import ColorManager from '../utils/ColorManager';
 
+import { zip } from './utils';
+
 import style from './RodEditor.mcss';
 
 export default class RodEditor extends React.Component {
@@ -29,7 +31,7 @@ export default class RodEditor extends React.Component {
     if (data.value && data.value.length) {
       const stack = data.value[0].stack;
       if (value in cells) {
-        stack[layer.key].label = value;
+        stack[layer.key].cell = value;
         this.props.onChange(data);
       }
     }
@@ -47,12 +49,13 @@ export default class RodEditor extends React.Component {
 
   addLayer(idx) {
     const data = this.props.data;
-    const cells = Object.keys(this.props.ui.domain.cells);
-    if (data.value && data.value.length && cells.length) {
+    const cells = this.props.ui.domain.cells;
+    if (data.value && data.value.length) {
       const stack = data.value[0].stack;
       const afterIdx = idx + 1;
       stack.splice(afterIdx, 0, {
-        label: cells[0],
+        // init layer with first cell
+        cell: Object.keys(cells)[0],
         length: 0,
       });
 
@@ -71,28 +74,28 @@ export default class RodEditor extends React.Component {
   }
 
   render() {
-    const cells = Object.keys(this.props.ui.domain.cells);
+    const { cells, materials } = this.props.ui.domain;
 
     const columns = [
       {
         key: 'cell',
-        dataKey: 'label',
+        dataKey: 'cell',
         label: 'Cell',
         classes: style.centeredCell,
-        render: (cellName, layer) => {
-          const color = this.props.ui.domain.cells[layer.label].color;
+        render: (cellId, layer) => {
+          const color = cells[cellId].color;
           // adds alpha channel
           const background = ColorManager.toRGBA(color.concat([1]));
           return (
             <select
               className={style.fullWidth}
               style={{ background }}
-              value={cellName}
+              value={cellId}
               onChange={(e) => this.onCellChange(layer, e.target.value)}
             >
-              {cells.map((name) => (
-                <option key={name} value={name}>
-                  {name}
+              {Object.keys(cells).map((id) => (
+                <option key={id} value={id}>
+                  {cells[id].name[0]}
                 </option>
               ))}
             </select>
@@ -120,13 +123,14 @@ export default class RodEditor extends React.Component {
     let items = [];
     if (this.props.data.value && this.props.data.value.length) {
       items = this.props.data.value[0].stack.map((layer, idx) => {
-        const color = this.props.ui.domain.cells[layer.label].color;
+        const color = cells[layer.cell].color;
         // adds alpha channel
         const background = ColorManager.toRGBA(color.concat([1]));
         return Object.assign(
           {
             key: idx,
             color: background,
+            label: cells[layer.cell].name[0],
           },
           layer
         );
@@ -163,20 +167,19 @@ export default class RodEditor extends React.Component {
     //   ],
     // }
     const colors = {};
-    Object.keys(this.props.ui.domain.materials).forEach((mat) => {
-      colors[mat] = this.props.ui.domain.materials[mat].color;
+    Object.values(materials).forEach((mat) => {
+      colors[mat.name] = mat.color;
     });
     const layers = this.props.data.value[0].stack.map((l) => ({
-      cell: l.label,
+      cell: cells[l.cell].name[0],
       length: l.length,
     }));
     const cellData = {};
-    Object.keys(this.props.ui.domain.cells).forEach((cellName) => {
-      cellData[cellName] = this.props.ui.domain.cells[
-        cellName
-      ].cell[0].mats.map((material, i) => ({
+    Object.keys(cells).forEach((id) => {
+      const { mats, radii } = cells[id].cell[0];
+      cellData[cells[id].name] = zip(mats, radii).map(([material, radius]) => ({
         material,
-        radius: this.props.ui.domain.cells[cellName].cell[0].radii[i],
+        radius,
       }));
     });
     const rodData = {

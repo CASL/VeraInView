@@ -11,21 +11,14 @@ import EditableList from '../widgets/EditableList';
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
 import ColorManager from '../utils/ColorManager';
 
+import { zip } from './utils';
+
 import style from './CellEditor.mcss';
 
 const { updateLookupTables, updateCellImage } = ImageGenerator;
 
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable react/no-array-index-key */
-
-function zip(...lists) {
-  const result = [];
-  const length = lists.reduce((min, l) => Math.min(min, l.length), Infinity);
-  for (let i = 0; i < length; ++i) {
-    result.push(lists.map((l) => l[i]));
-  }
-  return result;
-}
 
 export default class CellEditor extends React.Component {
   constructor(props) {
@@ -144,9 +137,9 @@ export default class CellEditor extends React.Component {
     const materials =
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
 
-    const materialOptions = Object.keys(materials).map((key) => (
-      <option key={key} value={materials[key].name}>
-        {materials[key].name}
+    const materialOptions = Object.keys(materials).map((id) => (
+      <option key={id} value={id}>
+        {materials[id].name[0]}
       </option>
     ));
 
@@ -155,13 +148,13 @@ export default class CellEditor extends React.Component {
         key: 'material',
         dataKey: 'material',
         label: 'Material',
-        render: (mat, item) => {
+        render: (matId, item) => {
           // adds on opaque alpha channel
-          const color = ColorManager.toRGBA(materials[mat].color.concat([1]));
+          const color = ColorManager.toRGBA(materials[matId].color.concat([1]));
           return (
             <select
               onChange={(e) => this.onMaterialChange(item, e.target.value)}
-              value={mat}
+              value={matId}
               className={style.material}
               style={{
                 backgroundColor: color,
