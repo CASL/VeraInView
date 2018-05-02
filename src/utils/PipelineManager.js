@@ -699,9 +699,9 @@ function vtkCASLPipelineManager(publicAPI, model) {
   publicAPI.resetCamera = () => {
     const focalPoint = model.camera.getFocalPoint();
     const position = [].concat(focalPoint);
-    const viewUp = [0, -1, 0];
-    // this matches 2D views, but puts the control rods under the core.
-    position[2] += -10;
+    // Set camera to match 2D views.
+    const viewUp = [0, 1, 0];
+    position[2] += 10;
     model.camera.set({ viewUp, position });
     model.renderer.resetCamera();
     model.interactorStyle2D.setCenterOfRotation(model.camera.getFocalPoint());
