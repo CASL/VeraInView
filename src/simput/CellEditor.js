@@ -1,11 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import ReactCursorPosition from 'react-cursor-position';
-
 import VTKWidget from '../widgets/VTKWidget';
-import ImageRenderer from '../widgets/ImageRenderer';
-import ImageGenerator from '../utils/ImageGenerator';
+import Cell2DPreview from '../widgets/Cell2DPreview';
 import EditableList from '../widgets/EditableList';
 
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
@@ -14,8 +11,6 @@ import ColorManager from '../utils/ColorManager';
 import { zip } from './utils';
 
 import style from './CellEditor.mcss';
-
-const { updateLookupTables, updateCellImage } = ImageGenerator;
 
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable react/no-array-index-key */
@@ -35,8 +30,6 @@ export default class CellEditor extends React.Component {
     this.onRadiusChange = this.onRadiusChange.bind(this);
     this.deleteEntry = this.deleteEntry.bind(this);
     this.validateOrder = this.validateOrder.bind(this);
-
-    this.updateCellRendering = this.updateCellRendering.bind(this);
   }
 
   onMaterialChange(item, value) {
@@ -56,22 +49,6 @@ export default class CellEditor extends React.Component {
       cell.radii[item.key] = Number(value);
 
       this.props.onChange(data);
-    }
-  }
-
-  updateCellRendering() {
-    const { data } = this.props;
-    if (data.value && data.value.length) {
-      const cell = data.value[0];
-      const pitch = this.props.viewData.cell.pitch.value[0];
-      this.cell = {
-        num_rings: cell.mats.length,
-        radii: cell.radii,
-        mats: cell.mats,
-      };
-      updateLookupTables();
-      updateCellImage(this.cell, this.state.imageSize, pitch);
-      this.cell.has3D.source.forceUpdate = true;
     }
   }
 
@@ -129,8 +106,6 @@ export default class CellEditor extends React.Component {
   }
 
   render() {
-    this.updateCellRendering();
-
     const { data } = this.props;
     const materials =
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
@@ -213,25 +188,18 @@ export default class CellEditor extends React.Component {
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
-            <ReactCursorPosition>
-              <ImageRenderer
-                content={this.cell.imageSrc}
-                getImageInfo={(posx, posy) => {
-                  const mat = ImageGenerator.getCellMaterial(
-                    this.cell,
-                    posx,
-                    posy
-                  );
-                  return mat ? (
-                    <span>
-                      {mat.radius} cm <br /> {mat.mat}
-                    </span>
-                  ) : null;
-                }}
-                overlayText={`Contact radius: ${pitch * 0.5}`}
-                onClick={() => {}}
-              />
-            </ReactCursorPosition>
+            <Cell2DPreview
+              cellData={cellData}
+              tooltipFormat={(mat) =>
+                mat ? (
+                  <span>
+                    {mat.radius} cm
+                    <br />
+                    {materials[mat.material].name[0]}
+                  </span>
+                ) : null
+              }
+            />
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
