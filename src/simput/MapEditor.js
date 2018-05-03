@@ -3,22 +3,71 @@ import PropTypes from 'prop-types';
 
 import GridMapWidget from '../widgets/GridMapWidget';
 
-export default function MapEditor(props) {
-  console.log(props.data);
-  return (
-    <GridMapWidget
-      gridSize={props.ui.domain.assemblySize}
-      items={Object.keys(props.ui.domain.rodsNames)}
-      itemRendererProps={{
-        mapping: props.ui.domain.rodsNames,
-        colors: props.ui.domain.rodsColors,
-      }}
-      emptyItem="-"
-      onChange={props.onChange}
-      grid={props.data.value || []}
-      data={props.data}
-    />
-  );
+export default class MapEditor extends React.Component {
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.data.value[0].grid !== prevState.grid) {
+      if (
+        !nextProps.data.value[0].grid ||
+        nextProps.data.value[0].grid.join(':') !== prevState.grid.join(':')
+      ) {
+        return Object.assign(
+          {
+            grid: [],
+            symmetry: 3,
+            replacementMode: 0,
+          },
+          nextProps.data.value[0]
+        );
+      }
+    }
+    return null;
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = Object.assign(
+      {
+        grid: [],
+        symmetry: 3,
+        replacementMode: 0,
+      },
+      props.data.value[0]
+    );
+
+    this.onChange = this.onChange.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const nextState = MapEditor.getDerivedStateFromProps(nextProps, this.state);
+    if (nextState) {
+      this.setState(nextState);
+    }
+  }
+
+  onChange(state) {
+    this.setState(state);
+    if (!this.props.data.value) {
+      this.props.data.value = [];
+    }
+    this.props.data.value[0] = state;
+    this.props.onChange(this.props.data);
+  }
+
+  render() {
+    return (
+      <GridMapWidget
+        gridSize={this.props.ui.domain.assemblySize}
+        items={Object.keys(this.props.ui.domain.rodsNames)}
+        itemRendererProps={{
+          mapping: this.props.ui.domain.rodsNames,
+          colors: this.props.ui.domain.rodsColors,
+        }}
+        emptyItem="-"
+        onChange={this.onChange}
+        state={this.state}
+      />
+    );
+  }
 }
 
 MapEditor.propTypes = {

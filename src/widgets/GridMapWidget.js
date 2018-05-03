@@ -49,12 +49,16 @@ export default class GridMapWidget extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      action: 'nothin',
+      selected: null,
     };
-    this.gridMap = vtkGridMap.newInstance({
-      gridSize: props.gridSize,
-      grid: props.grid,
-    });
+    this.gridMap = vtkGridMap.newInstance(
+      Object.assign(
+        {
+          gridSize: props.gridSize,
+        },
+        props.state
+      )
+    );
     this.gridStyle = {
       gridTemplateColumns: `repeat(${props.gridSize}, calc(${100 /
         props.gridSize}% - 2px))`,
@@ -68,6 +72,16 @@ export default class GridMapWidget extends React.Component {
     this.subscription = this.gridMap.onModified(() => {
       this.forceUpdate();
     });
+  }
+
+  componentDidUpdate() {
+    if (this.gridMap.getReferenceByName('grid') !== this.props.state.grid) {
+      this.gridMap.setGrid(this.props.state.grid);
+      this.gridMap.setSymmetry(this.props.state.symmetry);
+      this.gridMap.setReplacementMode(this.props.state.replacementMode);
+      this.gridMap.setGridSize(this.props.gridSize);
+      this.pushChanges();
+    }
   }
 
   componentWillUnmount() {
@@ -86,14 +100,18 @@ export default class GridMapWidget extends React.Component {
         this.state.selected
       );
     }
-    this.setState({ lastClick: idx });
-    this.props.data.value = this.gridMap.getGrid();
-    this.props.onChange(this.props.data);
+    this.pushChanges();
   }
 
   onSelectItem(e) {
-    console.log(e.currentTarget.dataset.item);
     this.setState({ selected: e.currentTarget.dataset.item });
+  }
+
+  pushChanges() {
+    const grid = this.gridMap.getReferenceByName('grid');
+    this.props.onChange(
+      Object.assign({ grid }, this.gridMap.get('symmetry', 'replacementMode'))
+    );
   }
 
   udpateMode(e) {
@@ -222,8 +240,7 @@ GridMapWidget.propTypes = {
   items: PropTypes.array,
   emptyItem: PropTypes.string,
   onChange: PropTypes.func,
-  grid: PropTypes.array,
-  data: PropTypes.object,
+  state: PropTypes.object,
 };
 
 GridMapWidget.defaultProps = {
@@ -233,6 +250,9 @@ GridMapWidget.defaultProps = {
   items: [],
   emptyItem: '-',
   onChange: () => {},
-  grid: [],
-  data: {},
+  state: {
+    grid: [],
+    symmetry: 3,
+    replacementMode: 0,
+  },
 };

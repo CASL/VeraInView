@@ -110,6 +110,15 @@ function vtkGridMap(publicAPI, model) {
     return false;
   };
 
+  publicAPI.setGrid = (grid) => {
+    model.grid = grid || [];
+    const totalSize = model.gridSize * model.gridSize;
+    while (model.grid.length < totalSize) {
+      model.grid.push(model.emptyItem);
+    }
+    publicAPI.modified();
+  };
+
   if (!model.grid) {
     publicAPI.setGridSize(model.gridSize);
   } else {
