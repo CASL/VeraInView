@@ -48,6 +48,7 @@ function getFullMap(rodmap, params) {
   });
   let mapSize = numPins;
   const halfPins = Math.ceil(numPins * 0.5);
+  const even = mapSize % 2 === 0;
   if (symmetry === 'oct' || symmetry === 'quad') {
     // mapSize = halfPins * (halfPins + 1) / 2;
     mapSize = halfPins;
@@ -75,13 +76,13 @@ function getFullMap(rodmap, params) {
     // we have the bottom-right - add the bottom-left, as a mirror
     for (let j = 0; j < halfPins; ++j) {
       cellMap[j] = cellMap[j]
-        .slice(1)
+        .slice(even ? 0 : 1)
         .reverse()
         .concat(cellMap[j]);
     }
     // add the top half, mirrored.
     cellMap = cellMap
-      .slice(1) // this is a copy, with the duplicate center row dropped.
+      .slice(even ? 0 : 1) // this is a copy, with the duplicate center row dropped.
       .reverse()
       .concat(cellMap);
   }
