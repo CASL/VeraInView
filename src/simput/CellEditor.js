@@ -111,11 +111,21 @@ export default class CellEditor extends React.Component {
       'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
     const pitch = this.props.viewData.cell.pitch.value[0];
 
-    const materialOptions = Object.keys(materials).map((id) => (
-      <option key={id} value={id}>
-        {materials[id].name[0]}
-      </option>
-    ));
+    const materialOptions = Object.keys(materials).map((id) => {
+      // adds on opaque alpha channel
+      const color = ColorManager.toRGBA(materials[id].color.concat([1]));
+      return (
+        <option
+          key={id}
+          value={id}
+          style={{
+            background: color,
+          }}
+        >
+          {materials[id].name[0]}
+        </option>
+      );
+    });
 
     const columns = [
       {

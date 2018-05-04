@@ -93,11 +93,14 @@ export default class RodEditor extends React.Component {
               value={cellId}
               onChange={(e) => this.onCellChange(layer, e.target.value)}
             >
-              {Object.keys(cells).map((id) => (
-                <option key={id} value={id}>
-                  {cells[id].name[0]}
-                </option>
-              ))}
+              {Object.keys(cells).map((id) => {
+                const bg = ColorManager.toRGBA(cells[id].color.concat([1]));
+                return (
+                  <option key={id} value={id} style={{ background: bg }}>
+                    {cells[id].name[0]}
+                  </option>
+                );
+              })}
             </select>
           );
         },
