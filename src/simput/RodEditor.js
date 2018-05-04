@@ -170,8 +170,8 @@ export default class RodEditor extends React.Component {
     //   ],
     // }
     const colors = {};
-    Object.values(materials).forEach((mat) => {
-      colors[mat.name] = mat.color;
+    Object.keys(materials).forEach((id) => {
+      colors[id] = materials[id].color;
     });
     const layers = this.props.data.value[0].stack.map((l) => ({
       cell: cells[l.cell].name[0],
