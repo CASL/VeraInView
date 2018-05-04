@@ -246,7 +246,7 @@ function updateLayoutImage(
         ctx.lineTo(center, center);
         ctx.lineTo(center, 0);
         ctx.stroke();
-      } else if (item.symmetry === 'quad') {
+      } else if (item.symmetry === 'quad_mir' || item.symmetry === 'quad_rot') {
         ctx.beginPath();
         ctx.moveTo(center, 0);
         ctx.lineTo(center, center);

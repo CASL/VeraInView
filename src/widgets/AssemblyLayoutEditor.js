@@ -101,7 +101,7 @@ export default class AssemblyLayoutEditor extends React.Component {
       });
     } else {
       item.cell_map[index] = this.state.paintCell;
-      if (item.symmetry === 'oct' || item.symmetry === 'quad') {
+      if (item.symmetry !== 'none') {
         // replace other cells based on symmetry.
         this.getSymCells(i, j).forEach((k) => {
           item.cell_map[k] = this.state.paintCell;
@@ -132,24 +132,27 @@ export default class AssemblyLayoutEditor extends React.Component {
     let i = inI;
     let j = inJ;
     // i, j are from upper-left, coords in full cell map.
-    // Mirror to upper quad.
+    // Mirror to all quads/octs.
     const numPins = this.getNumPins();
     const { symmetry } = this.props.content;
-    const halfPins = Math.floor(numPins * 0.5);
-    if (i > halfPins) i = numPins - i - 1;
-    if (j > halfPins) j = numPins - j - 1;
-    if (symmetry === 'oct' && i < j) {
-      // swap - we want the upper-right triangle.
-      const k = i;
-      i = j;
-      j = k;
-    }
-    let result = [
-      j * numPins + i,
-      j * numPins + (numPins - i - 1),
-      (numPins - j - 1) * numPins + i,
-      (numPins - j - 1) * numPins + (numPins - i - 1),
-    ];
+
+    const iComp = numPins - i - 1;
+    const jComp = numPins - j - 1;
+
+    let result =
+      symmetry === 'quad_mir'
+        ? [
+            j * numPins + i,
+            j * numPins + iComp,
+            jComp * numPins + i,
+            jComp * numPins + iComp,
+          ]
+        : [
+            j * numPins + i,
+            i * numPins + jComp,
+            iComp * numPins + j,
+            jComp * numPins + iComp,
+          ];
     if (symmetry === 'oct' && i !== j) {
       // swap and repeat for octant mirror.
       const k = i;
@@ -157,9 +160,9 @@ export default class AssemblyLayoutEditor extends React.Component {
       j = k;
       result = result.concat([
         j * numPins + i,
-        j * numPins + (numPins - i - 1),
-        (numPins - j - 1) * numPins + i,
-        (numPins - j - 1) * numPins + (numPins - i - 1),
+        j * numPins + iComp,
+        jComp * numPins + i,
+        jComp * numPins + iComp,
       ]);
     }
     return result;
@@ -286,8 +289,11 @@ export default class AssemblyLayoutEditor extends React.Component {
               <Radio.Button data-id="symmetry" value="oct">
                 Octant
               </Radio.Button>
-              <Radio.Button data-id="symmetry" value="quad">
-                Quadrant
+              <Radio.Button data-id="symmetry" value="quad_rot">
+                Quadrant Rotate
+              </Radio.Button>
+              <Radio.Button data-id="symmetry" value="quad_mir">
+                Quadrant Mirror
               </Radio.Button>
               <Radio.Button data-id="symmetry" value="none">
                 None

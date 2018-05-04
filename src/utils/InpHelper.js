@@ -17,7 +17,10 @@ function getTextMap(rodmap, params) {
         cellMap.slice(j * numPins + halfPins, j * numPins + j + 1).join(' ')
       );
     }
-  } else if (halfPins > 0 && symmetry === 'quad') {
+  } else if (
+    halfPins > 0 &&
+    (symmetry === 'quad_mir' || symmetry === 'quad_rot')
+  ) {
     for (let j = halfPins; j < numPins; ++j) {
       // i range is halfPins -> end of row
       map.push(
@@ -49,7 +52,7 @@ function getFullMap(rodmap, params) {
   let mapSize = numPins;
   const halfPins = Math.ceil(numPins * 0.5);
   const even = mapSize % 2 === 0;
-  if (symmetry === 'oct' || symmetry === 'quad') {
+  if (symmetry !== 'none') {
     // mapSize = halfPins * (halfPins + 1) / 2;
     mapSize = halfPins;
   }
@@ -72,8 +75,9 @@ function getFullMap(rodmap, params) {
       }
     }
   }
-  if (symmetry === 'oct' || symmetry === 'quad') {
+  if (symmetry === 'oct' || symmetry === 'quad_mir') {
     // we have the bottom-right - add the bottom-left, as a mirror
+    // odd maps drop the duplicate center item/row.
     for (let j = 0; j < halfPins; ++j) {
       cellMap[j] = cellMap[j]
         .slice(even ? 0 : 1)
@@ -82,9 +86,29 @@ function getFullMap(rodmap, params) {
     }
     // add the top half, mirrored.
     cellMap = cellMap
-      .slice(even ? 0 : 1) // this is a copy, with the duplicate center row dropped.
+      .slice(even ? 0 : 1)
       .reverse()
       .concat(cellMap);
+  } else if (symmetry === 'quad_rot') {
+    // we have the bottom-right - add the bottom-left, as a rotation
+    // odd maps drop the duplicate center item/row.
+    const bottomLeft = [];
+    for (let j = 0; j < halfPins; ++j) {
+      bottomLeft[j] = cellMap.slice(0);
+      for (let i = 0; i < halfPins; ++i) {
+        bottomLeft[j][i] = cellMap[halfPins - i - 1][j];
+      }
+    }
+    for (let j = 0; j < halfPins; ++j) {
+      cellMap[j] = bottomLeft[j].concat(cellMap[j].slice(even ? 0 : 1));
+    }
+    // add the top half, mirror + mirror rows works for rotation.
+    const topHalf = cellMap
+      .slice(even ? 0 : 1)
+      .reverse()
+      .map((row) => row.slice(0).reverse());
+
+    cellMap = topHalf.concat(cellMap);
   }
   // now flatten.
   return cellMap.reduce((p, row) => p.concat(row));
@@ -111,28 +135,20 @@ function setSymmetry(rodmap, params) {
     if (rodmap.type === 'coremaps') {
       padCellMap(rodmap, params);
     }
+    const symList = ['none', 'quad_mir', 'quad_rot', 'oct'];
     const saveTextMap = rodmap.cellMap;
-    rodmap.symmetry = 'oct';
+    rodmap.symmetry = symList.pop();
     rodmap.cellMap = getTextMap(rodmap, params);
     let testMap = getFullMap(rodmap, params);
-    if (
-      !rodmap.cell_map.reduce(
-        (prev, cell, i) => cell === testMap[i] && prev,
-        true
-      )
-    ) {
-      rodmap.symmetry = 'quad';
+    const doTest = (cellMap, test) =>
+      cellMap.reduce((prev, cell, i) => cell === test[i] && prev, true);
+
+    while (!doTest(rodmap.cell_map, testMap) && symList.length) {
+      rodmap.symmetry = symList.pop();
       rodmap.cellMap = getTextMap(rodmap, params);
-      testMap = getFullMap(rodmap, params);
-      if (
-        !rodmap.cell_map.reduce(
-          (prev, cell, i) => cell === testMap[i] && prev,
-          true
-        )
-      ) {
-        rodmap.symmetry = 'none';
-        rodmap.cellMap = saveTextMap || getTextMap(rodmap, params);
-      }
+      // special handling if we get to 'none'
+      if (symList.length) testMap = getFullMap(rodmap, params);
+      else rodmap.cellMap = saveTextMap || rodmap.cellMap;
     }
   }
 }
