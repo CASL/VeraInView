@@ -49,18 +49,25 @@ export default class MapEditor extends React.Component {
     if (!this.props.data.value) {
       this.props.data.value = [];
     }
-    this.props.data.value[0] = state;
+    this.props.data.value[0] = Object.assign(this.props.data.value[0], state);
     this.props.onChange(this.props.data);
   }
 
   render() {
+    if (
+      !this.props.data.value ||
+      !this.props.data.value[0] ||
+      !this.props.data.value[0].config
+    )
+      return null;
+    const { size, names, colors } = this.props.data.value[0].config;
     return (
       <GridMapWidget
-        gridSize={this.props.ui.domain.assemblySize}
-        items={Object.keys(this.props.ui.domain.rodsNames)}
+        gridSize={this.props.ui.domain[size]}
+        items={Object.keys(this.props.ui.domain[names])}
         itemRendererProps={{
-          mapping: this.props.ui.domain.rodsNames,
-          colors: this.props.ui.domain.rodsColors,
+          mapping: this.props.ui.domain[names],
+          colors: this.props.ui.domain[colors],
         }}
         emptyItem="-"
         onChange={this.onChange}
