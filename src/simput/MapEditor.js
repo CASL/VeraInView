@@ -69,7 +69,6 @@ export default class MapEditor extends React.Component {
           mapping: this.props.ui.domain[names],
           colors: this.props.ui.domain[colors],
         }}
-        emptyItem="-"
         onChange={this.onChange}
         state={this.state}
       />

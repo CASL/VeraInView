@@ -169,7 +169,7 @@ function vtkGridMap(publicAPI, model) {
   const superSymmetry = publicAPI.setSymmetry;
   publicAPI.setSymmetry = (mode) => {
     if (superSymmetry(mode)) {
-      const range = Math.floor(model.gridSize / 2);
+      const range = Math.round(model.gridSize / 2 + 0.3);
       for (let j = 0; j < range; j++) {
         for (let i = 0; i < range; i++) {
           publicAPI.setGridEntry(i, j, publicAPI.getGridEntry(i, j));
@@ -194,7 +194,7 @@ function vtkGridMap(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   autoResetReplacementMode: true,
-  emptyItem: '-',
+  emptyItem: undefined,
   gridSize: 17,
   replacementMode: ReplacementMode.SINGLE,
   symmetry: SymmetryModes.NONE,

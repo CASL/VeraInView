@@ -17,14 +17,13 @@
   border: solid 1px #333;
   padding-top: 100%;
   position: relative;
-  opacity: 0.5;
   transition-timing-function: ease-in;
-  transition: opacity 0.5s
+  transition: opacity 0.5s;
 }
 
-.activeGridItem {
+.inactiveGridItem {
   composes: gridItem;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .inner {

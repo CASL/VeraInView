@@ -62,6 +62,7 @@ export default class GridMapWidget extends React.Component {
       Object.assign(
         {
           gridSize: props.gridSize,
+          emptyItem: '0',
         },
         props.state
       )
@@ -139,6 +140,7 @@ export default class GridMapWidget extends React.Component {
   }
 
   /* eslint-disable react/no-array-index-key */
+  /* eslint-disable no-nested-ternary */
   render() {
     const axisIds = this.gridMap.getSymmetryAxialIndices();
     const { itemRenderer: Item, itemRendererProps } = this.props;
@@ -242,8 +244,8 @@ export default class GridMapWidget extends React.Component {
               className={
                 this.state.activeIds.length &&
                 this.state.activeIds.indexOf(i) === -1
-                  ? style.gridItem
-                  : style.activeGridItem
+                  ? style.inactiveGridItem
+                  : style.gridItem
               }
               onClick={this.onClick}
               onMouseEnter={this.onEnter}
@@ -253,7 +255,15 @@ export default class GridMapWidget extends React.Component {
                 className={style.inner}
                 style={axisIds.indexOf(i) !== -1 ? SYMMETRY_STYLE : null}
               >
-                <Item value={v} {...itemRendererProps} />
+                <Item
+                  value={
+                    this.state.activeIds.length &&
+                    this.state.activeIds.indexOf(i) !== -1
+                      ? this.state.selected
+                      : v
+                  }
+                  {...itemRendererProps}
+                />
               </div>
             </div>
           ))}
@@ -268,7 +278,6 @@ GridMapWidget.propTypes = {
   itemRendererProps: PropTypes.object,
   gridSize: PropTypes.number,
   items: PropTypes.array,
-  emptyItem: PropTypes.string,
   onChange: PropTypes.func,
   state: PropTypes.object,
 };
@@ -278,7 +287,6 @@ GridMapWidget.defaultProps = {
   itemRendererProps: {},
   gridSize: 15,
   items: [],
-  emptyItem: '-',
   onChange: () => {},
   state: {
     grid: [],
