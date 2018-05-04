@@ -14,9 +14,17 @@
 
 .gridItem {
   align-self: stretch;
-  border: solid 1px #aaa;
+  border: solid 1px #333;
   padding-top: 100%;
   position: relative;
+  opacity: 0.5;
+  transition-timing-function: ease-in;
+  transition: opacity 0.5s
+}
+
+.activeGridItem {
+  composes: gridItem;
+  opacity: 1;
 }
 
 .inner {
@@ -31,6 +39,7 @@
   justify-content: center;
   text-overflow: ellipsis;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .legend {

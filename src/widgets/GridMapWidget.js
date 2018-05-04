@@ -9,6 +9,12 @@ const LEFT_BORDER = { borderRadius: '5px 0 0 5px' };
 const MIDDLE_BORDER = { borderLeft: 'none' };
 const RIGHT_BORDER = { borderRadius: '0 5px 5px 0', borderLeft: 'none' };
 
+const SYMMETRY_STYLE = {
+  border: 'solid 2px #333',
+  // outline: 'solid 2px #333',
+  borderRadius: '5px',
+};
+
 // ----------------------------------------------------------------------------
 
 export function TextRenderer(props) {
@@ -49,6 +55,7 @@ export default class GridMapWidget extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      activeIds: [],
       selected: null,
     };
     this.gridMap = vtkGridMap.newInstance(
@@ -66,6 +73,8 @@ export default class GridMapWidget extends React.Component {
     this.onClick = this.onClick.bind(this);
     this.onSelectItem = this.onSelectItem.bind(this);
     this.udpateMode = this.udpateMode.bind(this);
+    this.onEnter = this.onEnter.bind(this);
+    this.onLeave = this.onLeave.bind(this);
   }
 
   componentDidMount() {
@@ -89,6 +98,16 @@ export default class GridMapWidget extends React.Component {
       this.subscription.unsubscribe();
       this.subscription = null;
     }
+  }
+
+  onEnter(e) {
+    const idx = Number(e.currentTarget.dataset.idx);
+    const activeIds = this.gridMap.getIndices(idx);
+    this.setState({ activeIds });
+  }
+
+  onLeave() {
+    this.setState({ activeIds: [] });
   }
 
   onClick(e) {
@@ -121,6 +140,7 @@ export default class GridMapWidget extends React.Component {
 
   /* eslint-disable react/no-array-index-key */
   render() {
+    const axisIds = this.gridMap.getSymmetryAxialIndices();
     const { itemRenderer: Item, itemRendererProps } = this.props;
     return (
       <div className={style.container}>
@@ -219,10 +239,20 @@ export default class GridMapWidget extends React.Component {
             <div
               key={i}
               data-idx={i}
-              className={style.gridItem}
+              className={
+                this.state.activeIds.length &&
+                this.state.activeIds.indexOf(i) === -1
+                  ? style.gridItem
+                  : style.activeGridItem
+              }
               onClick={this.onClick}
+              onMouseEnter={this.onEnter}
+              onMouseLeave={this.onLeave}
             >
-              <div className={style.inner}>
+              <div
+                className={style.inner}
+                style={axisIds.indexOf(i) !== -1 ? SYMMETRY_STYLE : null}
+              >
                 <Item value={v} {...itemRendererProps} />
               </div>
             </div>

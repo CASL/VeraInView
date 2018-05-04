@@ -119,6 +119,65 @@ function vtkGridMap(publicAPI, model) {
     publicAPI.modified();
   };
 
+  publicAPI.indexToIJ = (idx) => [
+    idx % model.gridSize,
+    Math.floor(idx / model.gridSize),
+  ];
+
+  publicAPI.ijToIndex = (ij) => ij[0] + model.gridSize * ij[1];
+
+  publicAPI.getIndices = (idx) => {
+    if (model.replacementMode === ReplacementMode.ALL) {
+      const value = model.grid[idx];
+      const ids = [];
+      for (let i = 0; i < model.grid.length; i++) {
+        if (model.grid[i] === value) {
+          ids.push(i);
+        }
+      }
+      return ids;
+    }
+
+    const fn = SymmetryFn[model.symmetry] || none;
+    const list = fn(model.gridSize, ...publicAPI.indexToIJ(idx));
+    return list.map(publicAPI.ijToIndex);
+  };
+
+  /* eslint-disable default-case */
+  /* eslint-disable no-fallthrough */
+  publicAPI.getSymmetryAxialIndices = () => {
+    const idx = [];
+    const quadOffset = (model.gridSize - 1) / 2;
+    switch (model.symmetry) {
+      case SymmetryModes.OCTANT:
+        for (let i = 0; i < model.gridSize; i++) {
+          idx.push(i + i * model.gridSize);
+          idx.push(model.gridSize - i - 1 + i * model.gridSize);
+        }
+      case SymmetryModes.QUADRANT_MIRROR:
+      case SymmetryModes.QUADRANT_ROTATION:
+        for (let i = 0; i < model.gridSize; i++) {
+          idx.push(quadOffset + i * model.gridSize);
+          idx.push(i + quadOffset * model.gridSize);
+        }
+    }
+    return idx;
+  };
+  /* eslint-enable default-case */
+  /* eslint-enable no-fallthrough */
+
+  const superSymmetry = publicAPI.setSymmetry;
+  publicAPI.setSymmetry = (mode) => {
+    if (superSymmetry(mode)) {
+      const range = Math.floor(model.gridSize / 2);
+      for (let j = 0; j < range; j++) {
+        for (let i = 0; i < range; i++) {
+          publicAPI.setGridEntry(i, j, publicAPI.getGridEntry(i, j));
+        }
+      }
+    }
+  };
+
   if (!model.grid) {
     publicAPI.setGridSize(model.gridSize);
   } else {
