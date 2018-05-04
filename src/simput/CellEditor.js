@@ -112,8 +112,7 @@ export default class CellEditor extends React.Component {
     const pitch = this.props.viewData.cell.pitch.value[0];
 
     const materialOptions = Object.keys(materials).map((id) => {
-      // adds on opaque alpha channel
-      const color = ColorManager.toRGBA(materials[id].color.concat([1]));
+      const color = ColorManager.toRGBA(materials[id].color);
       return (
         <option
           key={id}
@@ -133,8 +132,7 @@ export default class CellEditor extends React.Component {
         dataKey: 'material',
         label: 'Material',
         render: (matId, item) => {
-          // adds on opaque alpha channel
-          const color = ColorManager.toRGBA(materials[matId].color.concat([1]));
+          const color = ColorManager.toRGBA(materials[matId].color);
           return (
             <select
               onChange={(e) => this.onMaterialChange(item, e.target.value)}

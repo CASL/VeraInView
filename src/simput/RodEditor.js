@@ -85,7 +85,7 @@ export default class RodEditor extends React.Component {
         render: (cellId, layer) => {
           const color = cells[cellId].color;
           // adds alpha channel
-          const background = ColorManager.toRGBA(color.concat([1]));
+          const background = ColorManager.toRGBA(color);
           return (
             <select
               className={style.fullWidth}
@@ -94,7 +94,7 @@ export default class RodEditor extends React.Component {
               onChange={(e) => this.onCellChange(layer, e.target.value)}
             >
               {Object.keys(cells).map((id) => {
-                const bg = ColorManager.toRGBA(cells[id].color.concat([1]));
+                const bg = ColorManager.toRGBA(cells[id].color);
                 return (
                   <option key={id} value={id} style={{ background: bg }}>
                     {cells[id].name[0]}
@@ -128,7 +128,7 @@ export default class RodEditor extends React.Component {
       items = this.props.data.value[0].stack.map((layer, idx) => {
         const color = cells[layer.cell].color;
         // adds alpha channel
-        const background = ColorManager.toRGBA(color.concat([1]));
+        const background = ColorManager.toRGBA(color);
         return Object.assign(
           {
             key: idx,
