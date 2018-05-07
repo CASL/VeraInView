@@ -24,9 +24,22 @@ function none(size, i, j) {
   return [[i, j]];
 }
 
+function quadrantMirror(size, i, j) {
+  const iComp = size - i - 1;
+  const jComp = size - j - 1;
+  return [[i, j], [iComp, j], [i, jComp], [iComp, jComp]];
+}
+
+function quadrantRotation(size, i, j) {
+  const iComp = size - i - 1;
+  const jComp = size - j - 1;
+  return [[i, j], [jComp, i], [j, iComp], [iComp, jComp]];
+}
+
 function octant(size, i, j) {
   const iComp = size - i - 1;
   const jComp = size - j - 1;
+  if (i === j) return quadrantMirror(size, i, j);
   return [
     [i, j],
     [iComp, j],
@@ -36,21 +49,6 @@ function octant(size, i, j) {
     [jComp, i],
     [j, iComp],
     [jComp, iComp],
-  ];
-}
-
-function quadrantMirror(size, i, j) {
-  const iComp = size - i - 1;
-  const jComp = size - j - 1;
-  return [[i, j], [iComp, j], [i, jComp], [iComp, jComp]];
-}
-
-function quadrantRotation(size, i, j) {
-  return [
-    [i, j],
-    [size - 1 - j, i],
-    [size - 1 - i, size - 1 - j],
-    [j, size - 1 - i],
   ];
 }
 

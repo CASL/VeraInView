@@ -213,7 +213,7 @@ function updateLayoutImage(
   const cellMap = item.cell_map;
   if (!cellMap || cellMap.length === 0) return;
   // default to match the input map, but interactive cell maps might be shorter
-  const width = numPins || Math.sqrt(cellMap.length);
+  const width = +numPins || Math.sqrt(cellMap.length);
   const recSide = Math.floor(size / width);
   const pointSets = {};
   const isCoreMap = item.type === 'coremaps';
@@ -246,7 +246,7 @@ function updateLayoutImage(
         ctx.lineTo(center, center);
         ctx.lineTo(center, 0);
         ctx.stroke();
-      } else if (item.symmetry === 'quad') {
+      } else if (item.symmetry === 'quad_mir' || item.symmetry === 'quad_rot') {
         ctx.beginPath();
         ctx.moveTo(center, 0);
         ctx.lineTo(center, center);
@@ -320,8 +320,9 @@ function updateLayoutImage(
     // console.log(...minmax);
     for (let j = 0; j <= width; j++) {
       const halfJ = j < width / 2 ? j : width - j - 1;
+      const prevHalfJ = j - 1 < width / 2 ? j - 1 : width - j;
       // symmetric, top and bottom half. Not sure about non-symmetric assembly maps?
-      const [prevMin, prevMax] = minmax[j < width / 2 ? halfJ - 1 : halfJ + 1];
+      const [prevMin, prevMax] = minmax[prevHalfJ];
       let [minI, maxI] = minmax[halfJ];
       if (prevMax !== -1) {
         // cap the last full row.
