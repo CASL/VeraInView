@@ -13,6 +13,11 @@ const SYMMETRY_STYLE = {
   border: 'solid 2px #333',
   // outline: 'solid 2px #333',
   borderRadius: '5px',
+  top: '2px',
+  left: '2px',
+  right: '2px',
+  bottom: '2px',
+  overflow: 'hidden',
 };
 
 // ----------------------------------------------------------------------------
@@ -68,8 +73,8 @@ export default class GridMapWidget extends React.Component {
       )
     );
     this.gridStyle = {
-      gridTemplateColumns: `repeat(${props.gridSize}, calc(${100 /
-        props.gridSize}% - 2px))`,
+      gridTemplateColumns: `repeat(${props.gridSize}, ${100 /
+        props.gridSize}%)`,
     };
     this.onClick = this.onClick.bind(this);
     this.onSelectItem = this.onSelectItem.bind(this);
