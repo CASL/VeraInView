@@ -41,6 +41,10 @@ import style from './AssemblyEditor.mcss';
 //        { cell: 'C', length: 10 },
 //      ],
 //   },
+//   rodsOffset: {
+//     1: 0,
+//     2: 4.5,
+//   },
 //   map: {
 //     size: 17,
 //     grid: [1,2,1,2,1,2,1,2,1],
@@ -60,6 +64,7 @@ function generateData(ui, viewData) {
     colors: {},
     cells: {},
     rods: {},
+    rodsOffset: {},
     map: {
       size: assemblySize,
       grid,
@@ -92,6 +97,7 @@ function generateData(ui, viewData) {
   while (rodIds.length) {
     const rodId = rodIds.pop();
     result.rods[rodId] = rods[rodId].rodStack.rod.value[0].stack;
+    result.rodsOffset[rodId] = rods[rodId].rodInfo.offset.value[0] || 0;
   }
 
   return result;

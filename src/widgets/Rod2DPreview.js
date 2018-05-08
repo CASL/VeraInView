@@ -8,6 +8,7 @@ import style from './Rod2DPreview.mcss';
 export default function Rod2DPreview(props) {
   const remaining = Number(
     props.totalLength -
+      props.offset -
       props.stack.map((i) => i.length).reduce((a, b) => a + b, 0)
   ).toFixed(1);
   return (

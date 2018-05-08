@@ -127,6 +127,10 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   //        { cell: 'C', length: 10 },
   //      ],
   //   },
+  //   rodsOffset: {
+  //     1: 0,
+  //     2: 4.5,
+  //   },
   //   map: {
   //     size: 17,
   //     grid: [1,2,1,2,1,2,1,2,1],
@@ -137,7 +141,14 @@ function vtkRodMapVTKViewer(publicAPI, model) {
       return;
     }
 
-    const { pitch, colors, cells, rods, map: { size, grid } } = rodMap;
+    const {
+      pitch,
+      colors,
+      cells,
+      rods,
+      map: { size, grid },
+      rodsOffset,
+    } = rodMap;
     const matIdMapping = processColors(colors, model.lookupTable);
     const cellMap = processCells(cells, matIdMapping);
     const rodsCells = processRods(rods);
@@ -150,6 +161,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
       const x = (idx % size) * pitch;
       const y = Math.floor(idx / size) * pitch;
       const rod = rodsCells[grid[idx]];
+      const offset = rodsOffset[grid[idx]];
       if (rod) {
         const cellIds = Object.keys(rod);
         for (let cIdx = 0; cIdx < cellIds.length; cIdx++) {
@@ -159,7 +171,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
             const [z, length] = zList[zIdx];
             cell.center.push(x);
             cell.center.push(y);
-            cell.center.push(z);
+            cell.center.push(z + offset);
             cell.scale.push(1);
             cell.scale.push(1);
             cell.scale.push(length);
