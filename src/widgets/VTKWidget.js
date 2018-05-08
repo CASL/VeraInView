@@ -18,6 +18,7 @@ export default class VTKWidget extends React.Component {
       parallelRendering: false,
       capture: null,
       zSlider,
+      zScaling: props.zScaling,
     };
 
     // Functions for callback
@@ -43,7 +44,7 @@ export default class VTKWidget extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.props.viewer.setZScale(this.props.zScaling);
+    this.props.viewer.setZScale(this.state.zScaling);
     this.props.viewer.setData(nextProps.data);
   }
 
@@ -68,9 +69,9 @@ export default class VTKWidget extends React.Component {
   sliderZScale(e) {
     const zSlider = Number(e.target.value);
     const [a, b] = this.props.zRange;
-    this.setState({ zSlider });
-
     const zScaling = a + (b - a) * zSlider / 100;
+    this.setState({ zSlider, zScaling });
+
     this.props.viewer.setZScale(zScaling);
     this.resetCamera();
   }
