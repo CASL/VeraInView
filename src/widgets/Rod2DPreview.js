@@ -14,6 +14,15 @@ export default function Rod2DPreview(props) {
     <table className={style.container}>
       <tbody>
         <tr className={style.colors}>
+          {props.offset ? (
+            <td
+              className={style.last}
+              style={{
+                width: `${100 * props.offset / props.totalLength}%`,
+                textAlign: 'center',
+              }}
+            />
+          ) : null}
           {props.stack.map(({ color: background, length }, i) => (
             <td
               key={i}
@@ -29,6 +38,11 @@ export default function Rod2DPreview(props) {
           />
         </tr>
         <tr className={style.labels}>
+          {props.offset ? (
+            <td>
+              <label className={style.label} />
+            </td>
+          ) : null}
           {props.stack.map(({ label }, i) => (
             <td key={i}>
               <label className={style.label}>{label}</label>
@@ -44,11 +58,13 @@ export default function Rod2DPreview(props) {
 }
 
 Rod2DPreview.propTypes = {
+  offset: PropTypes.number,
   totalLength: PropTypes.number,
   stack: PropTypes.array,
 };
 
 Rod2DPreview.defaultProps = {
+  offset: 0,
   totalLength: 100,
   stack: [
     { color: '#447c69', label: 'A', length: 0.5 },

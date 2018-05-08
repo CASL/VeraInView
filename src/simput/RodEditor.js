@@ -145,6 +145,7 @@ export default class RodEditor extends React.Component {
     // rod = {
     //   name: '',
     //   pitch: 1.26,
+    //   offset: 0,
     //   totalLength: 400,
     //   colors: {
     //     mod: [0, 0, 0.5],
@@ -186,7 +187,8 @@ export default class RodEditor extends React.Component {
       }));
     });
     const rodData = {
-      pitch: 1.26, // FIXME...
+      pitch: this.props.ui.domain.assemblyPitch,
+      offset: this.props.viewData.rodInfo.offset.value[0] || 0,
       totalLength,
       colors,
       cells: cellData,
@@ -195,7 +197,11 @@ export default class RodEditor extends React.Component {
 
     return (
       <div>
-        <Rod2DPreview stack={items} totalLength={totalLength} />
+        <Rod2DPreview
+          stack={items}
+          offset={rodData.offset}
+          totalLength={totalLength}
+        />
         <div className={style.preview3d}>
           <VTKWidget
             viewer={this.rodViewer}

@@ -103,6 +103,7 @@ function vtkRodVTKViewer(publicAPI, model) {
   // rod = {
   //   name: '',
   //   pitch: 1.26,
+  //   offset: 0,
   //   totalLength: 400,
   //   colors: {
   //     mod: [0, 0, 0.5],
@@ -128,14 +129,14 @@ function vtkRodVTKViewer(publicAPI, model) {
   //   ],
   // }
   publicAPI.setData = (rod) => {
-    const { colors, cells, layers } = rod;
+    const { colors, cells, layers, offset: originalOffset } = rod;
     const matIdMapping = processColors(colors, model.lookupTable);
     const cellMap = processCells(cells, matIdMapping);
 
     publicAPI.removeAllActors();
     model.stack = [];
 
-    let offset = 0;
+    let offset = originalOffset;
     for (let i = 0; i < layers.length; i++) {
       const { cell, length } = layers[i];
       const { radius, cellFields } = cellMap[cell];
