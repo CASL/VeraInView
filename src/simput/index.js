@@ -3,6 +3,7 @@ import CellEditor from './CellEditor';
 import RodEditor from './RodEditor';
 import MapEditor from './MapEditor';
 import AssemblyEditor from './AssemblyEditor';
+import CoreEditor from './CoreEditor';
 
 function registerLocalEditors(Simput) {
   if (Simput && Simput.updateWidgetMapping) {
@@ -38,6 +39,16 @@ function registerLocalEditors(Simput) {
     ));
     Simput.updateWidgetMapping('AssemblyEditor', (prop, viewData, onChange) => (
       <AssemblyEditor
+        key={prop.data.id}
+        data={prop.data}
+        ui={prop.ui}
+        viewData={viewData}
+        show={prop.show}
+        onChange={onChange || prop.onChange}
+      />
+    ));
+    Simput.updateWidgetMapping('CoreEditor', (prop, viewData, onChange) => (
+      <CoreEditor
         key={prop.data.id}
         data={prop.data}
         ui={prop.ui}

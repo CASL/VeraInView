@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import VTKWidget from '../widgets/VTKWidget';
 import MapEditor from './MapEditor';
 
-import vtkRodMapVTKViewer from '../utils/RodMapVTKViewer';
+import vtkCoreMapVTKViewer from '../utils/CoreMapVTKViewer';
 
 import style from './AssemblyEditor.mcss';
 
 // viz = {
-//   selected: 'fuel',
+//   selected: 'A',
 //   names: {
 //     1: 'Water',
 //     5: 'Fuel assembly',
@@ -78,14 +78,14 @@ function convertToRGB(obj) {
   return rgbMap;
 }
 
-export default class AssemblyEditor extends React.Component {
+export default class CoreEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       is2D: true,
     };
 
-    this.assemblyViewer = vtkRodMapVTKViewer.newInstance();
+    this.coreViewer = vtkCoreMapVTKViewer.newInstance();
     this.onModeChange = this.onModeChange.bind(this);
   }
 
@@ -95,7 +95,6 @@ export default class AssemblyEditor extends React.Component {
   }
 
   render() {
-    console.log(this.props.data);
     const viz = this.props.ui.domain;
     const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
     return (
@@ -119,8 +118,8 @@ export default class AssemblyEditor extends React.Component {
         {this.state.is2D ? (
           <MapEditor
             data={this.props.data}
-            gridSize={viz.assembly[vizData.selected].size}
-            items={['0'].concat(Object.keys(viz.rods))}
+            gridSize={viz.core.size}
+            items={['0'].concat(Object.keys(viz.assembly))}
             names={viz.names}
             colors={convertToRGB(viz.colors)}
             onChange={this.props.onChange}
@@ -128,7 +127,7 @@ export default class AssemblyEditor extends React.Component {
         ) : (
           <div className={style.viewer}>
             <VTKWidget
-              viewer={this.assemblyViewer}
+              viewer={this.coreViewer}
               data={vizData}
               zRange={[1, 0.01]}
             />
@@ -139,7 +138,7 @@ export default class AssemblyEditor extends React.Component {
   }
 }
 
-AssemblyEditor.propTypes = {
+CoreEditor.propTypes = {
   data: PropTypes.object.isRequired,
   // help: PropTypes.string,
   // name: PropTypes.string,
@@ -149,7 +148,7 @@ AssemblyEditor.propTypes = {
   viewData: PropTypes.object.isRequired,
 };
 
-AssemblyEditor.defaultProps = {
+CoreEditor.defaultProps = {
   // name: '',
   // help: '',
 };

@@ -45,7 +45,13 @@ function processCells(cells, materialIds) {
       cellFields.push(materialIds.indexOf(material));
     }
 
-    cellMap[name] = { radius: radii, cellFields, center: [], scale: [] };
+    cellMap[name] = {
+      radius: radii,
+      cellFields,
+      center: [],
+      scale: [],
+      assembly: {},
+    };
   }
   return cellMap;
 }
@@ -71,6 +77,54 @@ function processRods(rods) {
     }
   }
   return rodsMap;
+}
+
+// ----------------------------------------------------------------------------
+
+function createGlyphPipeline(publicAPI, model, cellMap) {
+  publicAPI.removeAllActors();
+  model.stack = [];
+
+  const cellNames = Object.keys(cellMap);
+  for (let i = 0; i < cellNames.length; i++) {
+    const { lookupTable, sourceResolution } = model;
+    const { radius, cellFields, center, scale } = cellMap[cellNames[i]];
+
+    const source = vtkPolyData.newInstance();
+    source.getPoints().setData(Float32Array.from(center), 3);
+    source.getPointData().addArray(
+      vtkDataArray.newInstance({
+        name: 'scale',
+        values: Float32Array.from(scale),
+        numberOfComponents: 3,
+      })
+    );
+
+    const glyph = vtkConcentricCylinderSource.newInstance({
+      resolution: sourceResolution,
+      radius,
+      cellFields,
+    });
+
+    const mapper = vtkGlyph3DMapper.newInstance({
+      lookupTable,
+      useLookupTableScalarRange: true,
+      orient: false,
+      scaling: true,
+      scaleArray: 'scale',
+      scaleMode: vtkGlyph3DMapper.ScaleModes.SCALE_BY_COMPONENTS,
+    });
+    const actor = vtkActor.newInstance({ scale: [1, 1, model.zScaling] });
+
+    actor.getProperty().set(vtkVTKViewer.PROPERTY_SETTINGS);
+    actor.setMapper(mapper);
+    mapper.setInputData(source, 0);
+    mapper.setInputConnection(glyph.getOutputPort(), 1);
+
+    model.stack.push({ source, glyph, mapper, actor });
+    publicAPI.addActor(actor);
+  }
+  publicAPI.renderLater();
 }
 
 // ----------------------------------------------------------------------------
@@ -209,9 +263,6 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     const cellMap = processCells(cells, matIdMapping);
     const rodsCells = processRods(rods);
 
-    publicAPI.removeAllActors();
-    model.stack = [];
-
     // Fill cell centers
     for (let idx = 0; idx < grid.length; idx++) {
       const x = (idx % size) * pitch;
@@ -236,47 +287,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     }
 
     // create pipeline
-    const cellNames = Object.keys(cellMap);
-    for (let i = 0; i < cellNames.length; i++) {
-      const { lookupTable } = model;
-      const { radius, cellFields, center, scale } = cellMap[cellNames[i]];
-
-      const source = vtkPolyData.newInstance();
-      source.getPoints().setData(Float32Array.from(center), 3);
-      source.getPointData().addArray(
-        vtkDataArray.newInstance({
-          name: 'scale',
-          values: Float32Array.from(scale),
-          numberOfComponents: 3,
-        })
-      );
-
-      const glyph = vtkConcentricCylinderSource.newInstance({
-        resolution: 60,
-        radius,
-        cellFields,
-      });
-
-      const mapper = vtkGlyph3DMapper.newInstance({
-        lookupTable,
-        useLookupTableScalarRange: true,
-        orient: false,
-        scaling: true,
-        scaleArray: 'scale',
-        scaleMode: vtkGlyph3DMapper.ScaleModes.SCALE_BY_COMPONENTS,
-      });
-      const actor = vtkActor.newInstance({ scale: [1, 1, model.zScaling] });
-
-      actor.getProperty().set(vtkVTKViewer.PROPERTY_SETTINGS);
-      actor.setMapper(mapper);
-      mapper.setInputData(source, 0);
-      mapper.setInputConnection(glyph.getOutputPort(), 1);
-
-      model.stack.push({ source, glyph, mapper, actor });
-      publicAPI.addActor(actor);
-    }
-
-    publicAPI.renderLater();
+    createGlyphPipeline(publicAPI, model, cellMap);
   };
 
   publicAPI.resetCamera = () => {
@@ -294,7 +305,9 @@ function vtkRodMapVTKViewer(publicAPI, model) {
 // Object factory
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {};
+const DEFAULT_VALUES = {
+  sourceResolution: 60,
+};
 
 // ----------------------------------------------------------------------------
 
@@ -314,4 +327,11 @@ export const newInstance = macro.newInstance(extend, 'vtkRodMapVTKViewer');
 
 // ----------------------------------------------------------------------------
 
-export default { newInstance, extend };
+export default {
+  newInstance,
+  extend,
+  processColors,
+  processCells,
+  processRods,
+  createGlyphPipeline,
+};
