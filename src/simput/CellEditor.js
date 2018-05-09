@@ -181,12 +181,6 @@ export default class CellEditor extends React.Component {
 
     return (
       <div className={style.container}>
-        <EditableList
-          columns={columns}
-          data={items}
-          onAdd={this.addRadius}
-          onDelete={this.deleteEntry}
-        />
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
@@ -208,6 +202,12 @@ export default class CellEditor extends React.Component {
             <VTKWidget viewer={this.cellViewer} data={dataToRender} />
           </div>
         </div>
+        <EditableList
+          columns={columns}
+          data={items}
+          onAdd={this.addRadius}
+          onDelete={this.deleteEntry}
+        />
       </div>
     );
   }

@@ -4,8 +4,8 @@
 
 .switch {
   position: absolute;
-  top: -50px;
-  right: 15px;
+  top: -48px;
+  right: 5px;
 }
 
 .button {
