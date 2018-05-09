@@ -8,9 +8,14 @@ import vtkRodMapVTKViewer from '../utils/RodMapVTKViewer';
 
 import style from './AssemblyEditor.mcss';
 
-// rod = {
-//   name: '',
-//   pitch: 1.26,
+// viz = {
+//   selected: 'fuel',
+//   names: {
+//     1: 'Water',
+//     5: 'Fuel assembly',
+//     10: 'Core assembly',
+//   },
+//   cellPitch: 1.26,
 //   colors: {
 //     mod: [0, 0, 0.5],
 //     he: [0, 0.5, 0.3],
@@ -19,88 +24,58 @@ import style from './AssemblyEditor.mcss';
 //   },
 //   cells: {
 //      A: [
-//         { material: 'mod', radius: 0.2 },
-//         { material: 'he', radius: 0.3 },
-//         { material: 'zirc', radius: 0.4 },
-//         { material: 'ss', radius: 0.5 },
+//        { material: 'mod', radius: 0.2 },
+//        { material: 'he', radius: 0.3 },
+//        { material: 'zirc', radius: 0.4 },
+//        { material: 'ss', radius: 0.5 },
 //      ],
 //      B: [],
 //      C: [],
 //   },
 //   rods: {
-//      1: [
-//        { cell: 'A', length: 10 },
-//        { cell: 'B', length: 200 },
-//        { cell: 'A', length: 5 },
-//        { cell: 'C', length: 10 },
-//      ],
-//      2: [
-//        { cell: 'A', length: 10 },
-//        { cell: 'B', length: 200 },
-//        { cell: 'A', length: 5 },
-//        { cell: 'C', length: 10 },
-//      ],
+//     insert: {
+//       offset: 10,
+//       length: 400,
+//       cells: [
+//         { cell: 'A', length: 10 },
+//         { cell: 'B', length: 200 },
+//         { cell: 'A', length: 5 },
+//         { cell: 'C', length: 10 },
+//       ],
+//     },
+//     control: {
+//       ...
+//     }
 //   },
-//   rodsOffset: {
-//     1: 0,
-//     2: 4.5,
+//   assembly: {
+//     fuel: {
+//       pitch: 1.27,
+//       size: 17,
+//       grid: [1,2,1,2,1,2,1,2,1],
+//     },
+//     insert: {
+//       pitch: 1.27,
+//       size: 17,
+//       grid: [1,2,1,2,1,2,1,2,1],
+//     }
 //   },
-//   map: {
-//     size: 17,
-//     grid: [1,2,1,2,1,2,1,2,1],
+//   core: {
+//     pitch: 25,
+//     size: 15,
+//     gridAssembly: [10,20,10,20,10,20,10,20,10],
+//     gridInsertControls: [10,20,10,20,10,20,10,20,10],
+//     gridDetectors: [10,20,10,20,10,20,10,20,10],
 //   },
 // }
 
-function generateData(ui, viewData) {
-  const { assemblyPitch, assemblySize, cells, materials, rods } = ui.domain;
-  const { grid } = viewData.rodMap.map.value[0] || {};
-
-  if (!grid) {
-    return null;
+function convertToRGB(obj) {
+  const rgbMap = {};
+  const keys = Object.keys(obj);
+  while (keys.length) {
+    const key = keys.pop();
+    rgbMap[key] = `rgb(${obj[key].map((i) => Math.floor(i * 255))})`;
   }
-  // Fill data model
-  const result = {
-    pitch: assemblyPitch,
-    colors: {},
-    cells: {},
-    rods: {},
-    rodsOffset: {},
-    map: {
-      size: assemblySize,
-      grid,
-    },
-  };
-
-  // Handle colors
-  const matIds = Object.keys(materials);
-  while (matIds.length) {
-    const matId = matIds.pop();
-    result.colors[matId] = materials[matId].color;
-  }
-
-  // Handle cells
-  const cellIds = Object.keys(cells);
-  while (cellIds.length) {
-    const cellId = cellIds.pop();
-    const cellSpec = cells[cellId].cell[0];
-    result.cells[cellId] = [];
-    for (let i = 0; i < cellSpec.mats.length; i++) {
-      result.cells[cellId].push({
-        material: cellSpec.mats[i],
-        radius: cellSpec.radii[i],
-      });
-    }
-  }
-
-  // Handle rods
-  const rodIds = Object.keys(rods);
-  while (rodIds.length) {
-    const rodId = rodIds.pop();
-    result.rods[rodId] = rods[rodId].rodStack.rod.value[0].stack;
-    result.rodsOffset[rodId] = rods[rodId].rodInfo.offset.value[0] || 0;
-  }
-
-  return result;
+  return rgbMap;
 }
 
 export default class AssemblyEditor extends React.Component {
@@ -120,6 +95,8 @@ export default class AssemblyEditor extends React.Component {
   }
 
   render() {
+    const viz = this.props.ui.domain;
+    const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
     return (
       <div className={style.container}>
         <div className={style.switch}>
@@ -141,14 +118,17 @@ export default class AssemblyEditor extends React.Component {
         {this.state.is2D ? (
           <MapEditor
             data={this.props.data}
-            ui={this.props.ui}
+            gridSize={viz.assembly[vizData.selected].size}
+            items={['0'].concat(Object.keys(viz.rods))}
+            names={viz.names}
+            colors={convertToRGB(viz.colors)}
             onChange={this.props.onChange}
           />
         ) : (
           <div className={style.viewer}>
             <VTKWidget
               viewer={this.assemblyViewer}
-              data={generateData(this.props.ui, this.props.viewData)}
+              data={vizData}
               zRange={[1, 0.01]}
             />
           </div>

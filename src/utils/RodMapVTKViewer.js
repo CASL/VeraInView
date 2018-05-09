@@ -57,11 +57,12 @@ function processRods(rods) {
   const ids = Object.keys(rods);
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i];
+    const rod = rods[id];
     const cellMap = {};
     rodsMap[id] = cellMap;
-    let currentZ = 0;
-    for (let j = 0; j < rods[id].length; j++) {
-      const { cell, length } = rods[id][j];
+    let currentZ = rod.offset;
+    for (let j = 0; j < rod.cells.length; j++) {
+      const { cell, length } = rod.cells[j];
       if (!cellMap[cell]) {
         cellMap[cell] = [];
       }
@@ -136,19 +137,74 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   //     grid: [1,2,1,2,1,2,1,2,1],
   //   },
   // }
-  publicAPI.setData = (rodMap) => {
-    if (!rodMap) {
+  // ==========================================================================
+  // viz = {
+  //   selected: 'A',
+  //   names: {
+  //     1: 'Water',
+  //     5: 'Fuel assembly',
+  //     10: 'Core assembly',
+  //   },
+  //   cellPitch: 1.26,
+  //   colors: {
+  //     mod: [0, 0, 0.5],
+  //     he: [0, 0.5, 0.3],
+  //     zirc: [0.5, 0.5, 0.3],
+  //     ss: [0.4, 0.5, 0.4],
+  //   },
+  //   cells: {
+  //      A: [
+  //        { material: 'mod', radius: 0.2 },
+  //        { material: 'he', radius: 0.3 },
+  //        { material: 'zirc', radius: 0.4 },
+  //        { material: 'ss', radius: 0.5 },
+  //      ],
+  //      B: [],
+  //      C: [],
+  //   },
+  //   rods: {
+  //     insert: {
+  //       offset: 10,
+  //       length: 400,
+  //       cells: [
+  //         { cell: 'A', length: 10 },
+  //         { cell: 'B', length: 200 },
+  //         { cell: 'A', length: 5 },
+  //         { cell: 'C', length: 10 },
+  //       ],
+  //     },
+  //     control: {
+  //       ...
+  //     }
+  //   },
+  //   assembly: {
+  //     fuel: {
+  //       pitch: 1.27,
+  //       size: 17,
+  //       grid: [1,2,1,2,1,2,1,2,1],
+  //     },
+  //     insert: {
+  //       pitch: 1.27,
+  //       size: 17,
+  //       grid: [1,2,1,2,1,2,1,2,1],
+  //     }
+  //   },
+  //   core: {
+  //     pitch: 25,
+  //     size: 15,
+  //     gridAssembly: [10,20,10,20,10,20,10,20,10],
+  //     gridInsertControls: [10,20,10,20,10,20,10,20,10],
+  //     gridDetectors: [10,20,10,20,10,20,10,20,10],
+  //   },
+  // }
+  publicAPI.setData = (viz) => {
+    if (!viz) {
       return;
     }
 
-    const {
-      pitch,
-      colors,
-      cells,
-      rods,
-      map: { size, grid },
-      rodsOffset,
-    } = rodMap;
+    const { colors, cells, rods } = viz;
+    const { size, grid, pitch } = viz.assembly[viz.selected];
+
     const matIdMapping = processColors(colors, model.lookupTable);
     const cellMap = processCells(cells, matIdMapping);
     const rodsCells = processRods(rods);
@@ -161,7 +217,6 @@ function vtkRodMapVTKViewer(publicAPI, model) {
       const x = (idx % size) * pitch;
       const y = Math.floor(idx / size) * pitch;
       const rod = rodsCells[grid[idx]];
-      const offset = rodsOffset[grid[idx]];
       if (rod) {
         const cellIds = Object.keys(rod);
         for (let cIdx = 0; cIdx < cellIds.length; cIdx++) {
@@ -171,7 +226,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
             const [z, length] = zList[zIdx];
             cell.center.push(x);
             cell.center.push(y);
-            cell.center.push(z + offset);
+            cell.center.push(z);
             cell.scale.push(1);
             cell.scale.push(1);
             cell.scale.push(length);

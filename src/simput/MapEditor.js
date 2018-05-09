@@ -58,16 +58,17 @@ export default class MapEditor extends React.Component {
       !this.props.data.value ||
       !this.props.data.value[0] ||
       !this.props.data.value[0].config
-    )
+    ) {
       return null;
-    const { size, names, colors } = this.props.data.value[0].config;
+    }
+
     return (
       <GridMapWidget
-        gridSize={this.props.ui.domain[size]}
-        items={Object.keys(this.props.ui.domain[names])}
+        gridSize={this.props.gridSize}
+        items={this.props.items}
         itemRendererProps={{
-          mapping: this.props.ui.domain[names],
-          colors: this.props.ui.domain[colors],
+          mapping: this.props.names,
+          colors: this.props.colors,
         }}
         onChange={this.onChange}
         state={this.state}
@@ -82,7 +83,10 @@ MapEditor.propTypes = {
   // name: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   // show: PropTypes.func.isRequired,
-  ui: PropTypes.object.isRequired,
+  gridSize: PropTypes.number.isRequired,
+  items: PropTypes.array.isRequired,
+  names: PropTypes.object.isRequired,
+  colors: PropTypes.object.isRequired,
 };
 
 MapEditor.defaultProps = {
