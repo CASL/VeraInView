@@ -6,7 +6,6 @@ import Cell2DPreview from '../widgets/Cell2DPreview';
 import EditableList from '../widgets/EditableList';
 
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
-import ColorManager from '../utils/ColorManager';
 
 import { zip } from './utils';
 
@@ -14,6 +13,10 @@ import style from './CellEditor.mcss';
 
 /* eslint-disable jsx-a11y/no-autofocus */
 /* eslint-disable react/no-array-index-key */
+
+function toRGB(color) {
+  return `rgb(${color.map((i) => Math.floor(i * 255))})`;
+}
 
 export default class CellEditor extends React.Component {
   constructor(props) {
@@ -54,18 +57,15 @@ export default class CellEditor extends React.Component {
 
   addRadius(afterIdx) {
     const { data } = this.props;
-    const materials = this.props.ui.domain;
-    if (
-      data.value &&
-      data.value.length &&
-      !('materials not found' in materials)
-    ) {
+    const viz = this.props.ui.domain;
+    const materialIds = Object.keys(viz.colors || {});
+    if (data.value && data.value.length && materialIds.length) {
       const cell = data.value[0];
       const idx = afterIdx + 1;
       const length = cell.mats.length;
       const pitch = this.props.viewData.cell.pitch.value[0];
 
-      cell.mats.splice(idx, 0, cell.mats[idx - 1] || Object.keys(materials)[0]);
+      cell.mats.splice(idx, 0, cell.mats[idx - 1] || materialIds[0]);
       cell.radii.splice(idx, 0, cell.radii[idx - 1] || 0);
 
       if (length === idx) {
@@ -107,12 +107,11 @@ export default class CellEditor extends React.Component {
 
   render() {
     const { data } = this.props;
-    const materials =
-      'materials not found' in this.props.ui.domain ? {} : this.props.ui.domain;
-    const pitch = this.props.viewData.cell.pitch.value[0];
+    const viz = this.props.ui.domain;
+    const materialIds = Object.keys(viz.colors || {});
 
-    const materialOptions = Object.keys(materials).map((id) => {
-      const color = ColorManager.toRGBA(materials[id].color);
+    const materialOptions = materialIds.map((id) => {
+      const color = toRGB(viz.colors[id]);
       return (
         <option
           key={id}
@@ -121,7 +120,7 @@ export default class CellEditor extends React.Component {
             background: color,
           }}
         >
-          {materials[id].name[0]}
+          {viz.names[id]}
         </option>
       );
     });
@@ -132,7 +131,7 @@ export default class CellEditor extends React.Component {
         dataKey: 'material',
         label: 'Material',
         render: (matId, item) => {
-          const color = ColorManager.toRGBA(materials[matId].color);
+          const color = toRGB(viz.colors[matId]);
           return (
             <select
               onChange={(e) => this.onMaterialChange(item, e.target.value)}
@@ -175,15 +174,10 @@ export default class CellEditor extends React.Component {
       }));
     }
 
-    const colors = {};
-    Object.keys(materials).forEach((key) => {
-      colors[key] = materials[key].color;
-    });
-    const cellData = {
-      pitch,
-      colors,
-      layers: items,
-    };
+    const dataToRender = Object.assign(
+      { selected: this.props.viewData.id },
+      viz
+    );
 
     return (
       <div className={style.container}>
@@ -197,13 +191,13 @@ export default class CellEditor extends React.Component {
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
             <Cell2DPreview
-              cellData={cellData}
+              cellData={dataToRender}
               tooltipFormat={(mat) =>
                 mat ? (
                   <span>
                     {mat.radius} cm
                     <br />
-                    {materials[mat.material].name[0]}
+                    {viz.names[mat.material]}
                   </span>
                 ) : null
               }
@@ -211,7 +205,7 @@ export default class CellEditor extends React.Component {
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKWidget viewer={this.cellViewer} data={cellData} />
+            <VTKWidget viewer={this.cellViewer} data={dataToRender} />
           </div>
         </div>
       </div>

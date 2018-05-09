@@ -100,11 +100,9 @@ function vtkRodVTKViewer(publicAPI, model) {
   model.actorCtx.setMapper(model.mapperCtx);
   model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
 
-  // rod = {
-  //   name: '',
-  //   pitch: 1.26,
-  //   offset: 0,
-  //   totalLength: 400,
+  // viz = {
+  //   selected: 'insert',
+  //   cellPitch: 1.26,
   //   colors: {
   //     mod: [0, 0, 0.5],
   //     he: [0, 0.5, 0.3],
@@ -112,24 +110,37 @@ function vtkRodVTKViewer(publicAPI, model) {
   //     ss: [0.4, 0.5, 0.4],
   //   },
   //   cells: {
-  //      A: [
-  //         { material: 'mod', radius: 0.2 },
-  //         { material: 'he', radius: 0.3 },
-  //         { material: 'zirc', radius: 0.4 },
-  //         { material: 'ss', radius: 0.5 },
-  //      ],
-  //      B: [],
-  //      C: [],
+  //     A : [
+  //       { material: 'mod', radius: 0.2 },
+  //       { material: 'he', radius: 0.3 },
+  //       { material: 'zirc', radius: 0.4 },
+  //       { material: 'ss', radius: 0.5 },
+  //     ],
   //   },
-  //   layers: [
-  //     { cell: 'A', length: 10 },
-  //     { cell: 'B', length: 200 },
-  //     { cell: 'A', length: 5 },
-  //     { cell: 'C', length: 10 },
-  //   ],
+  //   rods: {
+  //     insert: {
+  //       offset: 10,
+  //       length: 400,
+  //       cells: [
+  //         { cell: 'A', length: 10 },
+  //         { cell: 'B', length: 200 },
+  //         { cell: 'A', length: 5 },
+  //         { cell: 'C', length: 10 },
+  //       ],
+  //     },
+  //     control: {
+  //       ...
+  //     }
+  //   },
+  //   [...]
   // }
-  publicAPI.setData = (rod) => {
-    const { colors, cells, layers, offset: originalOffset } = rod;
+  publicAPI.setData = (viz) => {
+    const { colors, cells, cellPitch } = viz;
+    const {
+      offset: originalOffset,
+      length: totalLength,
+      cells: layers,
+    } = viz.rods[viz.selected];
     const matIdMapping = processColors(colors, model.lookupTable);
     const cellMap = processCells(cells, matIdMapping);
 
@@ -153,10 +164,10 @@ function vtkRodVTKViewer(publicAPI, model) {
     }
 
     // Update context
-    model.sourceCtx.setZLength(rod.totalLength);
-    model.sourceCtx.setXLength(rod.pitch);
-    model.sourceCtx.setYLength(rod.pitch);
-    model.sourceCtx.setCenter(0, 0, rod.totalLength * 0.5);
+    model.sourceCtx.setZLength(totalLength);
+    model.sourceCtx.setXLength(cellPitch);
+    model.sourceCtx.setYLength(cellPitch);
+    model.sourceCtx.setCenter(0, 0, totalLength * 0.5);
     publicAPI.addActor(model.actorCtx);
 
     publicAPI.renderLater();

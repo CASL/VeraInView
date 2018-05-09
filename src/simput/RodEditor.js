@@ -8,9 +8,11 @@ import VTKWidget from '../widgets/VTKWidget';
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
 import ColorManager from '../utils/ColorManager';
 
-import { zip } from './utils';
-
 import style from './RodEditor.mcss';
+
+function toRGB(color) {
+  return `rgb(${color.map((i) => Math.floor(i * 255))})`;
+}
 
 export default class RodEditor extends React.Component {
   constructor(props) {
@@ -74,7 +76,7 @@ export default class RodEditor extends React.Component {
   }
 
   render() {
-    const { cells, materials } = this.props.ui.domain;
+    const viz = this.props.ui.domain;
 
     const columns = [
       {
@@ -83,9 +85,7 @@ export default class RodEditor extends React.Component {
         label: 'Cell',
         classes: style.centeredCell,
         render: (cellId, layer) => {
-          const color = cells[cellId].color;
-          // adds alpha channel
-          const background = ColorManager.toRGBA(color);
+          const background = toRGB(viz.colors[cellId]);
           return (
             <select
               className={style.fullWidth}
@@ -93,11 +93,11 @@ export default class RodEditor extends React.Component {
               value={cellId}
               onChange={(e) => this.onCellChange(layer, e.target.value)}
             >
-              {Object.keys(cells).map((id) => {
-                const bg = ColorManager.toRGBA(cells[id].color);
+              {Object.keys(viz.cells).map((id) => {
+                const bg = toRGB(viz.colors[id]);
                 return (
                   <option key={id} value={id} style={{ background: bg }}>
-                    {cells[id].name[0]}
+                    {viz.names[id]}
                   </option>
                 );
               })}
@@ -126,27 +126,23 @@ export default class RodEditor extends React.Component {
     let items = [];
     if (this.props.data.value && this.props.data.value.length) {
       items = this.props.data.value[0].stack.map((layer, idx) => {
-        const color = cells[layer.cell].color;
+        const color = viz.colors[layer.cell];
         // adds alpha channel
         const background = ColorManager.toRGBA(color);
         return Object.assign(
           {
             key: idx,
             color: background,
-            label: cells[layer.cell].name[0],
+            label: viz.names[layer.cell],
           },
           layer
         );
       });
     }
 
-    const totalLength = Number(this.props.viewData.rodInfo.height.value[0]);
-
-    // rod = {
-    //   name: '',
-    //   pitch: 1.26,
-    //   offset: 0,
-    //   totalLength: 400,
+    // viz = {
+    //   selected: 'insert',
+    //   cellPitch: 1.26,
     //   colors: {
     //     mod: [0, 0, 0.5],
     //     he: [0, 0.5, 0.3],
@@ -154,53 +150,40 @@ export default class RodEditor extends React.Component {
     //     ss: [0.4, 0.5, 0.4],
     //   },
     //   cells: {
-    //      A: [
-    //         { material: 'mod', radius: 0.2 },
-    //         { material: 'he', radius: 0.3 },
-    //         { material: 'zirc', radius: 0.4 },
-    //         { material: 'ss', radius: 0.5 },
-    //      ],
-    //      B: [],
-    //      C: [],
+    //     A : [
+    //       { material: 'mod', radius: 0.2 },
+    //       { material: 'he', radius: 0.3 },
+    //       { material: 'zirc', radius: 0.4 },
+    //       { material: 'ss', radius: 0.5 },
+    //     ],
     //   },
-    //   layers: [
-    //     { cell: 'A', length: 10 },
-    //     { cell: 'B', length: 200 },
-    //     { cell: 'A', length: 5 },
-    //     { cell: 'C', length: 10 },
-    //   ],
+    //   rods: {
+    //     insert: {
+    //       offset: 10,
+    //       length: 400,
+    //       cells: [
+    //         { cell: 'A', length: 10 },
+    //         { cell: 'B', length: 200 },
+    //         { cell: 'A', length: 5 },
+    //         { cell: 'C', length: 10 },
+    //       ],
+    //     },
+    //     control: {
+    //       ...
+    //     }
+    //   },
+    //   [...]
     // }
-    const colors = {};
-    Object.keys(materials).forEach((id) => {
-      colors[id] = materials[id].color;
-    });
-    const layers = this.props.data.value[0].stack.map((l) => ({
-      cell: cells[l.cell].name[0],
-      length: l.length,
-    }));
-    const cellData = {};
-    Object.keys(cells).forEach((id) => {
-      const { mats, radii } = cells[id].cell[0];
-      cellData[cells[id].name] = zip(mats, radii).map(([material, radius]) => ({
-        material,
-        radius,
-      }));
-    });
-    const rodData = {
-      pitch: this.props.ui.domain.assemblyPitch,
-      offset: this.props.viewData.rodInfo.offset.value[0] || 0,
-      totalLength,
-      colors,
-      cells: cellData,
-      layers,
-    };
+
+    const rodData = Object.assign({ selected: this.props.viewData.id }, viz);
+    const rod = rodData.rods[rodData.selected];
 
     return (
       <div>
         <Rod2DPreview
           stack={items}
-          offset={rodData.offset}
-          totalLength={totalLength}
+          offset={rod.offset}
+          totalLength={rod.length}
         />
         <div className={style.preview3d}>
           <VTKWidget

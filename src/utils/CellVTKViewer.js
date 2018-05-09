@@ -76,25 +76,29 @@ function vtkCellVTKViewer(publicAPI, model) {
   publicAPI.addActor(model.actor);
   publicAPI.addActor(model.actorCtx);
 
-  // cell = {
-  //   name: '',
-  //   pitch: 1.26,
+  // viz = {
+  //   activeItem: 'cellId',
+  //   cellPitch: 1.26,
   //   colors: {
   //     mod: [0, 0, 0.5],
   //     he: [0, 0.5, 0.3],
   //     zirc: [0.5, 0.5, 0.3],
   //     ss: [0.4, 0.5, 0.4],
   //   },
-  //   layers: [
-  //     { material: 'mod', radius: 0.2 },
-  //     { material: 'he', radius: 0.3 },
-  //     { material: 'zirc', radius: 0.4 },
-  //     { material: 'ss', radius: 0.5 },
-  //   ],
+  //   cells: {
+  //     cellId : [
+  //       { material: 'mod', radius: 0.2 },
+  //       { material: 'he', radius: 0.3 },
+  //       { material: 'zirc', radius: 0.4 },
+  //       { material: 'ss', radius: 0.5 },
+  //     ],
+  //   },
+  //   [...]
   // }
   publicAPI.setData = (cell) => {
+    const pitch = cell.cellPitch;
     const { radius, cellFields, RGBPoints } = extractCellSettings(
-      cell.layers,
+      cell.cells[cell.selected],
       cell.colors
     );
     model.lookupTable.applyColorMap({ RGBPoints });
@@ -102,7 +106,7 @@ function vtkCellVTKViewer(publicAPI, model) {
     for (let i = 0; i < radius.length; i++) {
       model.source.addRadius(radius[i], cellFields[i]);
     }
-    model.sourceCtx.setRadius(0, cell.pitch * 0.5);
+    model.sourceCtx.setRadius(0, pitch * 0.5);
     publicAPI.renderLater();
   };
 }

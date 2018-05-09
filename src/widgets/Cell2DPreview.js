@@ -4,11 +4,13 @@ import PropTypes from 'prop-types';
 import ReactCursorPosition from 'react-cursor-position';
 import ReactTooltip from 'react-tooltip';
 
-import ColorManager from '../utils/ColorManager';
-
 import style from '../assets/vera.mcss';
 
 const WORKING_CANVAS = document.createElement('canvas');
+
+function toRGB(color) {
+  return `rgb(${color.map((i) => Math.floor(i * 255))})`;
+}
 
 class Cell2DPreview extends React.Component {
   constructor(props) {
@@ -24,7 +26,7 @@ class Cell2DPreview extends React.Component {
       elementDimensions: { width = 0, height = 0 } = {},
       position: { x = 0, y = 0 } = {},
     } = this.props;
-    const { layers: materials } = cellData;
+    const materials = cellData.cells[cellData.selected];
 
     // normalize to [0,1]
     const posx = x / width;
@@ -44,11 +46,7 @@ class Cell2DPreview extends React.Component {
 
   render() {
     const { size, cellData, gridSpacing } = this.props;
-    const {
-      layers: materials = [],
-      colors: matColors = [],
-      pitch = 0,
-    } = cellData;
+    const pitch = cellData.cellPitch;
 
     WORKING_CANVAS.setAttribute('width', size);
     WORKING_CANVAS.setAttribute('height', size);
@@ -56,12 +54,13 @@ class Cell2DPreview extends React.Component {
     ctx.clearRect(0, 0, size, size);
     const center = size / 2;
 
-    let count = materials.length;
+    const layers = cellData.cells[cellData.selected];
+
+    let count = layers.length;
     while (count--) {
-      const color = matColors[materials[count].material].concat([1]);
-      const rgba = ColorManager.toRGBA(color);
+      const rgba = toRGB(cellData.colors[layers[count].material]);
       // material radii are interpreted in terms of the assembly ppitch.
-      const radius = materials[count].radius * size / gridSpacing;
+      const radius = layers[count].radius * size / gridSpacing;
       ctx.beginPath();
       ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
       ctx.fillStyle = rgba;
