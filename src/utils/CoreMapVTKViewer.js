@@ -6,6 +6,7 @@ import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 
 import vtkVTKViewer from './VTKViewer';
 import vtkRodMapVTKViewer from './RodMapVTKViewer';
+import vtkRodVTKViewer from './RodVTKViewer';
 
 // ----------------------------------------------------------------------------
 
@@ -174,13 +175,20 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     vtkRodMapVTKViewer.createGlyphPipeline(publicAPI, model, cellMap);
   };
 
+  // --------------------------------------------------------------------------
+
   publicAPI.setSourceResolution = (resolution) => {
+    if (model.sourceResolution === resolution) {
+      return;
+    }
+    model.sourceResolution = resolution;
     for (let i = 0; i < model.stack.length; i++) {
       const { glyph } = model.stack[i];
       glyph.setResolution(resolution);
     }
-    publicAPI.renderLater();
   };
+
+  // --------------------------------------------------------------------------
 
   publicAPI.resetCamera = () => {
     const camera = model.renderer.getActiveCamera();
@@ -189,8 +197,27 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     model.interactorStyle3D.setCenterOfRotation(camera.getFocalPoint());
     model.interactorStyle2D.setCenterOfRotation(camera.getFocalPoint());
 
-    publicAPI.renderLater();
+    publicAPI.renderAnimation();
   };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.applyVisibility = () =>
+    vtkRodMapVTKViewer.applyVisibility(publicAPI, model);
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getVisibiltyOptions = () =>
+    vtkRodVTKViewer.getVisibiltyOptions(publicAPI, model);
+
+  // --------------------------------------------------------------------------
+
+  // Automatic LOD when interacting
+  publicAPI.onInteraction((interaction) => {
+    publicAPI.setSourceResolution(
+      interaction ? model.lodResolution : model.fullResolution
+    );
+  });
 }
 
 // ----------------------------------------------------------------------------
@@ -198,7 +225,9 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const DEFAULT_VALUES = {
-  sourceResolution: 6,
+  sourceResolution: 60,
+  lodResolution: 6,
+  fullResolution: 60,
 };
 
 // ----------------------------------------------------------------------------
@@ -208,6 +237,11 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   // Object methods
   vtkVTKViewer.extend(publicAPI, model);
+  macro.setGet(publicAPI, model, [
+    'lodResolution',
+    'fullResolution',
+    'sourceResolution',
+  ]);
 
   // Object specific methods
   vtkCoreMapVTKViewer(publicAPI, model);

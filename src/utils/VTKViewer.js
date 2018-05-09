@@ -28,6 +28,9 @@ function vtkVTKViewer(publicAPI, model) {
   model.classHierarchy.push('vtkVTKViewer');
 
   // Local variables
+  if (!model.visibilty) {
+    model.visibilty = {};
+  }
   model.renderWindow = vtkRenderWindow.newInstance();
   model.renderer = vtkRenderer.newInstance({ background: [0, 0, 0, 1] });
   model.renderWindow.addRenderer(model.renderer);
@@ -44,6 +47,13 @@ function vtkVTKViewer(publicAPI, model) {
   model.interactor.setInteractorStyle(model.interactorStyle3D);
 
   model.actors = [];
+
+  model.interactor.onStartAnimation(() => {
+    publicAPI.invokeInteraction(true);
+  });
+  model.interactor.onEndAnimation(() => {
+    publicAPI.invokeInteraction(false);
+  });
 
   // Apply default interaction styles
   vtkInteractorStylePresets.applyPreset('3D', model.interactorStyle3D);
@@ -76,7 +86,7 @@ function vtkVTKViewer(publicAPI, model) {
         Math.floor(dims.width),
         Math.floor(dims.height)
       );
-      publicAPI.renderLater();
+      publicAPI.renderAnimation();
     }
   };
 
@@ -100,7 +110,7 @@ function vtkVTKViewer(publicAPI, model) {
     }
 
     model.renderer.resetCameraClippingRange();
-    publicAPI.renderLater();
+    publicAPI.renderAnimation();
   };
 
   // --------------------------------------------------------------------------
@@ -140,6 +150,19 @@ function vtkVTKViewer(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
+  const cancelAnimation = macro.debounce(() => {
+    model.interactor.cancelAnimation(publicAPI);
+  }, model.lodTimeout); // Can't be dynamically set
+
+  publicAPI.renderAnimation = () => {
+    if (!model.interactor.isAnimating()) {
+      model.interactor.requestAnimation(publicAPI);
+    }
+    cancelAnimation();
+  };
+
+  // --------------------------------------------------------------------------
+
   publicAPI.resetCamera = (
     orientation = [0, 0, 1],
     viewUp = [0, 1, 0],
@@ -154,7 +177,7 @@ function vtkVTKViewer(publicAPI, model) {
     model.interactorStyle3D.setCenterOfRotation(camera.getFocalPoint());
     model.interactorStyle2D.setCenterOfRotation(camera.getFocalPoint());
 
-    publicAPI.renderLater();
+    publicAPI.renderAnimation();
   };
 
   // --------------------------------------------------------------------------
@@ -171,6 +194,34 @@ function vtkVTKViewer(publicAPI, model) {
       model.renderer.removeActor(model.actors.pop());
     }
   };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.setObjectVisibility = (id, visible) => {
+    model.visibilty[id] = visible;
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getObjectVisibility = (id) => {
+    if (id in model.visibilty) {
+      return !!model.visibilty[id];
+    }
+    return true;
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.applyVisibility = () => {
+    console.log('applyVisibility should be override');
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getVisibiltyOptions = () => {
+    console.log('getVisibiltyOptions should be override');
+    return []; // { id, label, type } with type = material/cell
+  };
 }
 
 // ----------------------------------------------------------------------------
@@ -181,6 +232,7 @@ const DEFAULT_VALUES = {
   zScaling: 1,
   captureBackground: [0, 0, 0, 0],
   interactiveBackground: [0, 0, 0, 1],
+  lodTimeout: 1000,
 };
 
 // ----------------------------------------------------------------------------
@@ -190,6 +242,7 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   // Object methods
   macro.obj(publicAPI, model);
+  macro.event(publicAPI, model, 'interaction');
 
   // Object specific methods
   vtkVTKViewer(publicAPI, model);

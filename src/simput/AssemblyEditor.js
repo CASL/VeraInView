@@ -95,7 +95,6 @@ export default class AssemblyEditor extends React.Component {
   }
 
   render() {
-    console.log(this.props.data);
     const viz = this.props.ui.domain;
     const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
     return (

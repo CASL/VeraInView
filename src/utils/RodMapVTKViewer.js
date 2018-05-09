@@ -9,6 +9,7 @@ import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
 import vtkPolyData from 'vtk.js/Sources/Common/DataModel/PolyData';
 
 import vtkVTKViewer from './VTKViewer';
+import vtkRodVTKViewer from './RodVTKViewer';
 
 // ----------------------------------------------------------------------------
 
@@ -37,17 +38,20 @@ function processCells(cells, materialIds) {
     const name = names[i];
     const cell = cells[name];
     const radii = [];
+    const materials = [];
     const cellFields = [];
 
     for (let j = 0; j < cell.length; j++) {
       const { material, radius } = cell[j];
       radii.push(radius);
+      materials.push(material);
       cellFields.push(materialIds.indexOf(material));
     }
 
     cellMap[name] = {
       radius: radii,
       cellFields,
+      materials,
       center: [],
       scale: [],
       assembly: {},
@@ -88,7 +92,9 @@ function createGlyphPipeline(publicAPI, model, cellMap) {
   const cellNames = Object.keys(cellMap);
   for (let i = 0; i < cellNames.length; i++) {
     const { lookupTable, sourceResolution } = model;
-    const { radius, cellFields, center, scale } = cellMap[cellNames[i]];
+    const { radius, cellFields, center, scale, materials } = cellMap[
+      cellNames[i]
+    ];
 
     const source = vtkPolyData.newInstance();
     source.getPoints().setData(Float32Array.from(center), 3);
@@ -121,8 +127,31 @@ function createGlyphPipeline(publicAPI, model, cellMap) {
     mapper.setInputData(source, 0);
     mapper.setInputConnection(glyph.getOutputPort(), 1);
 
-    model.stack.push({ source, glyph, mapper, actor });
+    model.stack.push({
+      id: cellNames[i],
+      source,
+      glyph,
+      mapper,
+      actor,
+      materials,
+    });
     publicAPI.addActor(actor);
+  }
+  publicAPI.renderLater();
+}
+
+// ----------------------------------------------------------------------------
+
+function applyVisibility(publicAPI, model) {
+  if (!model.stack) {
+    return;
+  }
+  for (let i = 0; i < model.stack.length; i++) {
+    const { id, materials, glyph, actor } = model.stack[i];
+    actor.setVisibility(publicAPI.getObjectVisibility(id));
+    for (let j = 0; j < materials.length; j++) {
+      glyph.setMaskLayer(j, !publicAPI.getObjectVisibility(materials[j]));
+    }
   }
   publicAPI.renderLater();
 }
@@ -149,49 +178,6 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   model.actorCtx.setMapper(model.mapperCtx);
   model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
 
-  // rod = {
-  //   name: '',
-  //   pitch: 1.26,
-  //   colors: {
-  //     mod: [0, 0, 0.5],
-  //     he: [0, 0.5, 0.3],
-  //     zirc: [0.5, 0.5, 0.3],
-  //     ss: [0.4, 0.5, 0.4],
-  //   },
-  //   cells: {
-  //      A: [
-  //         { material: 'mod', radius: 0.2 },
-  //         { material: 'he', radius: 0.3 },
-  //         { material: 'zirc', radius: 0.4 },
-  //         { material: 'ss', radius: 0.5 },
-  //      ],
-  //      B: [],
-  //      C: [],
-  //   },
-  //   rods: {
-  //      1: [
-  //        { cell: 'A', length: 10 },
-  //        { cell: 'B', length: 200 },
-  //        { cell: 'A', length: 5 },
-  //        { cell: 'C', length: 10 },
-  //      ],
-  //      2: [
-  //        { cell: 'A', length: 10 },
-  //        { cell: 'B', length: 200 },
-  //        { cell: 'A', length: 5 },
-  //        { cell: 'C', length: 10 },
-  //      ],
-  //   },
-  //   rodsOffset: {
-  //     1: 0,
-  //     2: 4.5,
-  //   },
-  //   map: {
-  //     size: 17,
-  //     grid: [1,2,1,2,1,2,1,2,1],
-  //   },
-  // }
-  // ==========================================================================
   // viz = {
   //   selected: 'A',
   //   names: {
@@ -256,6 +242,8 @@ function vtkRodMapVTKViewer(publicAPI, model) {
       return;
     }
 
+    model.labels = viz.names;
+
     const { colors, cells, rods } = viz;
     const { size, grid, pitch } = viz.assembly[viz.selected];
 
@@ -290,6 +278,8 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     createGlyphPipeline(publicAPI, model, cellMap);
   };
 
+  // --------------------------------------------------------------------------
+
   publicAPI.resetCamera = () => {
     const camera = model.renderer.getActiveCamera();
     model.renderer.resetCamera();
@@ -299,6 +289,16 @@ function vtkRodMapVTKViewer(publicAPI, model) {
 
     publicAPI.renderLater();
   };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.applyVisibility = () =>
+    vtkRodMapVTKViewer.applyVisibility(publicAPI, model);
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getVisibiltyOptions = () =>
+    vtkRodVTKViewer.getVisibiltyOptions(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
@@ -334,4 +334,5 @@ export default {
   processCells,
   processRods,
   createGlyphPipeline,
+  applyVisibility,
 };

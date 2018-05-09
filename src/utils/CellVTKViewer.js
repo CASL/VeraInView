@@ -96,9 +96,11 @@ function vtkCellVTKViewer(publicAPI, model) {
   //   [...]
   // }
   publicAPI.setData = (cell) => {
+    model.activeCell = cell.cells[cell.selected];
+    model.labels = cell.names;
     const pitch = cell.cellPitch;
     const { radius, cellFields, RGBPoints } = extractCellSettings(
-      cell.cells[cell.selected],
+      model.activeCell,
       cell.colors
     );
     model.lookupTable.applyColorMap({ RGBPoints });
@@ -108,6 +110,37 @@ function vtkCellVTKViewer(publicAPI, model) {
     }
     model.sourceCtx.setRadius(0, pitch * 0.5);
     publicAPI.renderLater();
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.applyVisibility = () => {
+    if (model.activeCell) {
+      for (let i = 0; i < model.activeCell.length; i++) {
+        model.source.setMaskLayer(
+          i,
+          !publicAPI.getObjectVisibility(model.activeCell[i].material)
+        );
+      }
+      publicAPI.renderLater();
+    }
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getVisibiltyOptions = () => {
+    const listOfMats = [];
+    if (model.activeCell) {
+      for (let i = 0; i < model.activeCell.length; i++) {
+        const id = model.activeCell[i].material;
+        listOfMats.push({
+          id,
+          label: model.labels[id],
+          type: 'material',
+        });
+      }
+    }
+    return listOfMats; // [{ id, label, type }, ] with type = material/cell
   };
 }
 

@@ -9,7 +9,7 @@ import vtkVTKViewer from './VTKViewer';
 
 // ----------------------------------------------------------------------------
 
-function createCell(model, center, height, radius, cellFields) {
+function createCell(model, center, height, radius, cellFields, materials, id) {
   const { lookupTable, zScaling } = model;
 
   const source = vtkConcentricCylinderSource.newInstance({
@@ -32,7 +32,7 @@ function createCell(model, center, height, radius, cellFields) {
   actor.setMapper(mapper);
   mapper.setInputConnection(source.getOutputPort());
 
-  return { source, mapper, actor };
+  return { source, mapper, actor, id, materials };
 }
 
 // ----------------------------------------------------------------------------
@@ -63,16 +63,41 @@ function processCells(cells, materialIds) {
     const cell = cells[name];
     const radii = [];
     const cellFields = [];
+    const materials = [];
 
     for (let j = 0; j < cell.length; j++) {
       const { material, radius } = cell[j];
       radii.push(radius);
+      materials.push(material);
       cellFields.push(materialIds.indexOf(material));
     }
 
-    cellMap[name] = { radius: radii, cellFields };
+    cellMap[name] = { radius: radii, cellFields, materials };
   }
   return cellMap;
+}
+
+// ----------------------------------------------------------------------------
+
+function getVisibiltyOptions(publicAPI, model) {
+  const mats = {};
+  const list = [];
+  if (model.stack) {
+    for (let i = 0; i < model.stack.length; i++) {
+      const { id, materials } = model.stack[i];
+      list.push({ id, label: model.labels[id], type: 'cell' });
+      for (let j = 0; j < materials.length; j++) {
+        mats[materials[j]] = model.labels[materials[j]];
+      }
+    }
+    const matIds = Object.keys(mats);
+    while (matIds.length) {
+      const id = matIds.pop();
+      const label = model.labels[id];
+      list.push({ id, label, type: 'materials' });
+    }
+  }
+  return list; // [{ id, label, type }, ] with type = material/cell
 }
 
 // ----------------------------------------------------------------------------
@@ -145,18 +170,21 @@ function vtkRodVTKViewer(publicAPI, model) {
     const cellMap = processCells(cells, matIdMapping);
 
     publicAPI.removeAllActors();
+    model.labels = viz.names;
     model.stack = [];
 
     let offset = originalOffset;
     for (let i = 0; i < layers.length; i++) {
       const { cell, length } = layers[i];
-      const { radius, cellFields } = cellMap[cell];
+      const { radius, cellFields, materials } = cellMap[cell];
       const cellPipeline = createCell(
         model,
         [0, 0, offset + length / 2],
         length,
         radius,
-        cellFields
+        cellFields,
+        materials,
+        cell
       );
       model.stack.push(cellPipeline);
       offset += length;
@@ -172,6 +200,26 @@ function vtkRodVTKViewer(publicAPI, model) {
 
     publicAPI.renderLater();
   };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.applyVisibility = () => {
+    if (!model.stack) {
+      return;
+    }
+    for (let i = 0; i < model.stack.length; i++) {
+      const { id, materials, source, actor } = model.stack[i];
+      actor.setVisibility(publicAPI.getObjectVisibility(id));
+      for (let j = 0; j < materials.length; j++) {
+        source.setMaskLayer(j, !publicAPI.getObjectVisibility(materials[j]));
+      }
+    }
+    publicAPI.renderLater();
+  };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.getVisibiltyOptions = () => getVisibiltyOptions(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
@@ -198,4 +246,4 @@ export const newInstance = macro.newInstance(extend, 'vtkRodVTKViewer');
 
 // ----------------------------------------------------------------------------
 
-export default { newInstance, extend };
+export default { newInstance, extend, getVisibiltyOptions };
