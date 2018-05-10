@@ -137,7 +137,7 @@ export default class CellEditor extends React.Component {
   render() {
     const { data } = this.props;
     const viz = this.props.ui.domain;
-    const materialIds = Object.keys(viz.colors || {});
+    const materialIds = viz.types.materials || [];
 
     const materialOptions = materialIds.map((id) => {
       const color = toRGB(viz.colors[id]);
