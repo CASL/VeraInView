@@ -86,7 +86,6 @@ function processRods(rods) {
 // ----------------------------------------------------------------------------
 
 function createGlyphPipeline(publicAPI, model, cellMap) {
-  publicAPI.removeAllActors();
   model.stack = [];
 
   const cellNames = Object.keys(cellMap);
@@ -238,8 +237,8 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   //   },
   // }
   publicAPI.setData = (viz) => {
+    publicAPI.removeAllActors();
     if (!viz || !viz.assembly || !viz.assembly[viz.selected]) {
-      publicAPI.removeAllActors();
       return;
     }
 
@@ -253,6 +252,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     const rodsCells = processRods(rods);
 
     // Fill cell centers
+    let maxLength = 0;
     for (let idx = 0; idx < grid.length; idx++) {
       const x = (idx % size) * pitch;
       const y = Math.floor(idx / size) * pitch;
@@ -270,12 +270,28 @@ function vtkRodMapVTKViewer(publicAPI, model) {
             cell.scale.push(1);
             cell.scale.push(1);
             cell.scale.push(length);
+
+            if (maxLength < length) {
+              maxLength = length;
+            }
           }
         }
       }
     }
 
+    if (viz.core && viz.core.height && maxLength < viz.core.height) {
+      maxLength = viz.core.height;
+    }
+
+    // Adjust bounding box size
+    const sideLength = size * pitch;
+    model.sourceCtx.setXLength(sideLength);
+    model.sourceCtx.setYLength(sideLength);
+    model.sourceCtx.setZLength(maxLength);
+    model.sourceCtx.setCenter(sideLength / 2, sideLength / 2, maxLength / 2);
+
     // create pipeline
+    publicAPI.addActor(model.actorCtx);
     createGlyphPipeline(publicAPI, model, cellMap);
   };
 

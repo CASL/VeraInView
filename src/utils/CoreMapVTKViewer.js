@@ -157,8 +157,8 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
   //   },
   // }
   publicAPI.setData = (viz) => {
+    publicAPI.removeAllActors();
     if (!viz || !viz.core || !viz.core[viz.selected]) {
-      publicAPI.removeAllActors();
       return;
     }
 
@@ -172,7 +172,16 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     processAssembly(assembly, cellMap, rodsCells);
     processCoreMap(core.pitch, core.size, core[selected], cellMap);
 
+    // Adjust bounding box size
+    const sideLength = core.size * core.pitch;
+    model.sourceCtx.setXLength(sideLength);
+    model.sourceCtx.setYLength(sideLength);
+    model.sourceCtx.setZLength(core.height);
+    model.sourceCtx.setCenter(sideLength / 2, sideLength / 2, core.height / 2);
+    console.log(core, sideLength, core.height);
+
     // create pipeline
+    publicAPI.addActor(model.actorCtx);
     vtkRodMapVTKViewer.createGlyphPipeline(publicAPI, model, cellMap);
   };
 
