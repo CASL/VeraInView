@@ -103,6 +103,9 @@ function vtkVTKViewer(publicAPI, model) {
   // --------------------------------------------------------------------------
 
   publicAPI.setZScale = (zScaling) => {
+    if (zScaling === model.zScaling) {
+      return;
+    }
     model.zScaling = zScaling;
     let count = model.actors.length || 0;
     while (count--) {
@@ -110,7 +113,12 @@ function vtkVTKViewer(publicAPI, model) {
     }
 
     model.renderer.resetCameraClippingRange();
+    model.renderer.resetCamera();
     publicAPI.renderAnimation();
+
+    const camera = model.renderer.getActiveCamera();
+    model.interactorStyle3D.setCenterOfRotation(camera.getFocalPoint());
+    model.interactorStyle2D.setCenterOfRotation(camera.getFocalPoint());
   };
 
   publicAPI.getZScale = () => model.zScaling;

@@ -25,9 +25,12 @@ export default class ThreeDToolbar extends React.Component {
     this.toggleParallelRendering = this.toggleParallelRendering.bind(this);
   }
 
+  componentDidMount() {
+    setTimeout(this.resetCamera, 0);
+  }
+
   componentDidUpdate() {
     this.props.viewer.setZScale(this.state.zScaling);
-    this.resetCamera();
   }
 
   sliderZScale(e) {
