@@ -351,8 +351,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.applyVisibility = () =>
-    vtkRodMapVTKViewer.applyVisibility(publicAPI, model);
+  publicAPI.applyVisibility = () => applyVisibility(publicAPI, model);
 
   // --------------------------------------------------------------------------
 

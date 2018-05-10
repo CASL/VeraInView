@@ -221,8 +221,8 @@ export default class CellEditor extends React.Component {
           <div className={style.visualizerPanel}>
             <div className={style.visualizerPanelHeadline}>3D</div>
             <ViewerWidget viewer={this.cellViewer} data={dataToRender}>
-              <ThreeDToolbar viewer={this.cellViewer} />
               <VisibilityToolbar viewer={this.cellViewer} type="material" />
+              <ThreeDToolbar viewer={this.cellViewer} />
             </ViewerWidget>
           </div>
         </div>

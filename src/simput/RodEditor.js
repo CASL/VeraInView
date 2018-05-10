@@ -191,6 +191,7 @@ export default class RodEditor extends React.Component {
         />
         <div className={style.preview3d}>
           <ViewerWidget viewer={this.rodViewer} data={rodData}>
+            <div />
             <ThreeDToolbar
               viewer={this.rodViewer}
               zScaling={0.1}

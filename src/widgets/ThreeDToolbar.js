@@ -59,8 +59,7 @@ export default class ThreeDToolbar extends React.Component {
 
   render() {
     return (
-      <div>
-        <div className={style.resetCamera} onClick={this.resetCamera} />
+      <div className={style.line}>
         {this.props.zRange ? (
           <input
             type="range"
@@ -72,6 +71,7 @@ export default class ThreeDToolbar extends React.Component {
             onChange={this.sliderZScale}
           />
         ) : null}
+        <div className={style.resetCamera} onClick={this.resetCamera} />
       </div>
     );
   }

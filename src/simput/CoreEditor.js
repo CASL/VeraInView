@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import ViewerWidget from '../widgets/ViewerWidget';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
+import VisibilityToolbar from '../widgets/VisibilityToolbar';
 import MapEditor from './MapEditor';
 
 import vtkCoreMapVTKViewer from '../utils/CoreMapVTKViewer';
@@ -128,6 +129,18 @@ export default class CoreEditor extends React.Component {
         ) : (
           <div className={style.viewer}>
             <ViewerWidget viewer={this.coreViewer} data={vizData}>
+              <div className={style.line}>
+                <VisibilityToolbar
+                  viewer={this.coreViewer}
+                  type="material"
+                  title="Materials"
+                />
+                <VisibilityToolbar
+                  viewer={this.coreViewer}
+                  type="cell"
+                  title="Cells"
+                />
+              </div>
               <ThreeDToolbar
                 viewer={this.coreViewer}
                 zRange={[1, 0.01]}

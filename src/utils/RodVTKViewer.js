@@ -94,7 +94,7 @@ function getVisibiltyOptions(publicAPI, model) {
     while (matIds.length) {
       const id = matIds.pop();
       const label = model.labels[id];
-      list.push({ id, label, type: 'materials' });
+      list.push({ id, label, type: 'material' });
     }
   }
   return list; // [{ id, label, type }, ] with type = material/cell

@@ -75,8 +75,11 @@ export default class VisibilityToolbar extends React.Component {
           this.containerEl = r;
         }}
       >
-        <div onClick={this.toggleDropdown} className={style.box}>
-          Visibility List
+        <div
+          onClick={this.toggleDropdown}
+          className={this.state.dropdownVisible ? style.box : style.disableBox}
+        >
+          {this.props.title}
         </div>
         <div className={menuClasses}>{list}</div>
       </div>
@@ -85,11 +88,13 @@ export default class VisibilityToolbar extends React.Component {
 }
 
 VisibilityToolbar.propTypes = {
+  title: PropTypes.string,
   viewer: PropTypes.object,
   type: PropTypes.string,
 };
 
 VisibilityToolbar.defaultProps = {
+  title: 'Visibility List',
   viewer: null,
   type: '',
 };

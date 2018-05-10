@@ -1,7 +1,6 @@
 .container {
   position: relative;
-  left: 2px;
-  top: 6px;
+  margin-right: 10px;
 }
 
 .base {
@@ -20,14 +19,26 @@
   border-radius: 2px;
 }
 
+.disableBox {
+  composes: box;
+  opacity: 0.5;
+}
+
+.box:hover {
+  opacity: 1;
+}
+
 .menu {
   composes: base;
   position: absolute;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: calc(100% - 2px);
+
+  width: 200%;
+  min-width: 200px;
   margin-top: 2px;
+  border-radius: 0 2px 2px 2px;
 }
 
 .menuItem {

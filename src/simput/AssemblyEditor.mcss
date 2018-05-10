@@ -44,3 +44,10 @@
   margin: 15px;
   position: relative;
 }
+
+.line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}

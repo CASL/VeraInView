@@ -170,6 +170,8 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
       return;
     }
 
+    model.labels = viz.names;
+
     const { colors, cells, rods, assembly, core, selected } = viz;
     const matIdMapping = vtkRodMapVTKViewer.processColors(
       colors,
