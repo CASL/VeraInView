@@ -8,24 +8,15 @@ export default class VTKWidget extends React.Component {
   constructor(props) {
     super(props);
 
-    let zSlider = 1;
-    if (props.zRange) {
-      const [a, b] = props.zRange;
-      zSlider = Math.abs(Math.round(100 * (props.zScaling - a) / (b - a)));
-    }
-
     this.state = {
       parallelRendering: false,
       capture: null,
-      zSlider,
-      zScaling: props.zScaling,
     };
 
     // Functions for callback
     this.toggleParallelRendering = this.toggleParallelRendering.bind(this);
     this.resize = macro.throttle(props.viewer.resize, 100);
     this.resetCamera = this.resetCamera.bind(this);
-    this.sliderZScale = this.sliderZScale.bind(this);
   }
 
   componentDidMount() {
@@ -33,18 +24,19 @@ export default class VTKWidget extends React.Component {
     this.props.viewer.setContainer(this.container);
 
     // resize handling
-    setTimeout(() => this.props.viewer.resize(), 1);
     window.addEventListener('resize', this.resize);
 
     // Push data on first load
-    this.componentWillReceiveProps(this.props);
+    this.props.viewer.setData(this.props.data);
     this.resetCamera();
-    setTimeout(this.resetCamera, 0);
-    setTimeout(this.resetCamera, 10);
+
+    setTimeout(() => {
+      this.props.viewer.resize();
+      this.resetCamera();
+    }, 10);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.props.viewer.setZScale(this.state.zScaling);
     this.props.viewer.setData(nextProps.data);
   }
 
@@ -66,31 +58,22 @@ export default class VTKWidget extends React.Component {
     );
   }
 
-  sliderZScale(e) {
-    const zSlider = Number(e.target.value);
-    const [a, b] = this.props.zRange;
-    const zScaling = a + (b - a) * zSlider / 100;
-    this.setState({ zSlider, zScaling });
-
-    this.props.viewer.setZScale(zScaling);
-    this.resetCamera();
+  decorateProps(children) {
+    return React.Children.map(children, (child) => {
+      if (child && typeof child.type === 'function') {
+        return React.cloneElement(child, {
+          viewer: this.props.viewer,
+          resetCamera: this.resetCamera,
+        });
+      }
+      return child;
+    });
   }
 
   render() {
     return (
       <div className={style.container}>
-        <div className={style.resetCamera} onClick={this.resetCamera} />
-        {this.props.zRange ? (
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={this.state.zSlider}
-            step="1"
-            className={style.slider}
-            onChange={this.sliderZScale}
-          />
-        ) : null}
+        {this.decorateProps(this.props.children)}
         <div
           className={style.container}
           ref={(c) => {
@@ -108,8 +91,7 @@ VTKWidget.propTypes = {
   orientation: PropTypes.array,
   viewUp: PropTypes.array,
   zoom: PropTypes.number,
-  zScaling: PropTypes.number,
-  zRange: PropTypes.array,
+  children: PropTypes.node,
 };
 
 VTKWidget.defaultProps = {
@@ -117,6 +99,5 @@ VTKWidget.defaultProps = {
   orientation: [0, 0, 1000],
   viewUp: [0, 1, 0],
   zoom: 1,
-  zScaling: 1,
-  zRange: null,
+  children: [],
 };

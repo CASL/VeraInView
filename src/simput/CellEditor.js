@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import VTKWidget from '../widgets/VTKWidget';
 import EditableList from '../widgets/EditableList';
+import ThreeDToolbar from '../widgets/ThreeDToolbar';
 
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
 import vtkCell2DViewer from '../utils/Cell2DViewer';
@@ -17,6 +18,22 @@ import style from './CellEditor.mcss';
 function toRGB(color) {
   return `rgb(${color.map((i) => Math.floor(i * 255))})`;
 }
+
+function Cell2DToolbar(props) {
+  return (
+    <div className={style.imageOverlayText}>
+      Contact radius: {props.pitch * 0.5}
+    </div>
+  );
+}
+
+Cell2DToolbar.propTypes = {
+  pitch: PropTypes.number,
+};
+
+Cell2DToolbar.defaultProps = {
+  pitch: 0,
+};
 
 export default class CellEditor extends React.Component {
   constructor(props) {
@@ -196,11 +213,15 @@ export default class CellEditor extends React.Component {
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
-            <VTKWidget viewer={this.cell2dViewer} data={dataToRender} />
+            <VTKWidget viewer={this.cell2dViewer} data={dataToRender}>
+              <Cell2DToolbar pitch={dataToRender.cellPitch} />
+            </VTKWidget>
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKWidget viewer={this.cellViewer} data={dataToRender} />
+            <VTKWidget viewer={this.cellViewer} data={dataToRender}>
+              <ThreeDToolbar />
+            </VTKWidget>
           </div>
         </div>
         <EditableList

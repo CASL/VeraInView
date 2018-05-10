@@ -56,3 +56,11 @@
 .visualizerPanelHeadline {
   font-weight: bold;
 }
+
+.imageOverlayText {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: black;
+  z-index: 20;
+}

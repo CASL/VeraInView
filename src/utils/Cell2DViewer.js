@@ -45,9 +45,6 @@ function Cell2DPreview(props) {
         isCapture
       />
       <div style={{ position: 'relative' }}>
-        <div className={style.imageOverlayText}>
-          Contact radius: {props.pitch * 0.5}
-        </div>
         <img
           data-for="mainImg"
           data-tip=""
@@ -61,7 +58,6 @@ function Cell2DPreview(props) {
 
 Cell2DPreview.propTypes = {
   imageSrc: PropTypes.string,
-  pitch: PropTypes.number,
   elementDimensions: PropTypes.object,
   position: PropTypes.object,
   onToolTip: PropTypes.func,
@@ -69,7 +65,6 @@ Cell2DPreview.propTypes = {
 
 Cell2DPreview.defaultProps = {
   imageSrc: '',
-  pitch: 0,
   elementDimensions: {},
   position: {},
   onToolTip: () => {},
@@ -209,7 +204,6 @@ function vtkCell2DViewer(publicAPI, model) {
 
     publicAPI.reactRender({
       imageSrc,
-      pitch,
       onToolTip,
     });
   };

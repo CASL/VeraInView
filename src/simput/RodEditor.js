@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Rod2DPreview from '../widgets/Rod2DPreview';
 import EditableList from '../widgets/EditableList';
 import VTKWidget from '../widgets/VTKWidget';
+import ThreeDToolbar from '../widgets/ThreeDToolbar';
 
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
 import ColorManager from '../utils/ColorManager';
@@ -192,9 +193,9 @@ export default class RodEditor extends React.Component {
             orientation={[0, 1000, 0]}
             viewUp={[1, 0, 0]}
             zoom={10}
-            zScaling={0.1}
-            zRange={[1, 0.01]}
-          />
+          >
+            <ThreeDToolbar zScaling={0.1} zRange={[1, 0.01]} />
+          </VTKWidget>
         </div>
         <EditableList
           columns={columns}
