@@ -113,6 +113,8 @@ function vtkVTKViewer(publicAPI, model) {
     publicAPI.renderAnimation();
   };
 
+  publicAPI.getZScale = () => model.zScaling;
+
   // --------------------------------------------------------------------------
 
   publicAPI.captureImage = () => {

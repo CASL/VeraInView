@@ -96,16 +96,19 @@ function vtkCellVTKViewer(publicAPI, model) {
   //   [...]
   // }
   publicAPI.setData = (cell) => {
+    model.actor.setVisibility(false);
     if (!cell.cells) {
       return;
     }
     model.activeCell = cell.cells[cell.selected];
     model.labels = cell.names;
-    model.source.clearRadius();
 
     if (!model.activeCell || !model.activeCell.length) {
       return;
     }
+
+    model.actor.setVisibility(true);
+    model.source.clearRadius();
 
     const pitch = cell.cellPitch;
     const { radius, cellFields, RGBPoints } = extractCellSettings(

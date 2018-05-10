@@ -128,7 +128,11 @@ export default class CoreEditor extends React.Component {
         ) : (
           <div className={style.viewer}>
             <ViewerWidget viewer={this.coreViewer} data={vizData}>
-              <ThreeDToolbar viewer={this.coreViewer} zRange={[1, 0.01]} />
+              <ThreeDToolbar
+                viewer={this.coreViewer}
+                zRange={[1, 0.01]}
+                zScaling={this.coreViewer.getZScale()}
+              />
             </ViewerWidget>
           </div>
         )}

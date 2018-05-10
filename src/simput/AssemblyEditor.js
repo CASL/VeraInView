@@ -129,7 +129,11 @@ export default class AssemblyEditor extends React.Component {
         ) : (
           <div className={style.viewer}>
             <ViewerWidget viewer={this.assemblyViewer} data={vizData}>
-              <ThreeDToolbar viewer={this.assemblyViewer} zRange={[1, 0.01]} />
+              <ThreeDToolbar
+                viewer={this.assemblyViewer}
+                zRange={[1, 0.01]}
+                zScaling={this.assemblyViewer.getZScale()}
+              />
             </ViewerWidget>
           </div>
         )}
