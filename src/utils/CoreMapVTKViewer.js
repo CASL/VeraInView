@@ -11,10 +11,12 @@ import vtkRodVTKViewer from './RodVTKViewer';
 // ----------------------------------------------------------------------------
 
 function processAssembly(assemblyMap, cellMap, rodsCells) {
+  let resultPitch = 0;
   const assemblyIds = Object.keys(assemblyMap);
   while (assemblyIds.length) {
     const assemblyId = assemblyIds.pop();
     const { pitch, size, grid } = assemblyMap[assemblyId];
+    resultPitch = pitch;
 
     // Fill cell centers
     for (let idx = 0; idx < grid.length; idx++) {
@@ -45,6 +47,7 @@ function processAssembly(assemblyMap, cellMap, rodsCells) {
       }
     }
   }
+  return resultPitch / 2;
 }
 
 // ----------------------------------------------------------------------------
@@ -96,6 +99,11 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     .set(Object.assign({ representation: 1 }, vtkVTKViewer.PROPERTY_SETTINGS));
   model.actorCtx.setMapper(model.mapperCtx);
   model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
+
+  model.gridList = [
+    vtkRodMapVTKViewer.createGridPipeline(),
+    vtkRodMapVTKViewer.createGridPipeline(),
+  ];
 
   // viz = {
   //   selected: 'gridAssembly',
@@ -169,7 +177,7 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     );
     const cellMap = vtkRodMapVTKViewer.processCells(cells, matIdMapping);
     const rodsCells = vtkRodMapVTKViewer.processRods(rods);
-    processAssembly(assembly, cellMap, rodsCells);
+    const offset = processAssembly(assembly, cellMap, rodsCells);
     processCoreMap(core.pitch, core.size, core[selected], cellMap);
 
     // Adjust bounding box size
@@ -178,10 +186,12 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
     model.sourceCtx.setYLength(sideLength);
     model.sourceCtx.setZLength(core.height);
     model.sourceCtx.setCenter(sideLength / 2, sideLength / 2, core.height / 2);
-    console.log(core, sideLength, core.height);
 
     // create pipeline
     publicAPI.addActor(model.actorCtx);
+    vtkRodMapVTKViewer
+      .updateGrids(model.gridList, core.size, sideLength, core.height, offset)
+      .forEach(publicAPI.addActor);
     vtkRodMapVTKViewer.createGlyphPipeline(publicAPI, model, cellMap);
   };
 

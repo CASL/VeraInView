@@ -3,6 +3,7 @@ import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkConcentricCylinderSource from 'vtk.js/Sources/Filters/Sources/ConcentricCylinderSource';
 import vtkCubeSource from 'vtk.js/Sources/Filters/Sources/CubeSource';
+import vtkPlaneSource from 'vtk.js/Sources/Filters/Sources/PlaneSource';
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
 import vtkGlyph3DMapper from 'vtk.js/Sources/Rendering/Core/Glyph3DMapper';
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
@@ -156,6 +157,38 @@ function applyVisibility(publicAPI, model) {
 }
 
 // ----------------------------------------------------------------------------
+
+function createGridPipeline() {
+  const source = vtkPlaneSource.newInstance();
+  const mapper = vtkMapper.newInstance({ scalarVisibility: false });
+  const actor = vtkActor.newInstance();
+
+  actor
+    .getProperty()
+    .set(Object.assign({ representation: 1 }, vtkVTKViewer.PROPERTY_SETTINGS));
+  actor.setMapper(mapper);
+  mapper.setInputConnection(source.getOutputPort());
+  return { source, mapper, actor };
+}
+
+// ----------------------------------------------------------------------------
+
+function updateGrids(gridList, size, sideLength, height, offset) {
+  const actors = [];
+  const split = gridList.length > 2 ? gridList.length - 1 : 1;
+  for (let i = 0; i < gridList.length; i++) {
+    const z = i * height / split;
+    gridList[i].source.setXResolution(size);
+    gridList[i].source.setYResolution(size);
+    gridList[i].source.setOrigin(-offset, -offset, z);
+    gridList[i].source.setPoint1(sideLength - offset, -offset, z);
+    gridList[i].source.setPoint2(-offset, sideLength - offset, z);
+    actors.push(gridList[i].actor);
+  }
+  return actors;
+}
+
+// ----------------------------------------------------------------------------
 // vtkRodVTKViewer methods
 // ----------------------------------------------------------------------------
 
@@ -176,6 +209,8 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     .set(Object.assign({ representation: 1 }, vtkVTKViewer.PROPERTY_SETTINGS));
   model.actorCtx.setMapper(model.mapperCtx);
   model.mapperCtx.setInputConnection(model.sourceCtx.getOutputPort());
+
+  model.gridList = [createGridPipeline(), createGridPipeline()];
 
   // viz = {
   //   selected: 'A',
@@ -288,10 +323,17 @@ function vtkRodMapVTKViewer(publicAPI, model) {
     model.sourceCtx.setXLength(sideLength);
     model.sourceCtx.setYLength(sideLength);
     model.sourceCtx.setZLength(maxLength);
-    model.sourceCtx.setCenter(sideLength / 2, sideLength / 2, maxLength / 2);
+    model.sourceCtx.setCenter(
+      (sideLength - pitch) / 2,
+      (sideLength - pitch) / 2,
+      maxLength / 2
+    );
 
     // create pipeline
     publicAPI.addActor(model.actorCtx);
+    updateGrids(model.gridList, size, sideLength, maxLength, pitch / 2).forEach(
+      publicAPI.addActor
+    );
     createGlyphPipeline(publicAPI, model, cellMap);
   };
 
@@ -352,4 +394,6 @@ export default {
   processRods,
   createGlyphPipeline,
   applyVisibility,
+  createGridPipeline,
+  updateGrids,
 };
