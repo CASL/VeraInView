@@ -1,0 +1,45 @@
+.container {
+  position: relative;
+  left: 2px;
+  top: 6px;
+}
+
+.base {
+  box-sizing: border-box;
+  width: 100%;
+  background-color: white;
+  user-select: none;
+  cursor: pointer;
+}
+
+.box {
+  composes: base;
+  position: relative;
+  padding: 4px;
+  display: inline;
+  border-radius: 2px;
+}
+
+.menu {
+  composes: base;
+  position: absolute;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: calc(100% - 2px);
+  margin-top: 2px;
+}
+
+.menuItem {
+  box-sizing: border-box;
+  padding: 5px;
+}
+
+.menuItem:hover {
+  background-color: #eee;
+}
+
+.hiddenMenu {
+  composes: menu;
+  display: none;
+}
