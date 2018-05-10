@@ -160,6 +160,12 @@ function vtkRodVTKViewer(publicAPI, model) {
   //   [...]
   // }
   publicAPI.setData = (viz) => {
+    publicAPI.removeAllActors();
+
+    if (!viz.rods[viz.selected]) {
+      return;
+    }
+
     const { colors, cells, cellPitch } = viz;
     const {
       offset: originalOffset,
@@ -169,7 +175,6 @@ function vtkRodVTKViewer(publicAPI, model) {
     const matIdMapping = processColors(colors, model.lookupTable);
     const cellMap = processCells(cells, matIdMapping);
 
-    publicAPI.removeAllActors();
     model.labels = viz.names;
     model.stack = [];
 

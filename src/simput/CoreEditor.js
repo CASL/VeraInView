@@ -119,7 +119,7 @@ export default class CoreEditor extends React.Component {
         {this.state.is2D ? (
           <MapEditor
             data={this.props.data}
-            gridSize={viz.core.size}
+            gridSize={viz.coreGridSize}
             items={['0'].concat(Object.keys(viz.assembly))}
             names={viz.names}
             colors={convertToRGB(viz.colors)}

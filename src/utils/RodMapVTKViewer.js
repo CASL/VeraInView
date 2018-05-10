@@ -238,7 +238,8 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   //   },
   // }
   publicAPI.setData = (viz) => {
-    if (!viz) {
+    if (!viz || !viz.assembly || !viz.assembly[viz.selected]) {
+      publicAPI.removeAllActors();
       return;
     }
 

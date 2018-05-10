@@ -97,7 +97,8 @@ export default class AssemblyEditor extends React.Component {
 
   render() {
     const viz = this.props.ui.domain;
-    const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
+    const selected = this.props.viewData.id;
+    const vizData = Object.assign({ selected }, viz);
     return (
       <div className={style.container}>
         <div className={style.switch}>
@@ -119,7 +120,7 @@ export default class AssemblyEditor extends React.Component {
         {this.state.is2D ? (
           <MapEditor
             data={this.props.data}
-            gridSize={viz.assembly[vizData.selected].size}
+            gridSize={viz.assemblyGridSize}
             items={['0'].concat(Object.keys(viz.rods))}
             names={viz.names}
             colors={convertToRGB(viz.colors)}

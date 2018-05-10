@@ -96,15 +96,23 @@ function vtkCellVTKViewer(publicAPI, model) {
   //   [...]
   // }
   publicAPI.setData = (cell) => {
+    if (!cell.cells) {
+      return;
+    }
     model.activeCell = cell.cells[cell.selected];
     model.labels = cell.names;
+    model.source.clearRadius();
+
+    if (!model.activeCell || !model.activeCell.length) {
+      return;
+    }
+
     const pitch = cell.cellPitch;
     const { radius, cellFields, RGBPoints } = extractCellSettings(
       model.activeCell,
       cell.colors
     );
     model.lookupTable.applyColorMap({ RGBPoints });
-    model.source.clearRadius();
     for (let i = 0; i < radius.length; i++) {
       model.source.addRadius(radius[i], cellFields[i]);
     }

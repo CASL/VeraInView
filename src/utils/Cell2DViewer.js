@@ -145,7 +145,11 @@ function vtkCell2DViewer(publicAPI, model) {
   // --------------------------------------------------------------------------
 
   publicAPI.render = () => {
-    if (!model.cell) {
+    if (
+      !model.cell ||
+      !model.cell.cells ||
+      !model.cell.cells[model.cell.selected]
+    ) {
       return;
     }
 

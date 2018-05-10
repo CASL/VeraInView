@@ -78,6 +78,9 @@ export default class RodEditor extends React.Component {
 
   render() {
     const viz = this.props.ui.domain;
+    if (!viz.rods) {
+      return null;
+    }
 
     const columns = [
       {
@@ -177,7 +180,7 @@ export default class RodEditor extends React.Component {
     // }
 
     const rodData = Object.assign({ selected: this.props.viewData.id }, viz);
-    const rod = rodData.rods[rodData.selected];
+    const rod = rodData.rods[rodData.selected] || { offset: 0, length: 0 };
 
     return (
       <div>
@@ -194,7 +197,7 @@ export default class RodEditor extends React.Component {
               zRange={[1, 0.01]}
               orientation={[0, 1000, 0]}
               viewUp={[1, 0, 0]}
-              zoom={10}
+              zoom={5}
             />
           </ViewerWidget>
         </div>

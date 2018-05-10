@@ -54,11 +54,7 @@ export default class MapEditor extends React.Component {
   }
 
   render() {
-    if (
-      !this.props.data.value ||
-      !this.props.data.value[0] ||
-      !this.props.data.value[0].config
-    ) {
+    if (!this.props.data.value || !this.props.data.value[0]) {
       return null;
     }
 

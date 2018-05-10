@@ -157,7 +157,8 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
   //   },
   // }
   publicAPI.setData = (viz) => {
-    if (!viz) {
+    if (!viz || !viz.core || !viz.core[viz.selected]) {
+      publicAPI.removeAllActors();
       return;
     }
 
