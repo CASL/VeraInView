@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import style from './VTKWidget.mcss';
+import style from './ViewerWidget.mcss';
 
 export default class ThreeDToolbar extends React.Component {
   constructor(props) {
@@ -14,17 +14,20 @@ export default class ThreeDToolbar extends React.Component {
     }
 
     this.state = {
+      parallelRendering: false,
       zSlider,
       zScaling: props.zScaling,
     };
 
     // bindings
     this.sliderZScale = this.sliderZScale.bind(this);
+    this.resetCamera = this.resetCamera.bind(this);
+    this.toggleParallelRendering = this.toggleParallelRendering.bind(this);
   }
 
   componentDidUpdate() {
     this.props.viewer.setZScale(this.state.zScaling);
-    this.props.resetCamera();
+    this.resetCamera();
   }
 
   sliderZScale(e) {
@@ -38,10 +41,23 @@ export default class ThreeDToolbar extends React.Component {
     this.setState({ zSlider, zScaling });
   }
 
+  toggleParallelRendering(parallelRendering) {
+    this.setState({ parallelRendering });
+    this.props.viewer.setParallelRendering(parallelRendering);
+  }
+
+  resetCamera() {
+    this.props.viewer.resetCamera(
+      this.props.orientation,
+      this.props.viewUp,
+      this.props.zoom
+    );
+  }
+
   render() {
     return (
       <div>
-        <div className={style.resetCamera} onClick={this.props.resetCamera} />
+        <div className={style.resetCamera} onClick={this.resetCamera} />
         {this.props.zRange ? (
           <input
             type="range"
@@ -60,14 +76,18 @@ export default class ThreeDToolbar extends React.Component {
 
 ThreeDToolbar.propTypes = {
   viewer: PropTypes.object,
-  resetCamera: PropTypes.func,
   zScaling: PropTypes.number,
   zRange: PropTypes.array,
+  orientation: PropTypes.array,
+  viewUp: PropTypes.array,
+  zoom: PropTypes.number,
 };
 
 ThreeDToolbar.defaultProps = {
   viewer: null,
-  resetCamera: () => {},
   zScaling: 1,
   zRange: null,
+  orientation: [0, 0, 1000],
+  viewUp: [0, 1, 0],
+  zoom: 1,
 };

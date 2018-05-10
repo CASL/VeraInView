@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import VTKWidget from '../widgets/VTKWidget';
+import ViewerWidget from '../widgets/ViewerWidget';
 import EditableList from '../widgets/EditableList';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
 
@@ -213,15 +213,15 @@ export default class CellEditor extends React.Component {
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
-            <VTKWidget viewer={this.cell2dViewer} data={dataToRender}>
+            <ViewerWidget viewer={this.cell2dViewer} data={dataToRender}>
               <Cell2DToolbar pitch={dataToRender.cellPitch} />
-            </VTKWidget>
+            </ViewerWidget>
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
-            <VTKWidget viewer={this.cellViewer} data={dataToRender}>
-              <ThreeDToolbar />
-            </VTKWidget>
+            <ViewerWidget viewer={this.cellViewer} data={dataToRender}>
+              <ThreeDToolbar viewer={this.cellViewer} />
+            </ViewerWidget>
           </div>
         </div>
         <EditableList

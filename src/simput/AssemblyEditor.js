@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import VTKWidget from '../widgets/VTKWidget';
+import ViewerWidget from '../widgets/ViewerWidget';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
 import MapEditor from './MapEditor';
 
@@ -127,9 +127,9 @@ export default class AssemblyEditor extends React.Component {
           />
         ) : (
           <div className={style.viewer}>
-            <VTKWidget viewer={this.assemblyViewer} data={vizData}>
-              <ThreeDToolbar zRange={[1, 0.01]} />
-            </VTKWidget>
+            <ViewerWidget viewer={this.assemblyViewer} data={vizData}>
+              <ThreeDToolbar viewer={this.assemblyViewer} zRange={[1, 0.01]} />
+            </ViewerWidget>
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import Rod2DPreview from '../widgets/Rod2DPreview';
 import EditableList from '../widgets/EditableList';
-import VTKWidget from '../widgets/VTKWidget';
+import ViewerWidget from '../widgets/ViewerWidget';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
 
 import vtkRodVTKViewer from '../utils/RodVTKViewer';
@@ -187,15 +187,16 @@ export default class RodEditor extends React.Component {
           totalLength={rod.length}
         />
         <div className={style.preview3d}>
-          <VTKWidget
-            viewer={this.rodViewer}
-            data={rodData}
-            orientation={[0, 1000, 0]}
-            viewUp={[1, 0, 0]}
-            zoom={10}
-          >
-            <ThreeDToolbar zScaling={0.1} zRange={[1, 0.01]} />
-          </VTKWidget>
+          <ViewerWidget viewer={this.rodViewer} data={rodData}>
+            <ThreeDToolbar
+              viewer={this.rodViewer}
+              zScaling={0.1}
+              zRange={[1, 0.01]}
+              orientation={[0, 1000, 0]}
+              viewUp={[1, 0, 0]}
+              zoom={10}
+            />
+          </ViewerWidget>
         </div>
         <EditableList
           columns={columns}
