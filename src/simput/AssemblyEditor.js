@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import ViewerWidget from '../widgets/ViewerWidget';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
+import VisibilityToolbar from '../widgets/VisibilityToolbar';
 import MapEditor from './MapEditor';
 
 import vtkRodMapVTKViewer from '../utils/RodMapVTKViewer';
@@ -134,6 +135,7 @@ export default class AssemblyEditor extends React.Component {
                 zRange={[1, 0.01]}
                 zScaling={this.assemblyViewer.getZScale()}
               />
+              <VisibilityToolbar viewer={this.assemblyViewer} type="cell" />
             </ViewerWidget>
           </div>
         )}

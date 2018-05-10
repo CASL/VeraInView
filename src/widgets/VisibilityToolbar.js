@@ -53,7 +53,8 @@ export default class VisibilityToolbar extends React.Component {
     if (this.state.dropdownVisible && this.props.viewer) {
       list = this.props.viewer
         .getVisibiltyOptions()
-        .map(({ id, label, type }) => {
+        .filter(({ type }) => !type || type === this.props.type)
+        .map(({ id, label }) => {
           const visible = this.props.viewer.getObjectVisibility(id);
           return (
             <div
@@ -85,8 +86,10 @@ export default class VisibilityToolbar extends React.Component {
 
 VisibilityToolbar.propTypes = {
   viewer: PropTypes.object,
+  type: PropTypes.string,
 };
 
 VisibilityToolbar.defaultProps = {
   viewer: null,
+  type: '',
 };
