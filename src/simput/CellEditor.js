@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import VTKWidget from '../widgets/VTKWidget';
-import Cell2DPreview from '../widgets/Cell2DPreview';
 import EditableList from '../widgets/EditableList';
 
 import vtkCellVTKViewer from '../utils/CellVTKViewer';
+import vtkCell2DViewer from '../utils/Cell2DViewer';
 
 import { zip } from './utils';
 
@@ -27,6 +27,18 @@ export default class CellEditor extends React.Component {
     };
 
     this.cellViewer = vtkCellVTKViewer.newInstance();
+    this.cell2dViewer = vtkCell2DViewer.newInstance();
+
+    this.cell2dViewer.setToolTipCallback((mat) => {
+      const viz = this.props.ui.domain;
+      return mat ? (
+        <span>
+          {mat.radius} cm
+          <br />
+          {viz.names[mat.material]}
+        </span>
+      ) : null;
+    });
 
     this.addRadius = this.addRadius.bind(this);
     this.onMaterialChange = this.onMaterialChange.bind(this);
@@ -184,18 +196,7 @@ export default class CellEditor extends React.Component {
         <div className={style.visualizer}>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>2D</span>
-            <Cell2DPreview
-              cellData={dataToRender}
-              tooltipFormat={(mat) =>
-                mat ? (
-                  <span>
-                    {mat.radius} cm
-                    <br />
-                    {viz.names[mat.material]}
-                  </span>
-                ) : null
-              }
-            />
+            <VTKWidget viewer={this.cell2dViewer} data={dataToRender} />
           </div>
           <div className={style.visualizerPanel}>
             <span className={style.visualizerPanelHeadline}>3D</span>
