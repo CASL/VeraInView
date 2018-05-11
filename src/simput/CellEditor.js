@@ -95,7 +95,9 @@ export default class CellEditor extends React.Component {
       const length = cell.mats.length;
       const pitch = this.props.viewData.cell.pitch.value[0];
 
-      cell.mats.splice(idx, 0, cell.mats[idx - 1] || materialIds[0]);
+      // first material ID is empty/null "-"
+      // See type/vera hook.js for this.
+      cell.mats.splice(idx, 0, cell.mats[idx - 1] || materialIds[1]);
       cell.radii.splice(idx, 0, cell.radii[idx - 1] || 0);
 
       if (length === idx) {
