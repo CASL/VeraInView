@@ -159,7 +159,7 @@ function vtkRodVTKViewer(publicAPI, model) {
   //   },
   //   [...]
   // }
-  publicAPI.setData = (viz) => {
+  publicAPI.setData = macro.chain((viz) => {
     publicAPI.removeAllActors();
 
     if (!viz.rods[viz.selected]) {
@@ -204,7 +204,7 @@ function vtkRodVTKViewer(publicAPI, model) {
     publicAPI.addActor(model.actorCtx);
 
     publicAPI.renderLater();
-  };
+  }, publicAPI.setData);
 
   // --------------------------------------------------------------------------
 

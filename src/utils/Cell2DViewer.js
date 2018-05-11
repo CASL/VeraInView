@@ -137,10 +137,10 @@ function vtkCell2DViewer(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.setData = (cell) => {
+  publicAPI.setData = macro.chain((cell) => {
     model.cell = cell;
     publicAPI.render();
-  };
+  }, publicAPI.setData);
 
   // --------------------------------------------------------------------------
 

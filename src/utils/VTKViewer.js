@@ -232,6 +232,15 @@ function vtkVTKViewer(publicAPI, model) {
     console.log('getVisibiltyOptions should be override');
     return []; // { id, label, type } with type = material/cell
   };
+
+  // --------------------------------------------------------------------------
+
+  publicAPI.setData = (data) => {
+    if (model.data !== data) {
+      model.data = data;
+      publicAPI.modified();
+    }
+  };
 }
 
 // ----------------------------------------------------------------------------

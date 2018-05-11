@@ -95,7 +95,7 @@ function vtkCellVTKViewer(publicAPI, model) {
   //   },
   //   [...]
   // }
-  publicAPI.setData = (cell) => {
+  publicAPI.setData = macro.chain((cell) => {
     model.actor.setVisibility(false);
     if (!cell.cells) {
       return;
@@ -121,7 +121,7 @@ function vtkCellVTKViewer(publicAPI, model) {
     }
     model.sourceCtx.setRadius(0, pitch * 0.5);
     publicAPI.renderLater();
-  };
+  }, publicAPI.setData);
 
   // --------------------------------------------------------------------------
 

@@ -271,7 +271,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
   //     gridDetectors: [10,20,10,20,10,20,10,20,10],
   //   },
   // }
-  publicAPI.setData = (viz) => {
+  publicAPI.setData = macro.chain((viz) => {
     publicAPI.removeAllActors();
     if (!viz || !viz.assembly || !viz.assembly[viz.selected]) {
       return;
@@ -335,7 +335,7 @@ function vtkRodMapVTKViewer(publicAPI, model) {
       publicAPI.addActor
     );
     createGlyphPipeline(publicAPI, model, cellMap);
-  };
+  }, publicAPI.setData);
 
   // --------------------------------------------------------------------------
 

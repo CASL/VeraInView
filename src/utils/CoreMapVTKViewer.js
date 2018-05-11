@@ -164,7 +164,7 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
   //     gridDetectors: [10,20,10,20,10,20,10,20,10],
   //   },
   // }
-  publicAPI.setData = (viz) => {
+  publicAPI.setData = macro.chain((viz) => {
     publicAPI.removeAllActors();
     if (!viz || !viz.core || !viz.core[viz.selected]) {
       return;
@@ -195,7 +195,7 @@ function vtkCoreMapVTKViewer(publicAPI, model) {
       .updateGrids(model.gridList, core.size, sideLength, core.height, offset)
       .forEach(publicAPI.addActor);
     vtkRodMapVTKViewer.createGlyphPipeline(publicAPI, model, cellMap);
-  };
+  }, publicAPI.setData);
 
   // --------------------------------------------------------------------------
 
