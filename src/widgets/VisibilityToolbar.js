@@ -11,6 +11,7 @@ export default class VisibilityToolbar extends React.Component {
     };
 
     this.containerEl = null;
+    this.subscribes = [];
 
     this.toggleDropdown = this.toggleDropdown.bind(this);
     this.onDocMouseDown = this.onDocMouseDown.bind(this);
@@ -18,10 +19,18 @@ export default class VisibilityToolbar extends React.Component {
 
   componentDidMount() {
     document.addEventListener('mousedown', this.onDocMouseDown, true);
+    this.subscribeToViewer(this.props.viewer);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.viewer !== this.props.viewer) {
+      this.subscribeToViewer(this.props.viewer);
+    }
   }
 
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.onDocMouseDown, true);
+    this.subscribeToViewer(null);
   }
 
   onDocMouseDown(ev) {
@@ -35,6 +44,15 @@ export default class VisibilityToolbar extends React.Component {
       this.props.viewer.setObjectVisibility(id, visible);
       this.props.viewer.applyVisibility();
       this.forceUpdate();
+    }
+  }
+
+  subscribeToViewer(viewer) {
+    while (this.subscribes.length) {
+      this.subscribes.pop().unsubscribe();
+    }
+    if (viewer) {
+      this.subscribes = [viewer.onModified(viewer.applyVisibility)];
     }
   }
 
