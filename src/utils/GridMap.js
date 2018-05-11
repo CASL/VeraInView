@@ -225,4 +225,4 @@ export const newInstance = macro.newInstance(extend, 'vtkGridMap');
 
 // ----------------------------------------------------------------------------
 
-export default { newInstance, extend };
+export default { newInstance, extend, SymmetryModes };

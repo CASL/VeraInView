@@ -1,12 +1,31 @@
+import GridMap from './GridMap';
+
+const { SymmetryModes } = GridMap;
+// simput uses an enum for symmetry. Translate.
+const SymmetryMap = {
+  [SymmetryModes.NONE]: 'none',
+  [SymmetryModes.QUADRANT_MIRROR]: 'quad_mir',
+  [SymmetryModes.QUADRANT_ROTATION]: 'quad_rot',
+  [SymmetryModes.OCTANT]: 'oct',
+};
+
 function getNumPins(rodmap, params) {
   return rodmap.type === 'coremaps' ? params.numAssemblies : params.numPins;
+}
+
+function getSymmetry(sym) {
+  let symmetry = sym || 'none';
+  if (typeof symmetry === 'number') {
+    symmetry = SymmetryMap[symmetry];
+  }
+  return symmetry;
 }
 
 // given the full array, generate a text map reduced by symmetry.
 function getTextMap(rodmap, params) {
   const map = [];
   const { cell_map: cellMap } = rodmap;
-  const symmetry = rodmap.symmetry || 'none';
+  const symmetry = getSymmetry(rodmap.symmetry);
   const numPins = getNumPins(rodmap, params);
   const halfPins = Math.floor(numPins * 0.5);
   // copy from the lower-right quad, and left octant.
@@ -32,13 +51,14 @@ function getTextMap(rodmap, params) {
       map.push(cellMap.slice(i * numPins, (i + 1) * numPins).join(' '));
     }
   }
-  return map.join('\n');
+  const pad = params.pad || '';
+  return map.join(`\n${pad}`);
 }
 
 // given the text map with symmetry, generate the full array. Expand as necessary.
 function getFullMap(rodmap, params) {
   // Verify items in the cellMap. Unrecognized cells are empty.
-  const symmetry = rodmap.symmetry || 'none';
+  const symmetry = getSymmetry(rodmap.symmetry);
   const numPins = getNumPins(rodmap, params);
   let cellMap = [];
   if (rodmap.cellMap) cellMap = rodmap.cellMap.split(/[\n]+/);

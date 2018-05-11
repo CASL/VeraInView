@@ -4,6 +4,7 @@ import RodEditor from './RodEditor';
 import MapEditor from './MapEditor';
 import AssemblyEditor from './AssemblyEditor';
 import CoreEditor from './CoreEditor';
+import InpHelper from '../utils/InpHelper';
 
 function registerLocalEditors(Simput) {
   if (Simput && Simput.updateWidgetMapping) {
@@ -60,5 +61,10 @@ function registerLocalEditors(Simput) {
   }
 }
 
-const Simput = (typeof window === 'undefined' ? {} : window).Simput;
-registerLocalEditors(Simput);
+if (typeof window !== 'undefined') {
+  // expose global so simput/types/vera/src/convert.js can use it.
+  if (window.Simput.types.vera) {
+    window.Simput.types.vera.helper = { InpHelper };
+  }
+  registerLocalEditors(window.Simput);
+}

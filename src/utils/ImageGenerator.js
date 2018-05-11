@@ -239,6 +239,7 @@ function updateLayoutImage(
     ctx.stroke();
     // show an indication of symmetry
     if (item.symmetry) {
+      ctx.lineWidth = 3;
       const center = size * 0.5;
       if (item.symmetry === 'oct') {
         ctx.beginPath();
@@ -253,6 +254,7 @@ function updateLayoutImage(
         ctx.lineTo(0, center);
         ctx.stroke();
       }
+      ctx.lineWidth = 1;
     }
   }
 
