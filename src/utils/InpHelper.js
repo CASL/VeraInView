@@ -176,7 +176,7 @@ function setSymmetry(rodmap, params) {
 const labelCompare = (a, b) => a.label.localeCompare(b.label);
 
 // anywhere the core map has zero, strip '-' from the text map.
-function stripCoreZeros(textMap, coreMap) {
+function stripCoreZeros(textMap, coreMap, pad = '') {
   const coreRows = coreMap
     .split('\n')
     .map((line) => line.trim().split(/[,\s]+/));
@@ -187,12 +187,12 @@ function stripCoreZeros(textMap, coreMap) {
       .join(' ');
     // .trim();
   });
-  return lines.join('\n');
+  return lines.join(`\n${pad}`);
 }
 
 function getCoreShape(coremaps, inShapeMap = null) {
   let coreShapeMap = inShapeMap;
-  // set title, build a core_shape array.
+  // build a core_shape array.
   // Set locations occupied in any map to 1, empty to 0
   coremaps.forEach((cm, j) => {
     if (!coreShapeMap) {
@@ -204,7 +204,14 @@ function getCoreShape(coremaps, inShapeMap = null) {
       });
     }
   });
-  return coreShapeMap;
+  if (coreShapeMap) {
+    return {
+      type: 'coremaps',
+      symmetry: 'none',
+      cell_map: coreShapeMap,
+    };
+  }
+  return null;
 }
 
 // inverse of 'parseFile' - take a state, and write as much as
@@ -221,18 +228,13 @@ function writeToInp(state, GROUP_TYPES) {
   result.push(`  apitch ${state.params.assemblyPitch}`);
 
   const groupTitles = {};
-  const coreShapeMap = getCoreShape(state.coremaps);
+  const coreShape = getCoreShape(state.coremaps);
   // set title, build a core_shape array.
   // Set locations occupied in any map to 1, empty to 0
   state.coremaps.forEach((cm) => {
     groupTitles[cm.group] = cm.label;
   });
-  if (coreShapeMap) {
-    const coreShape = {
-      type: 'coremaps',
-      symmetry: 'none',
-      cell_map: coreShapeMap,
-    };
+  if (coreShape) {
     const coreText = getTextMap(coreShape, state.params);
     result.push('\n  core_shape');
     coreText.split('\n').forEach((line) => {
@@ -240,11 +242,15 @@ function writeToInp(state, GROUP_TYPES) {
     });
 
     // get symmetry text maps for comparison with assemblies.
-    const coreMaps = {
+    const coreTextMaps = {
       none: coreText,
       oct: (coreShape.symmetry = 'oct') && getTextMap(coreShape, state.params),
-      quad:
-        (coreShape.symmetry = 'quad') && getTextMap(coreShape, state.params),
+      quad_rot:
+        (coreShape.symmetry = 'quad_rot') &&
+        getTextMap(coreShape, state.params),
+      quad_mir:
+        (coreShape.symmetry = 'quad_mir') &&
+        getTextMap(coreShape, state.params),
     };
     GROUP_TYPES.forEach((info) => {
       const mapList = state.coremaps.filter((a) => a.group === info.group);
@@ -254,7 +260,7 @@ function writeToInp(state, GROUP_TYPES) {
       setSymmetry(assemMap, state.params);
       let textMap = getTextMap(assemMap, state.params);
       // strips locations that are '0' in coreShape map.
-      textMap = stripCoreZeros(textMap, coreMaps[assemMap.symmetry]);
+      textMap = stripCoreZeros(textMap, coreTextMaps[assemMap.symmetry]);
       textMap.split('\n').forEach((line) => {
         result.push(`    ${line}`);
       });
@@ -350,5 +356,7 @@ export default {
   getTextMap,
   getFullMap,
   setSymmetry,
+  stripCoreZeros,
   writeToInp,
+  SymmetryModes,
 };

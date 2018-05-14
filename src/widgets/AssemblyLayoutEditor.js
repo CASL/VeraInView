@@ -205,10 +205,12 @@ export default class AssemblyLayoutEditor extends React.Component {
       }
       if (this.props.content.type === 'coremaps') {
         // update the coreShape
-        this.props.content.coreShape = InpHelper.getCoreShape(
+        const coreShape = InpHelper.getCoreShape(
           this.props.coremaps,
           this.props.content.coreShape
         );
+
+        this.props.content.coreShape = coreShape ? coreShape.cell_map : null;
       }
       updateLayoutImage(
         this.props.content,
