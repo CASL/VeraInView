@@ -3,6 +3,7 @@ import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransfe
 import ColorManager from './ColorManager';
 import ImageReady from './ImageReady';
 import ModelHelper from './ModelHelper';
+import InpHelper from './InpHelper';
 
 let idFor3D = 1;
 
@@ -298,27 +299,7 @@ function updateLayoutImage(
   if (item.coreShape) {
     // display an indication of the core shape on editor coremaps.
     ctx.beginPath();
-    const minmax = [];
-    minmax[-1] = [width, -1];
-    for (let j = 0; j < width; j++) {
-      const halfJ = j < width / 2 ? j : width - j - 1;
-      let minI = width;
-      let maxI = -1;
-      for (let i = 0; i < width; i++) {
-        if (item.coreShape[j * width + i]) {
-          minI = Math.min(minI, i);
-          maxI = Math.max(maxI, i + 1);
-        }
-      }
-      minmax[halfJ] = minmax[halfJ]
-        ? [Math.min(minI, minmax[halfJ][0]), Math.max(maxI, minmax[halfJ][1])]
-        : [minI, maxI];
-    }
-    for (let j = 1; j < width / 2; j++) {
-      // the previous row, away from the middle, sets a bound.
-      minmax[j][0] = Math.min(minmax[j - 1][0], minmax[j][0]);
-      minmax[j][1] = Math.max(minmax[j - 1][1], minmax[j][1]);
-    }
+    const minmax = InpHelper.getCoreShapeMinMax(item.coreShape, width);
     // console.log(...minmax);
     for (let j = 0; j <= width; j++) {
       const halfJ = j < width / 2 ? j : width - j - 1;

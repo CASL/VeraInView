@@ -190,6 +190,31 @@ function stripCoreZeros(textMap, coreMap, pad = '') {
   return lines.join(`\n${pad}`);
 }
 
+function getCoreShapeMinMax(coreShape, width) {
+  const minmax = [];
+  minmax[-1] = [width, -1];
+  for (let j = 0; j < width; j++) {
+    const halfJ = j < width / 2 ? j : width - j - 1;
+    let minI = width;
+    let maxI = -1;
+    for (let i = 0; i < width; i++) {
+      if (+coreShape[j * width + i]) {
+        minI = Math.min(minI, i);
+        maxI = Math.max(maxI, i + 1);
+      }
+    }
+    minmax[halfJ] = minmax[halfJ]
+      ? [Math.min(minI, minmax[halfJ][0]), Math.max(maxI, minmax[halfJ][1])]
+      : [minI, maxI];
+  }
+  for (let j = 1; j < width / 2; j++) {
+    // the previous row, away from the middle, sets a bound.
+    minmax[j][0] = Math.min(minmax[j - 1][0], minmax[j][0]);
+    minmax[j][1] = Math.max(minmax[j - 1][1], minmax[j][1]);
+  }
+  return minmax;
+}
+
 function getCoreShape(coremaps, inShapeMap = null) {
   let coreShapeMap = inShapeMap;
   // build a core_shape array.
@@ -205,6 +230,17 @@ function getCoreShape(coremaps, inShapeMap = null) {
     }
   });
   if (coreShapeMap) {
+    // fill in interior locations with 1 for sparse maps.
+    const width = Math.sqrt(coreShapeMap.length);
+    const minmax = getCoreShapeMinMax(coreShapeMap, width);
+    for (let j = 0; j < width; j++) {
+      const halfJ = j < width / 2 ? j : width - j - 1;
+      for (let i = 0; i < width; i++) {
+        if (i >= minmax[halfJ][0] && i < minmax[halfJ][1]) {
+          coreShapeMap[j * width + i] = 1;
+        }
+      }
+    }
     return {
       type: 'coremaps',
       symmetry: 'none',
@@ -352,6 +388,7 @@ function writeToInp(state, GROUP_TYPES) {
 
 export default {
   getCoreShape,
+  getCoreShapeMinMax,
   getNumPins,
   getTextMap,
   getFullMap,
