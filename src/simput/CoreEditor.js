@@ -99,6 +99,7 @@ export default class CoreEditor extends React.Component {
   render() {
     const viz = this.props.ui.domain;
     const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
+    const types = viz.core.types[this.props.viewData.id] || [];
     return (
       <div className={style.container}>
         <div className={style.switch}>
@@ -121,7 +122,11 @@ export default class CoreEditor extends React.Component {
           <MapEditor
             data={this.props.data}
             gridSize={viz.coreGridSize}
-            items={['0'].concat(Object.keys(viz.assembly))}
+            items={['0'].concat(
+              Object.keys(viz.assembly).filter(
+                (id) => types.indexOf(viz.assembly[id].type) !== -1
+              )
+            )}
             names={viz.names}
             colors={convertToRGB(viz.colors)}
             onChange={this.props.onChange}

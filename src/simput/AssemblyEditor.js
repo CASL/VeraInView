@@ -122,7 +122,13 @@ export default class AssemblyEditor extends React.Component {
           <MapEditor
             data={this.props.data}
             gridSize={viz.assemblyGridSize}
-            items={['0'].concat(Object.keys(viz.rods))}
+            items={['0'].concat(
+              Object.keys(viz.rods).filter(
+                (id) =>
+                  viz.rods[id].type ===
+                  this.props.viewData.mapInfo.type.value[0]
+              )
+            )}
             names={viz.names}
             colors={convertToRGB(viz.colors)}
             onChange={this.props.onChange}
