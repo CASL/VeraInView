@@ -4,6 +4,7 @@ import RodEditor from './RodEditor';
 import MapEditor from './MapEditor';
 import AssemblyEditor from './AssemblyEditor';
 import CoreEditor from './CoreEditor';
+import StateMapEditor from './StateMapEditor';
 import InpHelper from '../utils/InpHelper';
 
 function registerLocalEditors(Simput) {
@@ -50,6 +51,16 @@ function registerLocalEditors(Simput) {
     ));
     Simput.updateWidgetMapping('CoreEditor', (prop, viewData, onChange) => (
       <CoreEditor
+        key={prop.data.id}
+        data={prop.data}
+        ui={prop.ui}
+        viewData={viewData}
+        show={prop.show}
+        onChange={onChange || prop.onChange}
+      />
+    ));
+    Simput.updateWidgetMapping('StateMapEditor', (prop, viewData, onChange) => (
+      <StateMapEditor
         key={prop.data.id}
         data={prop.data}
         ui={prop.ui}
