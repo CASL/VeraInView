@@ -15,10 +15,19 @@
 .gridItem {
   align-self: stretch;
   border: solid 1px rgba(100, 100, 100, 0.5);
-  padding-top: 100%;
+
   position: relative;
   transition-timing-function: ease-in;
   transition: opacity 0.5s;
+}
+
+.gridItem:before {
+  content: "";
+  height: 0;
+  display: inline-block;
+  padding-top: 100%;
+  width: 1px;
+  position: relative;
 }
 
 .inactiveGridItem {
