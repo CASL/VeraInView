@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import EditableList from 'paraviewweb/src/React/Widgets/EditableListWidget';
+
 import Rod2DPreview from '../widgets/Rod2DPreview';
-import EditableList from '../widgets/EditableList';
 import ViewerWidget from '../widgets/ViewerWidget';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
 
@@ -24,6 +25,7 @@ export default class RodEditor extends React.Component {
     this.onLengthChange = this.onLengthChange.bind(this);
     this.addLayer = this.addLayer.bind(this);
     this.delLayer = this.delLayer.bind(this);
+    this.moveLayer = this.moveLayer.bind(this);
 
     this.rodViewer = vtkRodVTKViewer.newInstance();
   }
@@ -66,11 +68,22 @@ export default class RodEditor extends React.Component {
     }
   }
 
-  delLayer(idx) {
+  delLayer(key) {
     const data = this.props.data;
     if (data.value && data.value.length) {
       const stack = data.value[0].stack;
-      stack.splice(idx, 1);
+      // key is index (from the render() method)
+      stack.splice(key, 1);
+
+      this.props.onChange(data);
+    }
+  }
+
+  moveLayer(srcIdx, dstIdx) {
+    const data = this.props.data;
+    if (data.value && data.value.length) {
+      const stack = data.value[0].stack;
+      stack.splice(dstIdx, 0, ...stack.splice(srcIdx, 1));
 
       this.props.onChange(data);
     }
@@ -203,10 +216,12 @@ export default class RodEditor extends React.Component {
           </ViewerWidget>
         </div>
         <EditableList
+          sortable
           columns={columns}
           data={items}
           onAdd={this.addLayer}
           onDelete={this.delLayer}
+          onSortChange={this.moveLayer}
         />
       </div>
     );

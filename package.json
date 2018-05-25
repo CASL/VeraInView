@@ -24,6 +24,7 @@
         "markdown-pdf": "8.1.1",
         "@doe-casl/verain-view": "1.0.1",
         "antd": "2.13.11",
+        "paraviewweb": "^3.2.0",
         "react": "16.1.1",
         "react-dom": "16.1.1",
         "react-cursor-position": "2.4.1",

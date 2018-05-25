@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import EditableList from 'paraviewweb/src/React/Widgets/EditableListWidget';
+
 import ViewerWidget from '../widgets/ViewerWidget';
-import EditableList from '../widgets/EditableList';
 import ThreeDToolbar from '../widgets/ThreeDToolbar';
 import VisibilityToolbar from '../widgets/VisibilityToolbar';
 
@@ -85,13 +86,12 @@ export default class CellEditor extends React.Component {
     }
   }
 
-  addRadius(afterIdx) {
+  addRadius(idx) {
     const { data } = this.props;
     const viz = this.props.ui.domain;
     const materialIds = Object.keys(viz.colors || {});
     if (data.value && data.value.length && materialIds.length) {
       const cell = data.value[0];
-      const idx = afterIdx + 1;
       const length = cell.mats.length;
       const pitch = this.props.viewData.cell.pitch.value[0];
 
@@ -111,13 +111,14 @@ export default class CellEditor extends React.Component {
     }
   }
 
-  deleteEntry(idx) {
+  deleteEntry(key) {
     const { data } = this.props;
     if (data.value && data.value.length) {
       const cell = data.value[0];
 
-      cell.mats.splice(idx, 1);
-      cell.radii.splice(idx, 1);
+      // key is index (from the render() method)
+      cell.mats.splice(key, 1);
+      cell.radii.splice(key, 1);
 
       this.props.onChange(data);
     }
