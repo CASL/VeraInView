@@ -31,6 +31,8 @@ export default class StateMapEditor extends React.Component {
     // Extract control maps
     const controlMapIds = Object.keys(assembly).filter((id) => {
       labels[id] = assembly[id].labels;
+      // add blank entry, so user sets all values explicitly.
+      if (labels[id].length) labels[id].unshift('');
       return assembly[id].type === 'control';
     });
 
