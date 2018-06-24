@@ -95,6 +95,8 @@ export default class GridMapWidget extends React.Component {
       this.gridMap.setSymmetry(this.props.state.symmetry);
       this.gridMap.setReplacementMode(this.props.state.replacementMode);
       this.gridMap.setGridSize(this.props.gridSize);
+      // avoid keeping a selected item from another map.
+      this.state.selected = null;
       this.pushChanges();
     }
   }
