@@ -5,6 +5,7 @@ import MapEditor from './MapEditor';
 import AssemblyEditor from './AssemblyEditor';
 import CoreEditor from './CoreEditor';
 import StateMapEditor from './StateMapEditor';
+import StateLabelEditor from './StateLabelEditor';
 import InpHelper from '../utils/InpHelper';
 
 function registerLocalEditors(Simput) {
@@ -69,6 +70,19 @@ function registerLocalEditors(Simput) {
         onChange={onChange || prop.onChange}
       />
     ));
+    Simput.updateWidgetMapping(
+      'StateLabelEditor',
+      (prop, viewData, onChange) => (
+        <StateLabelEditor
+          key={prop.data.id}
+          data={prop.data}
+          ui={prop.ui}
+          viewData={viewData}
+          show={prop.show}
+          onChange={onChange || prop.onChange}
+        />
+      )
+    );
   }
 }
 
