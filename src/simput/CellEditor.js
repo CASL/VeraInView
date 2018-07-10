@@ -141,7 +141,9 @@ export default class CellEditor extends React.Component {
   render() {
     const { data } = this.props;
     const viz = this.props.ui.domain;
-    const materialIds = viz.types.materials || [];
+    let materialIds = viz.types.fuels || [];
+    if (viz.types.materials)
+      materialIds = materialIds.concat(viz.types.materials);
 
     const materialOptions = materialIds.map((id) => {
       const color = toRGB(viz.colors[id]);
@@ -162,7 +164,7 @@ export default class CellEditor extends React.Component {
       {
         key: 'material',
         dataKey: 'material',
-        label: 'Material',
+        label: 'Material / Fuel',
         render: (matId, item) => {
           const color = toRGB(viz.colors[matId]);
           return (
