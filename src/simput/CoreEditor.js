@@ -99,7 +99,8 @@ export default class CoreEditor extends React.Component {
   render() {
     const viz = this.props.ui.domain;
     const vizData = Object.assign({ selected: this.props.viewData.id }, viz);
-    const types = viz.core.types[this.props.viewData.id] || [];
+    const types =
+      (viz.core.types && viz.core.types[this.props.viewData.id]) || [];
     return (
       <div className={style.container}>
         <div className={style.switch}>
