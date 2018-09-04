@@ -62,8 +62,6 @@ export default {
       dragTargetEl: null,
     };
   },
-  computed: {
-  },
   methods: {
     onDragStart(ev, itemKey) {
       // gets the drag handle's containing row div
@@ -105,9 +103,9 @@ export default {
       );
 
       // ignore currently dragging node
-      const siblings = Array
-        .from(this.dragTargetEl.parentNode.childNodes)
-        .filter((node) => node !== this.dragTargetEl);
+      const siblings = Array.from(
+        this.dragTargetEl.parentNode.childNodes
+      ).filter((node) => node !== this.dragTargetEl);
 
       let newIndex = -1;
       for (let i = 0; i < siblings.length; ++i) {
