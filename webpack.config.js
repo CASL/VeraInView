@@ -13,7 +13,7 @@ const paths = {
 module.exports = {
   mode: 'development',
   entry: {
-    'test-widget': paths.entry,
+    'simput-external-vera': paths.entry,
   },
   output: {
     path: paths.output,
