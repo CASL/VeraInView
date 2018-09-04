@@ -1,8 +1,7 @@
 import EditableList from '../EditableList';
 import ViewerWidget from '../ViewerWidget';
 import Rod2DPreview from '../Rod2DPreview';
-// import vtkRodVTKViewer from '../RodVTKViewer';
-// import vtkCell2DViewer from '../Cell2DViewer';
+import vtkRodVTKViewer from '../RodVTKViewer';
 
 import CellDropdown from './CellDropdown';
 import LengthInput from './LengthInput';
@@ -33,8 +32,7 @@ export default {
   data() {
     return {
       help: false,
-      // viewer2d: vtkCell2DViewer.newInstance(),
-      // viewer3d: vtkCellVTKViewer.newInstance(),
+      viewer3d: vtkRodVTKViewer.newInstance(),
     };
   },
   computed: {
