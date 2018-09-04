@@ -103,23 +103,21 @@ function vtkCellVTKViewer(publicAPI, model) {
     model.activeCell = cell.cells[cell.selected];
     model.labels = cell.names;
 
-    if (!model.activeCell || !model.activeCell.length) {
-      return;
-    }
+    if (model.activeCell && model.activeCell.length) {
+      model.actor.setVisibility(true);
+      model.source.clearRadius();
 
-    model.actor.setVisibility(true);
-    model.source.clearRadius();
-
-    const pitch = cell.cellPitch;
-    const { radius, cellFields, RGBPoints } = extractCellSettings(
-      model.activeCell,
-      cell.colors
-    );
-    model.lookupTable.applyColorMap({ RGBPoints });
-    for (let i = 0; i < radius.length; i++) {
-      model.source.addRadius(radius[i], cellFields[i]);
+      const pitch = cell.cellPitch;
+      const { radius, cellFields, RGBPoints } = extractCellSettings(
+        model.activeCell,
+        cell.colors
+      );
+      model.lookupTable.applyColorMap({ RGBPoints });
+      for (let i = 0; i < radius.length; i++) {
+        model.source.addRadius(radius[i], cellFields[i]);
+      }
+      model.sourceCtx.setRadius(0, pitch * 0.5);
     }
-    model.sourceCtx.setRadius(0, pitch * 0.5);
     publicAPI.renderLater();
   }, publicAPI.setData);
 
