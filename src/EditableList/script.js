@@ -58,9 +58,22 @@ export default {
       initialTargetY: 0,
       initialIndex: 0,
       sortIndex: 0,
-      container: null,
       dragTargetEl: null,
     };
+  },
+  computed: {
+    placeHolderPosition() {
+      if (Number.isInteger(this.dragTargetKey)) {
+        return this.sortIndex + Number(this.sortIndex > this.initialIndex);
+      }
+      return null;
+    },
+    placeHolderStyles() {
+      return {
+        height: `${this.dragTargetEl.offsetHeight}px`,
+        width: `${this.dragTargetEl.offsetWidth}px`,
+      };
+    },
   },
   methods: {
     onDragStart(ev, itemKey) {
@@ -74,7 +87,7 @@ export default {
       const itemIndex = this.data.findIndex((item) => item.key === itemKey);
 
       const targetRect = target.getBoundingClientRect();
-      const containerRect = this.container.getBoundingClientRect();
+      const containerRect = this.$refs.container.getBoundingClientRect();
 
       const window = this.getWindow();
       window.addEventListener('mousemove', this.onDragMove);
@@ -95,7 +108,7 @@ export default {
     },
 
     onDragMove(ev) {
-      const containerRect = this.container.getBoundingClientRect();
+      const containerRect = this.$refs.container.getBoundingClientRect();
       const clampedMouseY = clamp(
         containerRect.top,
         containerRect.bottom,
@@ -105,7 +118,7 @@ export default {
       // ignore currently dragging node
       const siblings = Array.from(
         this.dragTargetEl.parentNode.childNodes
-      ).filter((node) => node !== this.dragTargetEl);
+      ).filter((node) => node !== this.dragTargetEl && node.tagName === 'DIV');
 
       let newIndex = -1;
       for (let i = 0; i < siblings.length; ++i) {
@@ -137,7 +150,6 @@ export default {
       window.removeEventListener('mouseup', this.onDragEnd);
 
       this.dragTargetKey = null;
-      this.setState({ dragTargetKey: null });
 
       ev.stopPropagation();
       ev.preventDefault();
@@ -146,7 +158,7 @@ export default {
     },
 
     getWindow() {
-      const doc = (this.container || {}).ownerDocument || document;
+      const doc = (this.$refs.container || {}).ownerDocument || document;
       return doc.defaultView || window;
     },
 
@@ -155,7 +167,7 @@ export default {
       const styles = {};
       if (this.dragTargetKey === item.key) {
         classes.push(this.$style.dragging);
-        Object.assign(rowStyles, {
+        Object.assign(styles, {
           top: `${this.initialTargetY + this.dragOffset}px`,
         });
       }
