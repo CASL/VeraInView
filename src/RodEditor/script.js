@@ -1,5 +1,6 @@
 import EditableList from '../EditableList';
 import ViewerWidget from '../ViewerWidget';
+import Rod2DPreview from '../Rod2DPreview';
 // import vtkRodVTKViewer from '../RodVTKViewer';
 // import vtkCell2DViewer from '../Cell2DViewer';
 
@@ -19,6 +20,7 @@ export default {
   components: {
     EditableList,
     ViewerWidget,
+    Rod2DPreview,
   },
   props: {
     prop: {
@@ -92,6 +94,14 @@ export default {
           },
         },
       ];
+    },
+    activeRod() {
+      return (
+        this.prop.ui.domain.rods[this.prop.viewData.id] || {
+          offset: 0,
+          length: 0,
+        }
+      );
     },
   },
   methods: {

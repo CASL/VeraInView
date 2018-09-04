@@ -5,7 +5,14 @@
     </v-flex>
   </v-layout>
   <v-layout wrap>
-   <v-flex xs12>
+    <v-flex xs12>
+      <rod-2D-preview
+        :stack="items"
+        :offset="activeRod.offset"
+        :totalLength="activeRod.length"
+      />
+    </v-flex>
+    <v-flex xs12>
       <editable-list
         sortable
         :columns="columns"
