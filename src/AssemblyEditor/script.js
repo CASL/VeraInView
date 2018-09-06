@@ -1,5 +1,6 @@
 import MapEditor from '../MapEditor';
 import ViewerWidget from '../ViewerWidget';
+import vtkRodMapVTKViewer from '../RodMapVTKViewer';
 
 // ----------------------------------------------------------------------------
 
@@ -19,6 +20,7 @@ export default {
   },
   data() {
     return {
+      assemblyViewer: vtkRodMapVTKViewer.newInstance(),
       is2D: true,
       help: false,
     };

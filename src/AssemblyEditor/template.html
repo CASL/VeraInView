@@ -24,6 +24,11 @@
         :colors="convertToRGB(viz.colors)"
         @change="$emit('change', arguments[0])"
       />
+      <viewer-widget
+        v-else
+        :viewer="assemblyViewer"
+        :viewerData="viewerData"
+      />
     </v-flex>
   </v-layout>
 </v-container>

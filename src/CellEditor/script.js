@@ -44,7 +44,7 @@ export default {
         {
           selected: this.viewData.id,
         },
-        this.prop.ui.domain,
+        this.prop.ui.domain
       );
     },
     tableData() {
