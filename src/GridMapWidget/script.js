@@ -72,7 +72,8 @@ export default {
       if (this.selected) {
         this.gridMap.setGridEntry(
           idx % this.gridSize,
-          Math.floor(idx / this.gridSize, this.selected)
+          Math.floor(idx / this.gridSize),
+          this.selected
         );
       }
       this.pushChanges();

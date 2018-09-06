@@ -76,7 +76,7 @@
       :key="i"
       :class="activeIds.length && activeIds.indexOf(i) === -1 ? $style.inactiveGridItem : $style.gridItem"
       @click="onClick(i)"
-      @mouseenter="onEnter(i)"
+      @mouseover="onEnter(i)"
       @mouseleave="onLeave(i)"
     >
       <div
