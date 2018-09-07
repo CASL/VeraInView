@@ -2,6 +2,8 @@ import EditableList from '../EditableList';
 import ViewerWidget from '../ViewerWidget';
 import vtkCellVTKViewer from '../CellVTKViewer';
 import vtkCell2DViewer from '../Cell2DViewer';
+import VisibilityToolbar from '../VisibilityToolbar';
+import ThreeDToolbar from '../ThreeDToolbar';
 
 import MaterialDropdown from './MaterialDropdown';
 import RadiusInput from './RadiusInput';
@@ -22,6 +24,8 @@ export default {
   components: {
     EditableList,
     ViewerWidget,
+    VisibilityToolbar,
+    ThreeDToolbar,
   },
   props: {
     prop: {
@@ -61,7 +65,10 @@ export default {
     },
     columns() {
       const viz = this.prop.ui.domain;
-      const materialIds = [].concat(viz.types.fuels || [], viz.types.materials || []);
+      const materialIds = [].concat(
+        viz.types.fuels || [],
+        viz.types.materials || []
+      );
       return [
         {
           key: 'material',
@@ -153,7 +160,7 @@ export default {
           cell.radii[idx] = Math.min(cell.radii[idx] + 1, pitch / 2);
         } else {
           // set radius to between before and after cell
-          cell.radii[idx] += (cell.radii[idx] - cell.radii[idx -1]) / 2;
+          cell.radii[idx] += (cell.radii[idx] - cell.radii[idx - 1]) / 2;
         }
         this.$emit('change', data);
       }

@@ -9,13 +9,23 @@
       <viewer-widget
         :viewer="viewer2d"
         :viewerData="viewerData"
-      />
+      >
+         <div :class="$style.imageOverlayText">
+           Contact radius: {{ viewerData.cellPitch }}
+         </div>
+      </viewer-widget>
     </v-flex>
     <v-flex xs6>
       <viewer-widget
         :viewer="viewer3d"
         :viewerData="viewerData"
-      />
+      >
+        <visibility-toolbar
+          :viewer="viewer3d"
+          type="material"
+        />
+        <three-d-toolbar :viewer="viewer3d" />
+      </viewer-widget>
     </v-flex>
     <v-flex xs12>
       <editable-list

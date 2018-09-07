@@ -9,3 +9,11 @@
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+
+.imageOverlayText {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: black;
+  z-index: 20;
+}
