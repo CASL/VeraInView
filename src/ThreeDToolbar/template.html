@@ -7,7 +7,7 @@
     step="1"
     :value="zSlider"
     :class="$style.slider"
-    @change="setSliderZScale(Number($event.target.value))"
+    @input="setSliderZScale(Number($event.target.value))"
   />
   <div
     :class="$style.resetCamera"

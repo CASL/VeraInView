@@ -2,6 +2,7 @@ import EditableList from '../EditableList';
 import ViewerWidget from '../ViewerWidget';
 import Rod2DPreview from '../Rod2DPreview';
 import vtkRodVTKViewer from '../RodVTKViewer';
+import ThreeDToolbar from '../ThreeDToolbar';
 
 import CellDropdown from './CellDropdown';
 import LengthInput from './LengthInput';
@@ -20,6 +21,7 @@ export default {
     EditableList,
     ViewerWidget,
     Rod2DPreview,
+    ThreeDToolbar,
   },
   props: {
     prop: {
