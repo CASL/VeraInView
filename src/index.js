@@ -2,6 +2,7 @@ import TestProperty from './TestProperty';
 import CellEditor from './CellEditor';
 import RodEditor from './RodEditor';
 import AssemblyEditor from './AssemblyEditor';
+import CoreEditor from './CoreEditor';
 
 function registerWidgets(Simput) {
   if (Simput.registerWidget) {
@@ -9,6 +10,7 @@ function registerWidgets(Simput) {
     Simput.registerWidget('CellEditor', CellEditor);
     Simput.registerWidget('RodEditor', RodEditor);
     Simput.registerWidget('AssemblyEditor', AssemblyEditor);
+    Simput.registerWidget('CoreEditor', CoreEditor);
   }
 }
 
