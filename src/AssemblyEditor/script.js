@@ -1,6 +1,8 @@
 import MapEditor from '../MapEditor';
 import ViewerWidget from '../ViewerWidget';
 import vtkRodMapVTKViewer from '../RodMapVTKViewer';
+import VisibilityToolbar from '../VisibilityToolbar';
+import ThreeDToolbar from '../ThreeDToolbar';
 
 // ----------------------------------------------------------------------------
 
@@ -9,6 +11,8 @@ export default {
   components: {
     MapEditor,
     ViewerWidget,
+    VisibilityToolbar,
+    ThreeDToolbar,
   },
   props: {
     prop: {

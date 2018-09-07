@@ -28,7 +28,25 @@
         v-else
         :viewer="assemblyViewer"
         :viewerData="viewerData"
-      />
+      >
+        <div :class="$style.line">
+          <visibility-toolbar
+            :viewer="assemblyViewer"
+            type="material"
+            title="Materials"
+          />
+          <visibility-toolbar
+            :viewer="assemblyViewer"
+            type="cell"
+            title="Cells"
+          />
+        </div>
+        <three-d-toolbar
+          :viewer="assemblyViewer"
+          :zRange="[1, 0.01]"
+          :zScaling="assemblyViewer.getZScale()"
+        />
+      </viewer-widget>
     </v-flex>
   </v-layout>
 </v-container>
