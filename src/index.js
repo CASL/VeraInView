@@ -4,6 +4,7 @@ import RodEditor from './RodEditor';
 import AssemblyEditor from './AssemblyEditor';
 import CoreEditor from './CoreEditor';
 import StateLabelEditor from './StateLabelEditor';
+import StateMapEditor from './StateMapEditor';
 
 function registerWidgets(Simput) {
   if (Simput.registerWidget) {
@@ -13,6 +14,7 @@ function registerWidgets(Simput) {
     Simput.registerWidget('AssemblyEditor', AssemblyEditor);
     Simput.registerWidget('CoreEditor', CoreEditor);
     Simput.registerWidget('StateLabelEditor', StateLabelEditor);
+    Simput.registerWidget('StateMapEditor', StateMapEditor);
   }
 }
 
