@@ -21,7 +21,7 @@
     ],
     "devDependencies": {
         "vtk.js": "6.2.7",
-        "markdown-pdf": "8.1.1",
+        "markdown-pdf": "9.0.0",
         "@doe-casl/verain-view": "1.0.1",
         "antd": "2.13.11",
         "paraviewweb": "^3.2.0",
